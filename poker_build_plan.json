@@ -1,0 +1,653 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Pre-production",
+      "type": "epic",
+      "phase": "Pre-production",
+      "expanded": true,
+      "children": [
+        {
+          "id": 10,
+          "name": "Game Design Document - Core Game",
+          "team": "Design",
+          "assignee": "QuynhNH",
+          "priority": "High",
+          "status": "Done",
+          "start": "03/03/2026",
+          "end": "03/03/2026",
+          "pct": 100,
+          "deps": [],
+          "notes": "Tài liệu thiết kế game tổng thể"
+        },
+        {
+          "id": 11,
+          "name": "Resource & Timeline Planning",
+          "team": "OP",
+          "assignee": "NienND",
+          "priority": "High",
+          "status": "To Do",
+          "start": "03/03/2026",
+          "end": "06/03/2026",
+          "pct": 0,
+          "deps": [],
+          "notes": "Lập kế hoạch nguồn lực"
+        },
+        {
+          "id": 12,
+          "name": "UI/UX Wireframe - Lobby",
+          "team": "Design",
+          "assignee": "LocPT",
+          "priority": "High",
+          "status": "To Do",
+          "start": "07/03/2026",
+          "end": "12/03/2026",
+          "pct": 0,
+          "deps": [
+            10
+          ],
+          "notes": "Wireframe lobby"
+        },
+        {
+          "id": 13,
+          "name": "UI/UX Wireframe - Gameplay",
+          "team": "Design",
+          "assignee": "QuynhNH",
+          "priority": "High",
+          "status": "To Do",
+          "start": "07/03/2026",
+          "end": "12/03/2026",
+          "pct": 0,
+          "deps": [
+            10
+          ],
+          "notes": "Wireframe gameplay"
+        },
+        {
+          "id": 14,
+          "name": "Art Style Guide",
+          "team": "Art",
+          "assignee": "HòaGTT",
+          "priority": "High",
+          "status": "To Do",
+          "start": "07/03/2026",
+          "end": "12/03/2026",
+          "pct": 0,
+          "deps": [
+            10
+          ],
+          "notes": "Art direction"
+        },
+        {
+          "id": 15,
+          "name": "Technical Architecture",
+          "team": "Dev",
+          "assignee": "CongNN",
+          "priority": "High",
+          "status": "To Do",
+          "start": "07/03/2026",
+          "end": "11/03/2026",
+          "pct": 0,
+          "deps": [
+            10
+          ],
+          "notes": "Kiến trúc kỹ thuật"
+        },
+        {
+          "id": 16,
+          "name": "Prototype - Core Gameplay",
+          "team": "Dev",
+          "assignee": "HuongBP",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "12/03/2026",
+          "end": "18/03/2026",
+          "pct": 0,
+          "deps": [
+            15
+          ],
+          "notes": "Prototype logic"
+        },
+        {
+          "id": 17,
+          "name": "QA Test Plan",
+          "team": "QC",
+          "assignee": "NhanNT3",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "09/03/2026",
+          "end": "13/03/2026",
+          "pct": 0,
+          "deps": [
+            10
+          ],
+          "notes": "Kế hoạch test"
+        }
+      ],
+      "start": "03/03/2026",
+      "end": "18/03/2026"
+    },
+    {
+      "id": 2,
+      "name": "Production",
+      "type": "epic",
+      "phase": "Production",
+      "expanded": true,
+      "children": [
+        {
+          "id": 20,
+          "name": "Card Design (52 lá bài)",
+          "team": "Art",
+          "assignee": "HòaGTT",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "27/03/2026",
+          "pct": 0,
+          "deps": [
+            14
+          ],
+          "notes": "52 lá bài + mặt sau"
+        },
+        {
+          "id": 21,
+          "name": "Table & Background Art",
+          "team": "Art",
+          "assignee": "TuND4",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "25/03/2026",
+          "pct": 0,
+          "deps": [
+            14
+          ],
+          "notes": "Bàn chơi, background"
+        },
+        {
+          "id": 22,
+          "name": "Character/Avatar Design",
+          "team": "Art",
+          "assignee": "NgocLA",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "27/03/2026",
+          "pct": 0,
+          "deps": [
+            14
+          ],
+          "notes": "Avatar, dealer"
+        },
+        {
+          "id": 23,
+          "name": "Chip & Token Assets",
+          "team": "Art",
+          "assignee": "TuND4",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "26/03/2026",
+          "end": "31/03/2026",
+          "pct": 0,
+          "deps": [
+            21
+          ],
+          "notes": "Chip, token, icon"
+        },
+        {
+          "id": 24,
+          "name": "Design Bàn chơi",
+          "team": "Design",
+          "assignee": "QuynhNH",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "24/03/2026",
+          "pct": 0,
+          "deps": [
+            12
+          ],
+          "notes": "Design bàn poker"
+        },
+        {
+          "id": 25,
+          "name": "UI Design - Lobby & Menu",
+          "team": "Design",
+          "assignee": "LocPT",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "25/03/2026",
+          "pct": 0,
+          "deps": [
+            12
+          ],
+          "notes": "UI lobby, menu"
+        },
+        {
+          "id": 26,
+          "name": "UI Design - Gameplay Screen",
+          "team": "Design",
+          "assignee": "QuynhNH",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "25/03/2026",
+          "pct": 0,
+          "deps": [
+            13
+          ],
+          "notes": "UI gameplay"
+        },
+        {
+          "id": 27,
+          "name": "UI Design - Shop & Profile",
+          "team": "Design",
+          "assignee": "BinhNT",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "26/03/2026",
+          "end": "02/04/2026",
+          "pct": 0,
+          "deps": [
+            25
+          ],
+          "notes": "UI shop, profile"
+        },
+        {
+          "id": 28,
+          "name": "UI Animation Specs",
+          "team": "Design",
+          "assignee": "LocPT",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "26/03/2026",
+          "end": "31/03/2026",
+          "pct": 0,
+          "deps": [
+            25,
+            26
+          ],
+          "notes": "Animation specs"
+        },
+        {
+          "id": 30,
+          "name": "Core Engine - Card Logic",
+          "team": "Dev",
+          "assignee": "CongNN",
+          "priority": "High",
+          "status": "To Do",
+          "start": "19/03/2026",
+          "end": "28/03/2026",
+          "pct": 0,
+          "deps": [
+            15,
+            16
+          ],
+          "notes": "Card engine"
+        },
+        {
+          "id": 31,
+          "name": "Betting System",
+          "team": "Dev",
+          "assignee": "HuongBP",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "27/03/2026",
+          "pct": 0,
+          "deps": [
+            15
+          ],
+          "notes": "Betting, pot"
+        },
+        {
+          "id": 32,
+          "name": "Multiplayer/Networking",
+          "team": "Dev",
+          "assignee": "DienDQ",
+          "priority": "High",
+          "status": "To Do",
+          "start": "20/03/2026",
+          "end": "03/04/2026",
+          "pct": 0,
+          "deps": [
+            15
+          ],
+          "notes": "Multiplayer, rooms"
+        },
+        {
+          "id": 33,
+          "name": "UI Implementation - Lobby",
+          "team": "Dev",
+          "assignee": "CongNT7",
+          "priority": "High",
+          "status": "To Do",
+          "start": "26/03/2026",
+          "end": "03/04/2026",
+          "pct": 0,
+          "deps": [
+            25
+          ],
+          "notes": "Code UI lobby"
+        },
+        {
+          "id": 34,
+          "name": "UI Implementation - Gameplay",
+          "team": "Dev",
+          "assignee": "PhucNN",
+          "priority": "High",
+          "status": "To Do",
+          "start": "26/03/2026",
+          "end": "03/04/2026",
+          "pct": 0,
+          "deps": [
+            26
+          ],
+          "notes": "Code UI gameplay"
+        },
+        {
+          "id": 35,
+          "name": "Backend API & Database",
+          "team": "Dev",
+          "assignee": "SonBNT",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "31/03/2026",
+          "pct": 0,
+          "deps": [
+            15
+          ],
+          "notes": "API, DB"
+        },
+        {
+          "id": 36,
+          "name": "AI Bot Logic",
+          "team": "Dev",
+          "assignee": "CongNN",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "29/03/2026",
+          "end": "08/04/2026",
+          "pct": 0,
+          "deps": [
+            30
+          ],
+          "notes": "AI bot"
+        },
+        {
+          "id": 37,
+          "name": "Shop & In-app Purchase",
+          "team": "Dev",
+          "assignee": "HuongBP",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "01/04/2026",
+          "end": "11/04/2026",
+          "pct": 0,
+          "deps": [
+            31,
+            35
+          ],
+          "notes": "Shop, IAP"
+        },
+        {
+          "id": 40,
+          "name": "Sound Effects (SFX)",
+          "team": "Multimedia",
+          "assignee": "HungVM2",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "31/03/2026",
+          "pct": 0,
+          "deps": [],
+          "notes": "SFX"
+        },
+        {
+          "id": 41,
+          "name": "Background Music",
+          "team": "Multimedia",
+          "assignee": "HungVM2",
+          "priority": "Low",
+          "status": "To Do",
+          "start": "01/04/2026",
+          "end": "07/04/2026",
+          "pct": 0,
+          "deps": [
+            40
+          ],
+          "notes": "BGM"
+        },
+        {
+          "id": 42,
+          "name": "Card Animation & VFX",
+          "team": "Multimedia",
+          "assignee": "HungVM2",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "01/04/2026",
+          "end": "11/04/2026",
+          "pct": 0,
+          "deps": [
+            20,
+            40
+          ],
+          "notes": "Animation, VFX"
+        },
+        {
+          "id": 45,
+          "name": "Sprint Review & Tracking",
+          "team": "PM",
+          "assignee": "ToanNM",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "14/04/2026",
+          "pct": 0,
+          "deps": [],
+          "notes": "Weekly review"
+        },
+        {
+          "id": 46,
+          "name": "Build & Deployment Setup",
+          "team": "OP",
+          "assignee": "NienND",
+          "priority": "High",
+          "status": "To Do",
+          "start": "18/03/2026",
+          "end": "24/03/2026",
+          "pct": 0,
+          "deps": [
+            15
+          ],
+          "notes": "CI/CD"
+        }
+      ],
+      "start": "18/03/2026",
+      "end": "14/04/2026"
+    },
+    {
+      "id": 3,
+      "name": "Testing & QA",
+      "type": "epic",
+      "phase": "Testing & QA",
+      "expanded": true,
+      "children": [
+        {
+          "id": 50,
+          "name": "Functional Testing",
+          "team": "QC",
+          "assignee": "NhanNT3",
+          "priority": "High",
+          "status": "To Do",
+          "start": "15/04/2026",
+          "end": "21/04/2026",
+          "pct": 0,
+          "deps": [
+            17
+          ],
+          "notes": "Test core gameplay"
+        },
+        {
+          "id": 51,
+          "name": "Integration Testing",
+          "team": "Dev",
+          "assignee": "DienDQ",
+          "priority": "High",
+          "status": "To Do",
+          "start": "15/04/2026",
+          "end": "19/04/2026",
+          "pct": 0,
+          "deps": [
+            32,
+            35
+          ],
+          "notes": "Integration test"
+        },
+        {
+          "id": 52,
+          "name": "Performance Testing",
+          "team": "Dev",
+          "assignee": "SonBNT",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "20/04/2026",
+          "end": "24/04/2026",
+          "pct": 0,
+          "deps": [
+            51
+          ],
+          "notes": "Load test"
+        },
+        {
+          "id": 53,
+          "name": "Bug Fixing Sprint",
+          "team": "Dev",
+          "assignee": "CongNN",
+          "priority": "High",
+          "status": "To Do",
+          "start": "22/04/2026",
+          "end": "28/04/2026",
+          "pct": 0,
+          "deps": [
+            50,
+            51
+          ],
+          "notes": "Fix bugs"
+        },
+        {
+          "id": 54,
+          "name": "UI/UX Polish",
+          "team": "Design",
+          "assignee": "LocPT",
+          "priority": "Medium",
+          "status": "To Do",
+          "start": "22/04/2026",
+          "end": "27/04/2026",
+          "pct": 0,
+          "deps": [
+            50
+          ],
+          "notes": "Polish UI"
+        },
+        {
+          "id": 55,
+          "name": "Art Asset Polish",
+          "team": "Art",
+          "assignee": "HòaGTT",
+          "priority": "Low",
+          "status": "To Do",
+          "start": "22/04/2026",
+          "end": "27/04/2026",
+          "pct": 0,
+          "deps": [
+            50
+          ],
+          "notes": "Polish art"
+        },
+        {
+          "id": 56,
+          "name": "Final Build & Release",
+          "team": "OP",
+          "assignee": "NienND",
+          "priority": "High",
+          "status": "To Do",
+          "start": "29/04/2026",
+          "end": "01/05/2026",
+          "pct": 0,
+          "deps": [
+            53
+          ],
+          "notes": "Final build"
+        },
+        {
+          "id": 57,
+          "name": "Release Sign-off",
+          "team": "PM",
+          "assignee": "ToanNM",
+          "priority": "High",
+          "status": "To Do",
+          "start": "02/05/2026",
+          "end": "02/05/2026",
+          "pct": 0,
+          "deps": [
+            56
+          ],
+          "notes": "Sign-off"
+        }
+      ],
+      "start": "15/04/2026",
+      "end": "02/05/2026"
+    }
+  ],
+  "members": {
+    "Art": [
+      "HòaGTT",
+      "TuND4",
+      "NgocLA"
+    ],
+    "Dev": [
+      "CongNN",
+      "HuongBP",
+      "DienDQ",
+      "CongNT7",
+      "PhucNN",
+      "SonBNT"
+    ],
+    "Design": [
+      "LocPT",
+      "QuynhNH",
+      "BinhNT"
+    ],
+    "Multimedia": [
+      "HungVM"
+    ],
+    "PM": [
+      "ToanNM"
+    ],
+    "OP": [
+      "NienND"
+    ],
+    "QC": [
+      "NhanNT3"
+    ]
+  },
+  "teamColors": {
+    "Art": "#9b59b6",
+    "Dev": "#2980b9",
+    "Design": "#e67e22",
+    "Multimedia": "#1abc9c",
+    "PM": "#34495e",
+    "OP": "#7f8c8d",
+    "QC": "#c0392b"
+  },
+  "phaseColors": {
+    "Pre-production": "#3498db",
+    "Production": "#27ae60",
+    "Testing & QA": "#e74c3c"
+  },
+  "version": 1,
+  "savedAt": "2026-03-03T09:19:00.206Z"
+}
