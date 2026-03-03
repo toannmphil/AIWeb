@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poker Texas Build Plan</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--text:#e2e8f0;--text2:#94a3b8;--primary:#3b82f6;--primary-hover:#2563eb;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;--pink:#ec4899}
@@ -166,6 +167,8 @@ function d(s){const p=s.split('/');return new Date(+p[2],+p[1]-1,+p[0])}
 function fmt(dt){if(!dt)return'';return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`}
 function addDays(dt,n){return new Date(dt.getTime()+n*DAY_MS)}
 function diffDays(a,b){return Math.round((b-a)/DAY_MS)}
+function workingDays(a,b){let count=0;let cur=new Date(a);while(cur<=b){const day=cur.getDay();if(day!==0&&day!==6)count++;cur=new Date(cur.getTime()+DAY_MS)}return Math.max(count-1,0)}
+function addWorkingDays(dt,n){let cur=new Date(dt);let added=0;while(added<n){cur=new Date(cur.getTime()+DAY_MS);const day=cur.getDay();if(day!==0&&day!==6)added++}return cur}
 function weekOfDate(dt){return Math.floor(diffDays(PROJECT_START,dt)/7)}
 // Skip weekend: Sat→Mon, Sun→Mon. Returns {date, skipped}
 function skipWeekend(dt){
@@ -545,7 +548,7 @@ function App(){
       const task=findTask(t,eb.id);
       if(!task)return;
       // Copy fields from buffer
-      Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Done'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||'',domain:eb.domain||''});
+      Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Done'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||''});
       // Handle phase change (move task between epics)
       const currentEpic=t.find(ep=>ep.children&&ep.children.some(c=>c.id===eb.id));
       if(currentEpic&&currentEpic.phase!==eb.phase){
@@ -563,7 +566,7 @@ function App(){
     update(t=>{
       const epic=t.find(ep=>ep.phase===data.phase);
       if(epic){
-        const newTask={id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||'',domain:data.domain||''};
+        const newTask={id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||''};
         epic.children.push(newTask);
       }
     });
@@ -580,49 +583,123 @@ function App(){
     }
   }
 
-  // Export Excel
+  // Export Excel with ExcelJS (styled)
   function exportExcel(){
+    const hexToArgb=hex=>'FF'+hex.replace('#','');
+    const STATUS_COLORS={'To Do':{bg:'FFE8E8E8',fg:'FF666666'},'In Progress':{bg:'FFDBEAFE',fg:'FF2563EB'},'Done':{bg:'FFDCFCE7',fg:'FF16A34A'},'Blocked':{bg:'FFFEE2E2',fg:'FFDC2626'}};
+    const PRIORITY_COLORS={'High':{bg:'FFFEE2E2',fg:'FFDC2626'},'Medium':{bg:'FFFEF3C7',fg:'FFD97706'},'Low':{bg:'FFDCFCE7',fg:'FF16A34A'}};
+    const thinBorder={style:'thin',color:{argb:'FFE2E8F0'}};
+    const wb=new ExcelJS.Workbook();
+    wb.creator='Poker Texas Build Plan';
+    const ws=wb.addWorksheet('Task Assignment',{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=[
+      {header:'ID',key:'id',width:10},
+      {header:'Phase',key:'phase',width:18},
+      {header:'Task',key:'task',width:40},
+      {header:'Team',key:'team',width:15},
+      {header:'Assignee',key:'assignee',width:15},
+      {header:'Priority',key:'priority',width:12},
+      {header:'Status',key:'status',width:14},
+      {header:'Start Date',key:'start',width:14},
+      {header:'End Date',key:'end',width:14},
+      {header:'% Complete',key:'pct',width:12},
+      {header:'Dependencies',key:'deps',width:18},
+      {header:'Notes',key:'notes',width:35}
+    ];
+    // Style header
+    const hdr=ws.getRow(1);
+    hdr.font={bold:true,color:{argb:'FFFFFFFF'},size:11};
+    hdr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e293b'}};
+    hdr.alignment={vertical:'middle',horizontal:'center'};
+    hdr.height=28;
+    hdr.eachCell(cell=>{cell.border={top:{style:'thin',color:{argb:'FF475569'}},bottom:{style:'medium',color:{argb:'FF475569'}},left:{style:'thin',color:{argb:'FF475569'}},right:{style:'thin',color:{argb:'FF475569'}}}});
+    // Data rows
     const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
-    const data=all.map(t=>{
+    all.forEach((t,idx)=>{
       const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
-      return{
-        ID:`T${String(t.id).padStart(3,'0')}`,
-        Phase:parent?parent.phase:'',
-        Task:t.name,
-        Team:t.team,
-        Assignee:t.assignee,
-        Priority:t.priority,
-        Status:t.status,
-        Domain:t.domain||'',
-        'Start Date':t.start,
-        'End Date':t.end,
-        '% Complete':t.pct/100,
-        Dependencies:(t.deps||[]).map(x=>`T${String(x).padStart(3,'0')}`).join(','),
-        Notes:t.notes||''
-      };
+      const row=ws.addRow({
+        id:`T${String(t.id).padStart(3,'0')}`,
+        phase:parent?parent.phase:'',
+        task:t.name,
+        team:t.team,
+        assignee:t.assignee,
+        priority:t.priority,
+        status:t.status,
+        start:t.start,
+        end:t.end,
+        pct:t.pct/100,
+        deps:(t.deps||[]).map(x=>`T${String(x).padStart(3,'0')}`).join(', '),
+        notes:t.notes||''
+      });
+      // Alternating row bg
+      const rowBg=idx%2===0?'FFFFFFFF':'FFF8FAFC';
+      row.eachCell((cell,col)=>{
+        cell.border={bottom:thinBorder,left:thinBorder,right:thinBorder};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};
+        cell.alignment={vertical:'middle',wrapText:col===12};
+      });
+      // Phase color
+      if(parent&&PHASE_COLORS[parent.phase]){
+        const c=row.getCell('phase');
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(PHASE_COLORS[parent.phase])}};
+        c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};
+        c.alignment={horizontal:'center',vertical:'middle'};
+      }
+      // Team color
+      if(TEAM_COLORS[t.team]){
+        const c=row.getCell('team');
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(TEAM_COLORS[t.team])}};
+        c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};
+        c.alignment={horizontal:'center',vertical:'middle'};
+      }
+      // Priority color
+      const pc=PRIORITY_COLORS[t.priority];
+      if(pc){const c=row.getCell('priority');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc.bg}};c.font={color:{argb:pc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      // Status color
+      const sc=STATUS_COLORS[t.status];
+      if(sc){const c=row.getCell('status');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:sc.bg}};c.font={color:{argb:sc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      // Pct format
+      const pctCell=row.getCell('pct');
+      pctCell.numFmt='0%';
+      pctCell.alignment={horizontal:'center',vertical:'middle'};
     });
-    const ws=XLSX.utils.json_to_sheet(data);
-    ws['!cols']=[{wch:8},{wch:16},{wch:35},{wch:14},{wch:12},{wch:10},{wch:13},{wch:14},{wch:13},{wch:13},{wch:11},{wch:16},{wch:30}];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Task Assignment');
-    XLSX.writeFile(wb,'Poker_Build_Plan.xlsx');
-    showToast('Exported to Excel!');
+    // Download
+    wb.xlsx.writeBuffer().then(buf=>{
+      const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const link=document.createElement('a');
+      link.href=URL.createObjectURL(blob);
+      link.download='Poker_Build_Plan.xlsx';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('Exported to Excel!');
+    });
   }
 
-  // Export Jira CSV
+  // Export Jira CSV (correct Jira import format)
   function exportJira(){
     const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
-    let csv='Summary,Issue Type,Priority,Epic Link,Labels,Description\n';
+    const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function csvF(v){if(v===null||v===undefined)return'""';const s=String(v);return'"'+s.replace(/"/g,'""')+'"'}
+    function toJiraDate(dateStr){if(!dateStr)return'';const dt=d(dateStr);return`${String(dt.getDate()).padStart(2,'0')}/${MONTHS[dt.getMonth()]}/${String(dt.getFullYear()).slice(2)}`}
+    const headers=['Summary','Issue Type','Priority','Epic Name','Assignee','Labels','Description','Due date','Original Estimate'];
+    let csv=headers.join(',')+'\n';
     all.forEach(t=>{
       const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
       const epicName=parent?parent.name:'';
-      csv+=`"${t.name}","Task","${t.priority}","${epicName}","${t.team}","${(t.notes||'').replace(/"/g,'""')}"\n`;
+      const dueDate=toJiraDate(t.end);
+      const wd=t.start&&t.end?workingDays(d(t.start),d(t.end)):0;
+      const estimate=wd>0?String(wd*8*3600):'';
+      let desc=(t.notes||'');
+      if(t.start)desc+=(desc?'\n':'')+'Start: '+t.start;
+      if(t.deps&&t.deps.length>0)desc+='\nDeps: '+t.deps.map(x=>'T'+String(x).padStart(3,'0')).join(', ');
+      csv+=[csvF(t.name),csvF('Task'),csvF(t.priority),csvF(epicName),csvF(t.assignee||''),csvF(t.team),csvF(desc),csvF(dueDate),csvF(estimate)].join(',')+'\n';
     });
-    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
     const link=document.createElement('a');
     link.href=URL.createObjectURL(blob);
     link.download='Jira_Import_PTB.csv';
     link.click();
+    URL.revokeObjectURL(link.href);
     showToast('Exported Jira CSV!');
   }
 
@@ -638,30 +715,115 @@ function App(){
     showToast('💾 Exported backup file!');
   }
 
-  // Import from .json file
-  function loadData(){
+  // Import helpers
+  function detectHeaders(headers){
+    const find=keywords=>{for(const h of headers){const l=String(h).toLowerCase().trim();if(keywords.some(k=>l===k||l.includes(k)))return h}return null};
+    return{id:find(['id']),phase:find(['phase','epic']),task:find(['task','summary','task name','name']),team:find(['team','label']),assignee:find(['assignee','assigned']),priority:find(['priority','pri']),status:find(['status','state']),start:find(['start date','start','begin']),end:find(['end date','end','due date','due']),pct:find(['% complete','complete','progress','pct']),deps:find(['dependencies','deps','depends']),notes:find(['notes','description','comment'])};
+  }
+  function normalizeDate(val){
+    if(!val)return'';const str=String(val).trim();
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(str))return str;
+    if(typeof val==='number'||/^\d{5}$/.test(str)){const num=typeof val==='number'?val:parseInt(str);const dt=new Date((num-25569)*86400000);return fmt(dt)}
+    const iso=str.match(/^(\d{4})-(\d{2})-(\d{2})/);if(iso)return`${iso[3]}/${iso[2]}/${iso[1]}`;
+    const dt2=new Date(str);if(!isNaN(dt2.getTime()))return fmt(dt2);
+    return'';
+  }
+  function normalizePct(val){
+    if(val===null||val===undefined||val==='')return 0;
+    const num=typeof val==='number'?val:parseFloat(String(val).replace('%',''));
+    if(isNaN(num))return 0;
+    if(num>0&&num<=1)return Math.round(num*100);
+    return Math.max(0,Math.min(100,Math.round(num)));
+  }
+  function normalizePriority(val){const s=String(val).toLowerCase().trim();if(s.includes('high')||s==='h')return'High';if(s.includes('low')||s==='l')return'Low';return'Medium'}
+  function normalizeStatus(val){const s=String(val).toLowerCase().trim();if(s.includes('progress')||s.includes('doing'))return'In Progress';if(s.includes('done')||s.includes('complete'))return'Done';if(s.includes('block'))return'Blocked';return'To Do'}
+  function normalizeTeam(val){
+    const str=String(val).trim();const teams=Object.keys(members);
+    const exact=teams.find(t=>t.toLowerCase()===str.toLowerCase());if(exact)return exact;
+    const partial=teams.find(t=>str.toLowerCase().includes(t.toLowerCase()));return partial||str;
+  }
+
+  // Import Excel file
+  function importExcelFile(file){
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=new Uint8Array(ev.target.result);
+        const workbook=XLSX.read(data,{type:'array'});
+        const sheet=workbook.Sheets[workbook.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+        if(rows.length===0){showToast('Excel file is empty');return}
+        const hm=detectHeaders(Object.keys(rows[0]));
+        if(!hm.task){showToast('Error: Could not find Task/Summary column');return}
+        const idMap={};
+        const imported=[];
+        rows.forEach(row=>{
+          const taskName=row[hm.task];if(!taskName||!String(taskName).trim())return;
+          const newId=genId();
+          const oldId=row[hm.id]||'';if(oldId)idMap[String(oldId).trim()]=newId;
+          imported.push({
+            id:newId,name:String(taskName).trim(),
+            team:normalizeTeam(row[hm.team]||''),
+            assignee:String(row[hm.assignee]||'').trim(),
+            priority:normalizePriority(row[hm.priority]||'Medium'),
+            status:normalizeStatus(row[hm.status]||'To Do'),
+            start:normalizeDate(row[hm.start]||''),
+            end:normalizeDate(row[hm.end]||''),
+            pct:normalizePct(row[hm.pct]),
+            deps:[],notes:String(row[hm.notes]||'').trim(),
+            _phase:String(row[hm.phase]||'Production').trim(),
+            _depsRaw:String(row[hm.deps]||'').trim()
+          });
+        });
+        // Resolve deps
+        imported.forEach(t=>{
+          if(t._depsRaw){t.deps=t._depsRaw.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>idMap[s]||null).filter(Boolean)}
+          delete t._depsRaw;
+        });
+        // Group by phase
+        const groups={};
+        imported.forEach(t=>{const p=t._phase;if(!groups[p])groups[p]=[];groups[p].push(t);delete t._phase});
+        const newTasks=Object.entries(groups).map(([phase,children])=>({id:genId(),name:phase,type:'epic',phase,expanded:true,children}));
+        if(!confirm(`Import ${imported.length} tasks from Excel?\nSẽ thay thế toàn bộ tasks hiện tại.`))return;
+        initNextId(newTasks);autoSchedule(newTasks);setTasks(newTasks);
+        // Add new phases/teams if needed
+        const np={};Object.keys(groups).forEach(p=>{if(!phaseColors[p])np[p]=PALETTE[Object.keys(groups).indexOf(p)%PALETTE.length]});
+        if(Object.keys(np).length>0)setPhaseColors(prev=>({...prev,...np}));
+        const nt={};imported.forEach(t=>{if(t.team&&!teamColors[t.team]&&!nt[t.team])nt[t.team]=PALETTE[Object.keys(nt).length%PALETTE.length]});
+        if(Object.keys(nt).length>0)setTeamColors(prev=>({...prev,...nt}));
+        showToast(`Imported ${imported.length} tasks from Excel!`);
+      }catch(err){console.error(err);showToast('Error reading Excel: '+err.message)}
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // Import from JSON or Excel
+  function importData(){
     const input=document.createElement('input');
     input.type='file';
-    input.accept='.json';
+    input.accept='.json,.xlsx,.xls';
     input.onchange=e=>{
-      const file=e.target.files[0];
-      if(!file)return;
-      const reader=new FileReader();
-      reader.onload=ev=>{
-        try{
-          const data=JSON.parse(ev.target.result);
-          if(Array.isArray(data)){
-            initNextId(data);autoSchedule(data);setTasks(data);
-          } else {
-            if(data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
-            if(data.members)setMembers(data.members);
-            if(data.teamColors)setTeamColors(data.teamColors);
-            if(data.phaseColors)setPhaseColors(data.phaseColors);
-          }
-          showToast('📂 Loaded from file!');
-        }catch(err){showToast('Error: invalid file')}
-      };
-      reader.readAsText(file);
+      const file=e.target.files[0];if(!file)return;
+      const ext=file.name.split('.').pop().toLowerCase();
+      if(ext==='json'){
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          try{
+            const data=JSON.parse(ev.target.result);
+            if(Array.isArray(data)){initNextId(data);autoSchedule(data);setTasks(data)}
+            else{
+              if(data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+              if(data.members)setMembers(data.members);
+              if(data.teamColors)setTeamColors(data.teamColors);
+              if(data.phaseColors)setPhaseColors(data.phaseColors);
+            }
+            showToast('Loaded from JSON!');
+          }catch(err){showToast('Error: invalid JSON file')}
+        };
+        reader.readAsText(file);
+      }else if(ext==='xlsx'||ext==='xls'){
+        importExcelFile(file);
+      }else{showToast('Unsupported file type. Use .json or .xlsx')}
     };
     input.click();
   }
@@ -702,7 +864,7 @@ function App(){
             <div className={`view-tab ${view==='board'?'active':''}`} onClick={()=>setView('board')}>📋 Board</div>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={()=>setShowAdmin(true)}>⚙ Admin</button>
-          <button className="btn btn-ghost btn-sm" onClick={loadData}>📂 Import</button>
+          <button className="btn btn-ghost btn-sm" onClick={importData}>📂 Import</button>
           <button className="btn btn-ghost btn-sm" onClick={saveData}>💾 Export</button>
           <button className="btn btn-ghost btn-sm" onClick={exportExcel}>📗 Excel</button>
           <button className="btn btn-ghost btn-sm" onClick={exportJira}>🔷 Jira CSV</button>
@@ -788,7 +950,7 @@ function App(){
                       <div className="task-name">{t.name}</div>
                       <span style={{fontSize:9,color:'var(--cyan)',width:60,textAlign:'center',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.assignee||''}</span>
                       <span className="task-date">{t.start?t.start.slice(0,5):''}</span>
-                      <span style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?diffDays(d(t.start),d(t.end)):0}d</span>
+                      <span style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?workingDays(d(t.start),d(t.end)):0}d</span>
                       <span className="task-date">{t.end?t.end.slice(0,5):''}</span>
                       <span className={`status-badge status-${t.status==='To Do'?'todo':t.status==='In Progress'?'progress':t.status==='Done'?'done':'blocked'}`}>
                         {t.status==='To Do'?'○':t.status==='In Progress'?'◐':t.status==='Done'?'●':'✕'}
@@ -885,7 +1047,7 @@ function App(){
       <div className={`detail-overlay ${showDetail&&editBuffer?'open':''}`}>
         {editBuffer&&(()=>{
           const eb=editBuffer;
-          const dur=eb.start&&eb.end?diffDays(d(eb.start),d(eb.end)):0;
+          const dur=eb.start&&eb.end?workingDays(d(eb.start),d(eb.end)):0;
           const setB=(field,val)=>setEditBuffer(prev=>({...prev,[field]:val}));
           return(
           <>
@@ -930,14 +1092,10 @@ function App(){
                 </select>
               </div>
               <div className="field">
-                <label>Domain</label>
-                <input value={eb.domain||''} onChange={e=>setB('domain',e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/>
-              </div>
-              <div className="field">
-                <label>Duration (days)</label>
+                <label>Duration (working days)</label>
                 <input type="number" min="0" value={dur} onChange={e=>{
                   const days=Math.max(0,parseInt(e.target.value)||0);
-                  if(eb.start){let newEnd=addDays(d(eb.start),days);const sk=skipWeekend(newEnd);if(sk.skipped){newEnd=sk.date;showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}setB('end',fmt(newEnd))}
+                  if(eb.start){const newEnd=addWorkingDays(d(eb.start),days);setB('end',fmt(newEnd))}
                 }}/>
               </div>
               <div className="field">
@@ -1017,7 +1175,6 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
   const [end,setEnd]=useState('25/03/2026');
   const [duration,setDuration]=useState(7);
   const [notes,setNotes]=useState('');
-  const [domain,setDomain]=useState('');
   const [deps,setDeps]=useState([]);
   const allFlat=getAllTasks(tasks).filter(t=>t.type!=='epic');
 
@@ -1052,17 +1209,16 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
             </select>
           </div>
         </div>
-        <div className="field"><label>Domain</label><input value={domain} onChange={e=>setDomain(e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/></div>
         <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8}}>
           <div className="field"><label>Start Date</label>
-            <DatePicker value={start} onChange={s=>{setStart(s);if(duration>0){let en=addDays(d(s),duration);const sk=skipWeekend(en);if(sk.skipped){en=sk.date;showToast('⚠ End date rơi vào T7/CN, đã chuyển sang Thứ 2!')}setEnd(fmt(en))}}}
+            <DatePicker value={start} onChange={s=>{setStart(s);if(duration>0){const en=addWorkingDays(d(s),duration);setEnd(fmt(en))}}}
               onWeekendSkip={()=>showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
           </div>
           <div className="field"><label>Duration</label>
-            <input type="number" min="0" value={duration} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);setDuration(days);if(start){let en=addDays(d(start),days);const sk=skipWeekend(en);if(sk.skipped){en=sk.date;showToast('⚠ End date rơi vào T7/CN, đã chuyển sang Thứ 2!')}setEnd(fmt(en))}}} style={{width:70}}/>
+            <input type="number" min="0" value={duration} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);setDuration(days);if(start){const en=addWorkingDays(d(start),days);setEnd(fmt(en))}}} style={{width:70}}/>
           </div>
           <div className="field"><label>End Date</label>
-            <DatePicker value={end} onChange={en=>{setEnd(en);if(start){setDuration(diffDays(d(start),d(en)))}}
+            <DatePicker value={end} onChange={en=>{setEnd(en);if(start){setDuration(workingDays(d(start),d(en)))}}
             } onWeekendSkip={()=>showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
           </div>
         </div>
@@ -1081,7 +1237,7 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
         <div className="field"><label>Notes</label><textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div>
         <div className="actions">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,domain,deps})}>Create Task</button>
+          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,deps})}>Create Task</button>
         </div>
       </div>
     </div>
