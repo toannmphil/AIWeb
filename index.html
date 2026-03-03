@@ -406,15 +406,22 @@ function App(){
   const [teamColors,setTeamColors]=useState(()=>{const s=lsLoad();return s&&s.teamColors?s.teamColors:{...INIT_TEAM_COLORS}});
   const [phaseColors,setPhaseColors]=useState(()=>{const s=lsLoad();return s&&s.phaseColors?s.phaseColors:{...INIT_PHASE_COLORS}});
 
-  // Auto-save to localStorage on every change (debounced 300ms)
-  const saveTimerRef=useRef(null);
+  // Auto-save to localStorage immediately on every change
+  const latestData=useRef({tasks,members,teamColors,phaseColors});
   useEffect(()=>{
-    if(saveTimerRef.current)clearTimeout(saveTimerRef.current);
-    saveTimerRef.current=setTimeout(()=>{
-      lsSave({tasks,members,teamColors,phaseColors,version:1,savedAt:new Date().toISOString()});
-    },300);
-    return()=>{if(saveTimerRef.current)clearTimeout(saveTimerRef.current)};
+    latestData.current={tasks,members,teamColors,phaseColors};
+    lsSave({tasks,members,teamColors,phaseColors,version:1,savedAt:new Date().toISOString()});
   },[tasks,members,teamColors,phaseColors]);
+
+  // Backup save before browser/tab closes
+  useEffect(()=>{
+    const handleBeforeUnload=()=>{
+      const d=latestData.current;
+      lsSave({...d,version:1,savedAt:new Date().toISOString()});
+    };
+    window.addEventListener('beforeunload',handleBeforeUnload);
+    return()=>window.removeEventListener('beforeunload',handleBeforeUnload);
+  },[]);
 
   const [selectedId,setSelectedId]=useState(null);
   const [filterTeam,setFilterTeam]=useState('All');
@@ -429,6 +436,7 @@ function App(){
   const [view,setView]=useState('gantt');
   const [updating,setUpdating]=useState(false);
   const [confirmDelete,setConfirmDelete]=useState(null);
+  const [editBuffer,setEditBuffer]=useState(null);
   const ganttRef=useRef(null);
   const taskListRef=useRef(null);
 
@@ -528,21 +536,27 @@ function App(){
     showToast('Task deleted');
   }
 
-  function changeTaskPhase(taskId,newPhase){
-    update(t=>{
-      let task=null,oldEpicIdx=-1,childIdx=-1;
-      t.forEach((ep,ei)=>{if(ep.children){const ci=ep.children.findIndex(c=>c.id===taskId);if(ci>=0){task=ep.children[ci];oldEpicIdx=ei;childIdx=ci}}});
-      if(!task)return;
-      const newEpic=t.find(ep=>ep.phase===newPhase);
-      if(!newEpic||t[oldEpicIdx].phase===newPhase)return;
-      t[oldEpicIdx].children.splice(childIdx,1);
-      newEpic.children.push(task);
-    });
-  }
-
   function handleUpdate(){
+    if(!editBuffer)return;
     setUpdating(true);
-    setTimeout(()=>{setUpdating(false);showToast('Updated!')},1200);
+    const eb=editBuffer;
+    update(t=>{
+      // Find task in tree
+      const task=findTask(t,eb.id);
+      if(!task)return;
+      // Copy fields from buffer
+      Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Done'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||'',domain:eb.domain||''});
+      // Handle phase change (move task between epics)
+      const currentEpic=t.find(ep=>ep.children&&ep.children.some(c=>c.id===eb.id));
+      if(currentEpic&&currentEpic.phase!==eb.phase){
+        const newEpic=t.find(ep=>ep.phase===eb.phase);
+        if(newEpic){
+          currentEpic.children=currentEpic.children.filter(c=>c.id!==eb.id);
+          newEpic.children.push(task);
+        }
+      }
+    });
+    setTimeout(()=>{setUpdating(false);showToast('Updated!')},800);
   }
 
   function addTask(data){
@@ -667,6 +681,16 @@ function App(){
 
   const selectedTask=selectedId?findTask(tasks,selectedId):null;
 
+  // Init editBuffer when selecting a task
+  useEffect(()=>{
+    if(selectedId&&selectedTask&&selectedTask.type!=='epic'){
+      const ep=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===selectedId));
+      setEditBuffer({...selectedTask,phase:ep?ep.phase:''});
+    } else {
+      setEditBuffer(null);
+    }
+  },[selectedId]);
+
   return(
     <div className="app">
       {/* Header */}
@@ -731,7 +755,7 @@ function App(){
           </div>
           <div style={{display:'flex',alignItems:'center',padding:'0 8px',height:24,borderBottom:'1px solid var(--border)',background:'var(--surface)',fontSize:10,fontWeight:700,color:'var(--text2)',flexShrink:0}}>
             <div style={{width:24}}></div>
-            <div style={{width:10}}></div>
+            <div style={{width:38,textAlign:'center'}}>ID</div>
             <div style={{flex:1,paddingLeft:6}}>Task Name</div>
             <div style={{width:60,textAlign:'center'}}>Assignee</div>
             <div style={{width:44,textAlign:'center'}}>Start</div>
@@ -758,6 +782,7 @@ function App(){
                   ):(
                     <>
                       <div className="indent" style={{width:24}}></div>
+                      <span style={{fontSize:9,color:'var(--text2)',width:38,textAlign:'center',flexShrink:0,fontVariantNumeric:'tabular-nums'}}>T{String(t.id).padStart(3,'0')}</span>
                       <div className="priority-dot" style={{background:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)'}}></div>
                       <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
                       <div className="task-name">{t.name}</div>
@@ -857,89 +882,90 @@ function App(){
       )}
 
       {/* Detail Panel */}
-      <div className={`detail-overlay ${showDetail&&selectedTask?'open':''}`}>
-        {selectedTask&&selectedTask.type!=='epic'&&(()=>{
-          const taskPhase=(()=>{const ep=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===selectedTask.id));return ep?ep.phase:''})();
-          const dur=selectedTask.start&&selectedTask.end?diffDays(d(selectedTask.start),d(selectedTask.end)):0;
+      <div className={`detail-overlay ${showDetail&&editBuffer?'open':''}`}>
+        {editBuffer&&(()=>{
+          const eb=editBuffer;
+          const dur=eb.start&&eb.end?diffDays(d(eb.start),d(eb.end)):0;
+          const setB=(field,val)=>setEditBuffer(prev=>({...prev,[field]:val}));
           return(
           <>
             <button className="close-btn" onClick={()=>setShowDetail(false)}>✕</button>
-            <h3>{selectedTask.name}</h3>
+            <h3>{eb.name}</h3>
             <div className="field">
               <label>Task Name</label>
-              <input value={selectedTask.name} onChange={e=>updateTask(selectedTask.id,'name',e.target.value)}/>
+              <input value={eb.name} onChange={e=>setB('name',e.target.value)}/>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
               <div className="field">
                 <label>Phase</label>
-                <select value={taskPhase} onChange={e=>changeTaskPhase(selectedTask.id,e.target.value)}>
+                <select value={eb.phase} onChange={e=>setB('phase',e.target.value)}>
                   {Object.keys(PHASE_COLORS).map(p=><option key={p}>{p}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Team</label>
-                <select value={selectedTask.team} onChange={e=>updateTask(selectedTask.id,'team',e.target.value)}>
+                <select value={eb.team} onChange={e=>setB('team',e.target.value)}>
                   {TEAMS.map(t=><option key={t}>{t}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Assignee</label>
-                <select value={selectedTask.assignee} onChange={e=>updateTask(selectedTask.id,'assignee',e.target.value)}>
+                <select value={eb.assignee} onChange={e=>setB('assignee',e.target.value)}>
                   {ALL_MEMBERS.map(m=><option key={m}>{m}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Priority</label>
-                <select value={selectedTask.priority} onChange={e=>updateTask(selectedTask.id,'priority',e.target.value)}>
+                <select value={eb.priority} onChange={e=>setB('priority',e.target.value)}>
                   {PRIORITIES.map(p=><option key={p}>{p}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Status</label>
-                <select value={selectedTask.status} onChange={e=>{
-                  updateTask(selectedTask.id,'status',e.target.value);
-                  if(e.target.value==='Done')updateTask(selectedTask.id,'pct',100);
+                <select value={eb.status} onChange={e=>{
+                  setB('status',e.target.value);
+                  if(e.target.value==='Done')setB('pct',100);
                 }}>
                   {STATUSES.map(s=><option key={s}>{s}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Domain</label>
-                <input value={selectedTask.domain||''} onChange={e=>updateTask(selectedTask.id,'domain',e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/>
+                <input value={eb.domain||''} onChange={e=>setB('domain',e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/>
               </div>
               <div className="field">
                 <label>Duration (days)</label>
                 <input type="number" min="0" value={dur} onChange={e=>{
                   const days=Math.max(0,parseInt(e.target.value)||0);
-                  if(selectedTask.start){let newEnd=addDays(d(selectedTask.start),days);const sk=skipWeekend(newEnd);if(sk.skipped){newEnd=sk.date;showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}updateTask(selectedTask.id,'end',fmt(newEnd))}
+                  if(eb.start){let newEnd=addDays(d(eb.start),days);const sk=skipWeekend(newEnd);if(sk.skipped){newEnd=sk.date;showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}setB('end',fmt(newEnd))}
                 }}/>
               </div>
               <div className="field">
                 <label>Start Date</label>
-                <DatePicker value={selectedTask.start} onChange={v=>updateTask(selectedTask.id,'start',v)}
+                <DatePicker value={eb.start} onChange={v=>setB('start',v)}
                   onWeekendSkip={()=>showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
               </div>
               <div className="field">
                 <label>End Date</label>
-                <DatePicker value={selectedTask.end} onChange={v=>updateTask(selectedTask.id,'end',v)}
+                <DatePicker value={eb.end} onChange={v=>setB('end',v)}
                   onWeekendSkip={()=>showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
               </div>
             </div>
             <div className="field">
-              <label>Progress: {selectedTask.pct}%</label>
-              <input type="range" min="0" max="100" step="10" value={selectedTask.pct}
-                onChange={e=>updateTask(selectedTask.id,'pct',+e.target.value)}
+              <label>Progress: {eb.pct}%</label>
+              <input type="range" min="0" max="100" step="10" value={eb.pct}
+                onChange={e=>setB('pct',+e.target.value)}
                 style={{width:'100%',accentColor:'var(--primary)'}}/>
             </div>
             <div className="field">
               <label>Dependencies</label>
-              <select multiple value={(selectedTask.deps||[]).length===0?['root']:(selectedTask.deps||[]).map(String)} onChange={e=>{
+              <select multiple value={(eb.deps||[]).length===0?['root']:(eb.deps||[]).map(String)} onChange={e=>{
                 const vals=[...e.target.selectedOptions].map(o=>o.value);
-                if(vals.includes('root'))updateTask(selectedTask.id,'deps',[]);
-                else updateTask(selectedTask.id,'deps',vals.map(Number));
+                if(vals.includes('root'))setB('deps',[]);
+                else setB('deps',vals.map(Number));
               }} style={{height:100}}>
                 <option value="root">───── (Root - No dependency) ─────</option>
-                {allFlat.filter(t=>t.type!=='epic'&&t.id!==selectedTask.id).map(t=>(
+                {allFlat.filter(t=>t.type!=='epic'&&t.id!==eb.id).map(t=>(
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
@@ -947,14 +973,14 @@ function App(){
             </div>
             <div className="field">
               <label>Notes</label>
-              <textarea value={selectedTask.notes||''} onChange={e=>updateTask(selectedTask.id,'notes',e.target.value)}/>
+              <textarea value={eb.notes||''} onChange={e=>setB('notes',e.target.value)}/>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:12,marginTop:14}}>
               <button className={`btn-update ${updating?'saving':''}`} onClick={handleUpdate}>
                 {updating?<span className="saving-dots"><span>.</span><span>.</span><span>.</span></span>:'✓ Update'}
               </button>
               <button className="delete-link" onClick={()=>{
-                if(window.confirm(`Xác nhận xóa task "${selectedTask.name}"?\nHành động này không thể hoàn tác!`))deleteTask(selectedTask.id);
+                if(window.confirm(`Xác nhận xóa task "${eb.name}"?\nHành động này không thể hoàn tác!`))deleteTask(eb.id);
               }}>Delete Task</button>
             </div>
           </>
