@@ -86,6 +86,7 @@ select:focus,input:focus{border-color:var(--primary)}
 /* Team colors */
 .team-Art{background:#9b59b6}.team-Dev{background:#2980b9}.team-Design{background:#e67e22}
 .team-Multimedia{background:#1abc9c}.team-PM{background:#34495e}.team-OP{background:#7f8c8d}.team-QC{background:#c0392b}
+.team-Client{background:#16a085}.team-Server{background:#8e44ad}
 /* Priority colors */
 .pri-High{background:var(--red)}.pri-Medium{background:var(--yellow)}.pri-Low{background:var(--green)}
 /* Status colors */
@@ -152,12 +153,13 @@ const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const PROJECT_START = new Date(2026, 2, 3); // March 3, 2026
 const NUM_WEEKS = 9;
 const DAY_MS = 86400000;
-const INIT_TEAMS = ['Art','Dev','Design','Multimedia','PM','OP','QC'];
+const INIT_TEAMS = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
+const TEAM_SORT_ORDER = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
 const PRIORITIES = ['High','Medium','Low'];
 const STATUSES = ['To Do','In Progress','Done','Blocked'];
-const INIT_TEAM_COLORS = {Art:'#9b59b6',Dev:'#2980b9',Design:'#e67e22',Multimedia:'#1abc9c',PM:'#34495e',OP:'#7f8c8d',QC:'#c0392b'};
+const INIT_TEAM_COLORS = {PM:'#34495e',Design:'#e67e22',Art:'#9b59b6',Dev:'#2980b9',Client:'#16a085',Server:'#8e44ad',QC:'#c0392b',Multimedia:'#1abc9c',OP:'#7f8c8d'};
 const INIT_PHASE_COLORS = {'Pre-production':'#3498db',Production:'#27ae60','Testing & QA':'#e74c3c'};
-const INIT_MEMBERS = {Art:['HòaGTT','TuND4','NgocLA'],Dev:['CongNN','HuongBP','DienDQ','CongNT7','PhucNN','SonBNT'],Design:['LocPT','QuynhNH','BinhNT'],Multimedia:['HungVM2'],PM:['ToanNM'],OP:['NienND'],QC:['NhanNT3']};
+const INIT_MEMBERS = {PM:['ToanNM'],Design:['LocPT','QuynhNH','BinhNT'],Art:['HòaGTT','TuND4','NgocLA'],Dev:['CongNN','HuongBP','DienDQ','CongNT7','PhucNN','SonBNT'],Client:[],Server:[],QC:['NhanNT3'],Multimedia:['HungVM2'],OP:['NienND']};
 const PALETTE = ['#9b59b6','#2980b9','#e67e22','#1abc9c','#34495e','#7f8c8d','#c0392b','#e74c3c','#f39c12','#16a085','#8e44ad','#d35400','#2c3e50','#27ae60'];
 
 function d(s){const p=s.split('/');return new Date(+p[2],+p[1]-1,+p[0])}
@@ -235,7 +237,14 @@ function flattenTasks(tasks){
   tasks.forEach(t=>{
     result.push(t);
     if(t.children && t.expanded){
-      const sorted=[...t.children].sort((a,b)=>d(a.start)-d(b.start));
+      const sorted=[...t.children].sort((a,b)=>{
+        const teamA=TEAM_SORT_ORDER.indexOf(a.team),teamB=TEAM_SORT_ORDER.indexOf(b.team);
+        const tA=teamA===-1?999:teamA,tB=teamB===-1?999:teamB;
+        if(tA!==tB)return tA-tB;
+        if((a.assignee||'')<(b.assignee||''))return -1;
+        if((a.assignee||'')>(b.assignee||''))return 1;
+        return d(a.start)-d(b.start);
+      });
       sorted.forEach(c=>result.push(c));
     }
   });
@@ -540,7 +549,7 @@ function App(){
     update(t=>{
       const epic=t.find(ep=>ep.phase===data.phase);
       if(epic){
-        const newTask={id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||''};
+        const newTask={id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||'',domain:data.domain||''};
         epic.children.push(newTask);
       }
     });
@@ -570,6 +579,7 @@ function App(){
         Assignee:t.assignee,
         Priority:t.priority,
         Status:t.status,
+        Domain:t.domain||'',
         'Start Date':t.start,
         'End Date':t.end,
         '% Complete':t.pct/100,
@@ -578,7 +588,7 @@ function App(){
       };
     });
     const ws=XLSX.utils.json_to_sheet(data);
-    ws['!cols']=[{wch:8},{wch:16},{wch:35},{wch:14},{wch:12},{wch:10},{wch:13},{wch:13},{wch:13},{wch:11},{wch:16},{wch:30}];
+    ws['!cols']=[{wch:8},{wch:16},{wch:35},{wch:14},{wch:12},{wch:10},{wch:13},{wch:14},{wch:13},{wch:13},{wch:11},{wch:16},{wch:30}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Task Assignment');
     XLSX.writeFile(wb,'Poker_Build_Plan.xlsx');
@@ -723,6 +733,7 @@ function App(){
             <div style={{width:24}}></div>
             <div style={{width:10}}></div>
             <div style={{flex:1,paddingLeft:6}}>Task Name</div>
+            <div style={{width:60,textAlign:'center'}}>Assignee</div>
             <div style={{width:44,textAlign:'center'}}>Start</div>
             <div style={{width:28,textAlign:'center'}}>Dur</div>
             <div style={{width:44,textAlign:'center'}}>End</div>
@@ -750,6 +761,7 @@ function App(){
                       <div className="priority-dot" style={{background:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)'}}></div>
                       <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
                       <div className="task-name">{t.name}</div>
+                      <span style={{fontSize:9,color:'var(--cyan)',width:60,textAlign:'center',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.assignee||''}</span>
                       <span className="task-date">{t.start?t.start.slice(0,5):''}</span>
                       <span style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?diffDays(d(t.start),d(t.end)):0}d</span>
                       <span className="task-date">{t.end?t.end.slice(0,5):''}</span>
@@ -892,6 +904,10 @@ function App(){
                 </select>
               </div>
               <div className="field">
+                <label>Domain</label>
+                <input value={selectedTask.domain||''} onChange={e=>updateTask(selectedTask.id,'domain',e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/>
+              </div>
+              <div className="field">
                 <label>Duration (days)</label>
                 <input type="number" min="0" value={dur} onChange={e=>{
                   const days=Math.max(0,parseInt(e.target.value)||0);
@@ -975,6 +991,7 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
   const [end,setEnd]=useState('25/03/2026');
   const [duration,setDuration]=useState(7);
   const [notes,setNotes]=useState('');
+  const [domain,setDomain]=useState('');
   const [deps,setDeps]=useState([]);
   const allFlat=getAllTasks(tasks).filter(t=>t.type!=='epic');
 
@@ -1009,6 +1026,7 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
             </select>
           </div>
         </div>
+        <div className="field"><label>Domain</label><input value={domain} onChange={e=>setDomain(e.target.value)} placeholder="e.g. Gameplay, UI, Backend..."/></div>
         <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8}}>
           <div className="field"><label>Start Date</label>
             <DatePicker value={start} onChange={s=>{setStart(s);if(duration>0){let en=addDays(d(s),duration);const sk=skipWeekend(en);if(sk.skipped){en=sk.date;showToast('⚠ End date rơi vào T7/CN, đã chuyển sang Thứ 2!')}setEnd(fmt(en))}}}
@@ -1037,7 +1055,7 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
         <div className="field"><label>Notes</label><textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div>
         <div className="actions">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,deps})}>Create Task</button>
+          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,domain,deps})}>Create Task</button>
         </div>
       </div>
     </div>
