@@ -1252,20 +1252,17 @@ function App(){
                 onChange={e=>setB('pct',+e.target.value)}
                 style={{width:'100%',accentColor:'var(--primary)'}}/>
             </div>
-            <div className="field">
-              <label>Dependencies</label>
-              <select multiple value={(eb.deps||[]).length===0?['root']:(eb.deps||[]).map(String)} onChange={e=>{
-                const vals=[...e.target.selectedOptions].map(o=>o.value);
-                if(vals.includes('root'))setB('deps',[]);
-                else setB('deps',vals.map(Number));
-              }} style={{height:100}}>
-                <option value="root">───── (Root - No dependency) ─────</option>
-                {allFlat.filter(t=>t.type!=='epic'&&t.id!==eb.id).map(t=>(
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-              <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Hold Ctrl/Cmd to select multiple. Chọn Root = không phụ thuộc task nào.</div>
-            </div>
+            <DepsSelector deps={eb.deps||[]} onChange={ids=>setB('deps',ids)} allTasks={allFlat} currentTaskId={eb.id}
+              onDepsAutoDate={ids=>{
+                if(ids.length===0)return;
+                let maxEnd=null;
+                ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+                if(maxEnd){
+                  const curDur=workingDays(d(eb.start),d(eb.end));
+                  const ns=skipWeekend(addDays(maxEnd,1)).date;
+                  setEditBuffer(prev=>({...prev,start:fmt(ns),end:fmt(addWorkingDays(ns,curDur))}));
+                }
+              }}/>
             <div className="field">
               <label>Notes</label>
               <textarea value={eb.notes||''} onChange={e=>setB('notes',e.target.value)}/>
@@ -1301,6 +1298,71 @@ function App(){
   );
 }
 
+// ─── DepsSelector: shared dependency picker with text input + multi-select ───
+function DepsSelector({deps,onChange,allTasks,currentTaskId,onDepsAutoDate}){
+  const available=allTasks.filter(t=>t.type!=='epic'&&t.id!==currentTaskId);
+  const validIds=new Set(available.map(t=>t.id));
+  const [text,setText]=useState('');
+  const [invalidIds,setInvalidIds]=useState([]);
+
+  // Sync text from deps (when select changes)
+  useEffect(()=>{
+    setText(deps.length>0?deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '):'');
+  },[deps.join(',')]);
+
+  function parseDepsText(val){
+    const parts=val.split(/[,;\s]+/).filter(Boolean);
+    const ids=[];const bad=[];
+    parts.forEach(p=>{
+      const n=parseInt(p.replace(/^[tT]/,''),10);
+      if(!isNaN(n)&&validIds.has(n))ids.push(n);
+      else if(p.trim())bad.push(p.trim());
+    });
+    setInvalidIds(bad);
+    return [...new Set(ids)];
+  }
+
+  function handleTextChange(e){
+    const val=e.target.value;
+    setText(val);
+    const ids=parseDepsText(val);
+    onChange(ids);
+    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  }
+
+  function handleTextBlur(){
+    // Clean up text on blur
+    if(deps.length>0)setText(deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '));
+    else setText('');
+    setInvalidIds([]);
+  }
+
+  function handleSelectChange(e){
+    const vals=[...e.target.selectedOptions].map(o=>o.value);
+    if(vals.includes('root')){onChange([]);if(onDepsAutoDate)onDepsAutoDate([]);return}
+    const ids=vals.map(Number);
+    onChange(ids);
+    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  }
+
+  return(
+    <div className="field">
+      <label>Dependencies</label>
+      <input value={text} onChange={handleTextChange} onBlur={handleTextBlur}
+        placeholder="Nhập T010, T015... hoặc 10, 15..."
+        style={{marginBottom:4,width:'100%',padding:'4px 8px',background:'var(--surface2)',color:'var(--text)',border:`1px solid ${invalidIds.length>0?'var(--red)':'var(--border)'}`,borderRadius:4,fontSize:12}}/>
+      {invalidIds.length>0&&<div style={{fontSize:10,color:'var(--red)',marginBottom:2}}>ID không hợp lệ: {invalidIds.join(', ')}</div>}
+      <select multiple value={deps.length===0?['root']:deps.map(String)} onChange={handleSelectChange} style={{height:100}}>
+        <option value="root">───── (Root - No dependency) ─────</option>
+        {available.map(t=>(
+          <option key={t.id} value={t.id}>T{String(t.id).padStart(3,'0')} — {t.name}</option>
+        ))}
+      </select>
+      <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Nhập TaskID phía trên hoặc Ctrl/Cmd + click để chọn nhiều.</div>
+    </div>
+  );
+}
+
 function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,showToast}){
   const [name,setName]=useState('');
   const [team,setTeam]=useState(teams[0]||'Dev');
@@ -1308,9 +1370,10 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
   const [priority,setPriority]=useState('Medium');
   const phases=Object.keys(phaseColors);
   const [phase,setPhase]=useState(phases[1]||phases[0]||'Production');
-  const [start,setStart]=useState('18/03/2026');
-  const [end,setEnd]=useState('25/03/2026');
-  const [duration,setDuration]=useState(7);
+  const _today=skipWeekend(new Date()).date;
+  const [start,setStart]=useState(fmt(_today));
+  const [end,setEnd]=useState(fmt(addWorkingDays(_today,1)));
+  const [duration,setDuration]=useState(1);
   const [notes,setNotes]=useState('');
   const [deps,setDeps]=useState([]);
   const allFlat=getAllTasks(tasks).filter(t=>t.type!=='epic');
@@ -1359,18 +1422,18 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
             } onWeekendSkip={()=>showToast('⚠ Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
           </div>
         </div>
-        <div className="field">
-          <label>Dependencies</label>
-          <select multiple value={deps.length===0?['root']:deps.map(String)} onChange={e=>{
-            const vals=[...e.target.selectedOptions].map(o=>o.value);
-            if(vals.includes('root'))setDeps([]);
-            else setDeps(vals.map(Number));
-          }} style={{height:100}}>
-            <option value="root">───── (Root - No dependency) ─────</option>
-            {allFlat.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Default: Root (không phụ thuộc). Ctrl/Cmd + click để chọn nhiều.</div>
-        </div>
+        <DepsSelector deps={deps} onChange={setDeps} allTasks={allFlat} currentTaskId={null}
+          onDepsAutoDate={ids=>{
+            if(ids.length===0)return;
+            let maxEnd=null;
+            ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+            if(maxEnd){
+              const ns=skipWeekend(addDays(maxEnd,1)).date;
+              setStart(fmt(ns));
+              const ne=addWorkingDays(ns,duration);
+              setEnd(fmt(ne));
+            }
+          }}/>
         <div className="field"><label>Notes</label><textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div>
         <div className="actions">
           <button className="btn btn-ghost" onClick={onClose}>Cancel</button>

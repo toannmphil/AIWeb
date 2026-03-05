@@ -1,0 +1,39 @@
+# Poker Texas Build Plan - Project Rules
+
+## Architecture
+- **Frontend**: Single `index.html`, React 18 via CDN + Babel standalone, no build step
+- **Backend**: Node.js + Express at `/opt/poker-plan/server.js` on VPS
+- **Database**: PostgreSQL 16 on VPS (76.13.213.204), DB: `poker_texas`, user: `poker_user`
+- **Data model**: JSON blob stored in `projects.data` (JSONB column), NOT normalized tables
+- **Auth**: JWT (30d expiry), bcryptjs for password hashing
+
+## VPS Access
+- SSH: `ssh -i ~/.ssh/id_ed25519 root@76.13.213.204`
+- App path: `/opt/poker-plan/` (server.js, seed.js, .env, public/index.html)
+- Process manager: PM2, app name: `poker-plan`
+- Deploy: `scp index.html` to VPS then `pm2 restart poker-plan`
+
+## Code Conventions
+- Frontend: Minified single-line React code style (match existing pattern in index.html)
+- Keep all frontend in single index.html file - do NOT split into multiple files
+- Vietnamese UI text for user-facing strings
+- State: React hooks only (useState, useEffect, useRef, useMemo, useCallback)
+- Data persistence: apiSave() (debounced 1s to server) + lsSave() (instant localStorage cache)
+
+## Key Functions
+- `lsLoad()`/`lsSave()` - localStorage cache
+- `apiCall()`/`apiLoad()`/`apiSave()` - server API communication
+- `update(fn)` - main task mutation function (deep clone + autoSchedule)
+- `flattenTasks()` - convert nested epic/children to flat list
+- `autoSchedule()` - recalculate dates based on dependencies
+
+## Deploy Workflow
+1. Edit `index.html` locally
+2. `scp -i ~/.ssh/id_ed25519 index.html root@76.13.213.204:/opt/poker-plan/public/`
+3. No restart needed (static file), restart only if server.js changes: `ssh ... "pm2 restart poker-plan"`
+
+## Don'ts
+- Do NOT normalize the JSON blob into relational tables
+- Do NOT add a build step (webpack, vite, etc.)
+- Do NOT split index.html into multiple files
+- Do NOT change the data structure without updating both frontend and seed.js
