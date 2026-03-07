@@ -1,7 +1,12 @@
 # Poker Texas Build Plan - Project Rules
 
-## Architecture
-- **Frontend**: Single `index.html`, React 18 via CDN + Babel standalone, no build step
+## Project Structure
+- **v1/**: Phien ban hien tai (stable) - toan bo source code, data, exports
+- **v2/**: Phien ban moi (development) - cai tien, refactor
+- Root chi chua: `.git`, `.gitignore`, `CLAUDE.md`
+
+## Architecture (v1)
+- **Frontend**: Single `v1/index.html`, React 18 via CDN + Babel standalone, no build step
 - **Backend**: Node.js + Express at `/opt/poker-plan/server.js` on VPS
 - **Database**: PostgreSQL 16 on VPS (76.13.213.204), DB: `poker_texas`, user: `poker_user`
 - **Data model**: JSON blob stored in `projects.data` (JSONB column), NOT normalized tables
@@ -13,23 +18,23 @@
 - Process manager: PM2, app name: `poker-plan`
 - Deploy: `scp index.html` to VPS then `pm2 restart poker-plan`
 
-## Code Conventions
-- Frontend: Minified single-line React code style (match existing pattern in index.html)
+## Code Conventions (v1)
+- Frontend: Minified single-line React code style (match existing pattern in v1/index.html)
 - Keep all frontend in single index.html file - do NOT split into multiple files
 - Vietnamese UI text for user-facing strings
 - State: React hooks only (useState, useEffect, useRef, useMemo, useCallback)
 - Data persistence: apiSave() (debounced 1s to server) + lsSave() (instant localStorage cache)
 
-## Key Functions
+## Key Functions (v1)
 - `lsLoad()`/`lsSave()` - localStorage cache
 - `apiCall()`/`apiLoad()`/`apiSave()` - server API communication
 - `update(fn)` - main task mutation function (deep clone + autoSchedule)
 - `flattenTasks()` - convert nested epic/children to flat list
 - `autoSchedule()` - recalculate dates based on dependencies
 
-## Deploy Workflow
-1. Edit `index.html` locally
-2. `scp -i ~/.ssh/id_ed25519 index.html root@76.13.213.204:/opt/poker-plan/public/`
+## Deploy Workflow (v1)
+1. Edit `v1/index.html` locally
+2. `scp -i ~/.ssh/id_ed25519 v1/index.html root@76.13.213.204:/opt/poker-plan/public/`
 3. No restart needed (static file), restart only if server.js changes: `ssh ... "pm2 restart poker-plan"`
 
 ## Don'ts
