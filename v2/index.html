@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poker Texas Build Plan</title>
+<style>
+/* ═══════════════════════════════════════ */
+/* THEME & VARIABLES                       */
+/* ═══════════════════════════════════════ */
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --border: #2a2a4a;
+  --text: #e0e0e0;
+  --text2: #a0a0b0;
+  --primary: #3498db;
+  --green: #2ecc71;
+  --yellow: #f1c40f;
+  --red: #e74c3c;
+  --orange: #e67e22;
+  --purple: #9b59b6;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--font-size-md);
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ═══════════════════════════════════════ */
+/* LAYOUT                                  */
+/* ═══════════════════════════════════════ */
+.app { display: flex; flex-direction: column; height: 100vh; }
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  min-height: 48px;
+}
+.header-title { font-size: 16px; font-weight: 700; color: var(--primary); }
+.header-actions { display: flex; align-items: center; gap: var(--spacing-sm); }
+.header-user { color: var(--text2); font-size: var(--font-size-sm); }
+.toolbar {
+  display: flex; align-items: center; gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.main { display: flex; flex: 1; overflow: hidden; }
+.btn {
+  padding: 6px 12px; border: none; border-radius: var(--radius-sm);
+  cursor: pointer; font-size: var(--font-size-sm); color: var(--text);
+  background: var(--surface2); transition: background 0.2s;
+}
+.btn:hover { background: var(--primary); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: #2980b9; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #c0392b; }
+.btn-sm { padding: 3px 8px; font-size: var(--font-size-xs); }
+.btn-icon { background: none; padding: 4px 6px; }
+.btn-icon:hover { background: var(--surface2); }
+.view-tabs { display: flex; gap: 2px; background: var(--border); border-radius: var(--radius-sm); padding: 2px; }
+.view-tab {
+  padding: 4px 12px; border: none; border-radius: var(--radius-sm);
+  cursor: pointer; font-size: var(--font-size-sm); color: var(--text2); background: transparent;
+}
+.view-tab.active { background: var(--primary); color: #fff; }
+input, select, textarea {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-sm);
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+select { cursor: pointer; }
+.login-screen {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; background: var(--bg);
+}
+.login-box {
+  background: var(--surface); border-radius: var(--radius-md);
+  padding: 40px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.login-box h2 { text-align: center; margin-bottom: 24px; color: var(--primary); }
+.login-box .login-field { margin-bottom: 16px; }
+.login-box .login-field label { display: block; margin-bottom: 4px; color: var(--text2); font-size: var(--font-size-sm); }
+.login-box .login-field input { width: 100%; padding: 10px; }
+.login-box .login-btn { width: 100%; padding: 10px; margin-top: 8px; font-size: 15px; }
+.login-error { color: var(--red); font-size: var(--font-size-sm); text-align: center; margin-top: 12px; }
+
+/* ═══════════════════════════════════════ */
+/* TASK PANEL                              */
+/* ═══════════════════════════════════════ */
+.task-panel {
+  width: 520px; min-width: 400px; border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.task-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  font-size: var(--font-size-sm); font-weight: 600; color: var(--text2);
+}
+.task-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.task-row {
+  display: flex; align-items: center; gap: var(--spacing-xs);
+  padding: 4px var(--spacing-sm); border-bottom: 1px solid var(--border);
+  cursor: pointer; font-size: var(--font-size-sm); min-height: 32px;
+  transition: background 0.15s;
+}
+.task-row:hover { background: rgba(52,152,219,0.08); }
+.task-row.selected { background: rgba(52,152,219,0.15); }
+.task-row.epic {
+  background: var(--surface); font-weight: 600; font-size: var(--font-size-md);
+  padding: 6px var(--spacing-sm); position: sticky; top: 0; z-index: 2;
+}
+.task-row .expand-btn {
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--text2); cursor: pointer; font-size: 10px;
+  flex-shrink: 0;
+}
+.task-row .task-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.team-badge {
+  padding: 1px 6px; border-radius: 3px; font-size: var(--font-size-xs);
+  color: #fff; white-space: nowrap; flex-shrink: 0;
+}
+.priority-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.status-badge {
+  padding: 1px 6px; border-radius: 3px; font-size: var(--font-size-xs);
+  white-space: nowrap; flex-shrink: 0;
+}
+.status-todo { background: #555; color: #ccc; }
+.status-inprogress { background: rgba(52,152,219,0.2); color: var(--primary); }
+.status-done { background: rgba(46,204,113,0.2); color: var(--green); }
+.status-blocked { background: rgba(231,76,60,0.2); color: var(--red); }
+.task-dates { color: var(--text2); font-size: var(--font-size-xs); white-space: nowrap; flex-shrink: 0; }
+.task-pct { color: var(--text2); font-size: var(--font-size-xs); width: 32px; text-align: right; flex-shrink: 0; }
+.add-task-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px var(--spacing-sm); color: var(--primary);
+  cursor: pointer; font-size: var(--font-size-sm); border: none; background: none;
+}
+.add-task-btn:hover { background: rgba(52,152,219,0.08); }
+
+/* ═══════════════════════════════════════ */
+/* GANTT PANEL                             */
+/* ═══════════════════════════════════════ */
+.gantt-panel { flex: 1; overflow: auto; position: relative; }
+.gantt-header {
+  display: flex; position: sticky; top: 0; z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.gantt-week {
+  min-width: 100px; flex: 1; text-align: center; padding: 4px 0;
+  font-size: var(--font-size-xs); color: var(--text2);
+  border-right: 1px solid var(--border);
+}
+.gantt-week.current { background: rgba(52,152,219,0.1); }
+.gantt-body { position: relative; }
+.gantt-row {
+  display: flex; align-items: center; height: 32px;
+  border-bottom: 1px solid var(--border); position: relative;
+}
+.gantt-row.epic { height: 36px; background: var(--surface); }
+.gantt-row-bg { display: flex; width: 100%; height: 100%; position: absolute; }
+.gantt-row-bg-week {
+  min-width: 100px; flex: 1; border-right: 1px solid var(--border);
+}
+.gantt-row-bg-week.current { background: rgba(52,152,219,0.05); }
+.gantt-bar {
+  position: absolute; height: 20px; border-radius: 3px;
+  display: flex; align-items: center; padding: 0 6px;
+  font-size: var(--font-size-xs); color: #fff; white-space: nowrap;
+  overflow: hidden; cursor: pointer; z-index: 1; top: 6px;
+  transition: opacity 0.2s;
+}
+.gantt-bar:hover { opacity: 0.85; }
+.gantt-bar.critical { box-shadow: 0 0 0 2px var(--red); }
+.gantt-bar-progress {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: rgba(255,255,255,0.2); border-radius: 3px;
+}
+.gantt-bar-label { position: relative; z-index: 1; overflow: hidden; text-overflow: ellipsis; }
+
+/* ═══════════════════════════════════════ */
+/* BOARD VIEW                              */
+/* ═══════════════════════════════════════ */
+.board { display: flex; gap: var(--spacing-md); flex: 1; padding: var(--spacing-md); overflow-x: auto; }
+.board-column {
+  flex: 1; min-width: 240px; display: flex; flex-direction: column;
+  background: var(--surface); border-radius: var(--radius-md); overflow: hidden;
+}
+.board-column-header {
+  padding: var(--spacing-sm) var(--spacing-md); font-weight: 600;
+  font-size: var(--font-size-sm); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0;
+}
+.board-column-header .count-badge {
+  background: var(--surface2); padding: 1px 8px; border-radius: 10px;
+  font-size: var(--font-size-xs); color: var(--text2);
+}
+.board-column-body { flex: 1; overflow-y: auto; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
+.board-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: var(--spacing-sm); cursor: pointer; transition: border-color 0.2s;
+}
+.board-card:hover { border-color: var(--primary); }
+.board-card .card-name { font-size: var(--font-size-sm); margin-bottom: 6px; }
+.board-card .card-meta { display: flex; align-items: center; gap: var(--spacing-xs); flex-wrap: wrap; }
+.board-card .card-progress {
+  width: 100%; height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px;
+}
+.board-card .card-progress-fill { height: 100%; border-radius: 2px; background: var(--green); }
+.filter-bar {
+  display: flex; align-items: center; gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.filter-bar select, .filter-bar input { padding: 4px 8px; font-size: var(--font-size-xs); }
+.filter-bar input[type="text"] { width: 180px; }
+.stats { display: flex; gap: var(--spacing-md); margin-left: auto; font-size: var(--font-size-xs); color: var(--text2); }
+.stats .stat-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+
+
+/* ═══════════════════════════════════════ */
+/* DETAIL PANEL                            */
+/* ═══════════════════════════════════════ */
+.detail-overlay {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 400px;
+  background: var(--surface); border-left: 2px solid var(--primary);
+  z-index: 100; display: flex; flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.detail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-md); border-bottom: 1px solid var(--border);
+}
+.detail-header h3 { font-size: 15px; }
+.detail-body { flex: 1; overflow-y: auto; padding: var(--spacing-md); }
+.detail-field { margin-bottom: var(--spacing-md); }
+.detail-field label {
+  display: block; font-size: var(--font-size-xs); color: var(--text2);
+  margin-bottom: var(--spacing-xs); text-transform: uppercase; letter-spacing: 0.5px;
+}
+.detail-field input, .detail-field select, .detail-field textarea {
+  width: 100%;
+}
+.detail-field textarea { min-height: 60px; resize: vertical; }
+.detail-field .range-row { display: flex; align-items: center; gap: var(--spacing-sm); }
+.detail-field input[type="range"] { flex: 1; background: none; }
+.detail-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-md); border-top: 1px solid var(--border);
+}
+.deps-selector { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); max-height: 120px; overflow-y: auto; }
+.dep-item {
+  padding: 2px 8px; border-radius: 3px; font-size: var(--font-size-xs);
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg);
+}
+.dep-item.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+.dep-item.warning { border-color: var(--red); }
+.dep-warning { color: var(--red); font-size: var(--font-size-xs); margin-top: 4px; }
+
+/* ═══════════════════════════════════════ */
+/* ADMIN PANEL                             */
+/* ═══════════════════════════════════════ */
+.admin-modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 150;
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-content {
+  background: var(--surface); border-radius: var(--radius-md);
+  width: 700px; max-height: 80vh; display: flex; flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-md); border-bottom: 1px solid var(--border);
+}
+.admin-tabs { display: flex; gap: 2px; padding: 0 var(--spacing-md); background: var(--surface); border-bottom: 1px solid var(--border); }
+.admin-tab {
+  padding: 8px 16px; border: none; background: transparent;
+  color: var(--text2); cursor: pointer; font-size: var(--font-size-sm);
+  border-bottom: 2px solid transparent;
+}
+.admin-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.admin-body { flex: 1; overflow-y: auto; padding: var(--spacing-md); }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th {
+  text-align: left; padding: 8px; font-size: var(--font-size-xs);
+  color: var(--text2); border-bottom: 1px solid var(--border); text-transform: uppercase;
+}
+.admin-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: var(--font-size-sm); }
+.admin-table input, .admin-table select { padding: 4px 6px; font-size: var(--font-size-sm); }
+.color-picker { width: 32px; height: 24px; padding: 0; border: 1px solid var(--border); cursor: pointer; border-radius: 3px; }
+.admin-add-form {
+  display: flex; gap: var(--spacing-sm); align-items: center;
+  padding: var(--spacing-sm) 0; margin-top: var(--spacing-sm);
+  border-top: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════ */
+/* RESPONSIVE                              */
+/* ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .main { flex-direction: column; }
+  .task-panel { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
+  .gantt-panel { flex: 1; }
+  .board { flex-wrap: wrap; }
+  .board-column { min-width: 200px; }
+  .detail-overlay { width: 100%; }
+  .admin-content { width: 95vw; }
+  .header { flex-wrap: wrap; gap: var(--spacing-xs); }
+  .header-actions { flex-wrap: wrap; }
+  .filter-bar { flex-wrap: wrap; }
+}
+
+
+/* ═══════════════════════════════════════ */
+/* MODALS & TOASTS                         */
+/* ═══════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: var(--surface); border-radius: var(--radius-md);
+  padding: var(--spacing-lg); min-width: 320px; max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.modal h3 { margin-bottom: var(--spacing-md); }
+.modal p { color: var(--text2); margin-bottom: var(--spacing-md); font-size: var(--font-size-sm); }
+.modal-actions { display: flex; gap: var(--spacing-sm); justify-content: flex-end; }
+.toast {
+  position: fixed; bottom: 20px; right: 20px; z-index: 300;
+  padding: 10px 20px; border-radius: var(--radius-md);
+  color: #fff; font-size: var(--font-size-sm);
+  animation: toastIn 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+@keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast-success { background: var(--green); }
+.toast-error { background: var(--red); }
+.toast-info { background: var(--primary); }
+
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+
+/* ═══════════════════════════════════════ */
+/* MODULE 1: CONFIG & CONSTANTS            */
+/* ═══════════════════════════════════════ */
+
+const PROJECT_START = new Date(2026, 2, 3);
+const NUM_WEEKS = 9;
+const DAY_MS = 86400000;
+const PRIORITIES = ['High', 'Medium', 'Low'];
+const STATUSES = ['To Do', 'In Progress', 'Done', 'Blocked'];
+
+const INIT_TEAMS = ['PM', 'Design', 'Art', 'Dev', 'Client', 'Server', 'QC', 'Multimedia', 'OP'];
+const TEAM_SORT_ORDER = {};
+INIT_TEAMS.forEach((t, i) => TEAM_SORT_ORDER[t] = i);
+
+const INIT_TEAM_COLORS = {
+  'PM': '#34495e', 'Design': '#e67e22', 'Art': '#9b59b6', 'Dev': '#2980b9',
+  'Client': '#16a085', 'Server': '#8e44ad', 'QC': '#c0392b', 'Multimedia': '#1abc9c', 'OP': '#7f8c8d'
+};
+
+const INIT_PHASE_COLORS = {
+  'Pre-production': '#3498db', 'Production': '#27ae60', 'Testing & QA': '#e74c3c'
+};
+
+const INIT_MEMBERS = [
+  {name: 'ToanNM', team: 'PM'},
+  {name: 'LocPT', team: 'Design'}, {name: 'QuynhNH', team: 'Design'}, {name: 'BinhNT', team: 'Design'},
+  {name: 'HoaGTT', team: 'Art'}, {name: 'TuND4', team: 'Art'}, {name: 'NgocLA', team: 'Art'},
+  {name: 'CongNN', team: 'Dev'}, {name: 'HuongBP', team: 'Dev'}, {name: 'DienDQ', team: 'Dev'},
+  {name: 'CongNT7', team: 'Dev'}, {name: 'PhucNN', team: 'Dev'}, {name: 'SonBNT', team: 'Dev'},
+  {name: 'NhanNT3', team: 'QC'},
+  {name: 'HungVM2', team: 'Multimedia'},
+  {name: 'NienND', team: 'OP'}
+];
+
+const PALETTE = [
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6',
+  '#34495e','#16a085','#27ae60','#2980b9','#8e44ad','#c0392b','#7f8c8d'
+];
+
+const API_BASE = '';
+const DEBOUNCE_MS = 1000;
+const POLL_INTERVAL_MS = 30000;
+
+/* ═══════════════════════════════════════ */
+/* MODULE 2: DATE UTILITIES                */
+/* ═══════════════════════════════════════ */
+
+function parseDate(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length !== 3) return null;
+  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
+  const dt = new Date(y, m, d);
+  if (dt.getDate() !== d || dt.getMonth() !== m || dt.getFullYear() !== y) return null;
+  return dt;
+}
+
+function formatDate(dt) {
+  if (!dt) return '';
+  const d = String(dt.getDate()).padStart(2, '0');
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  return d + '/' + m + '/' + dt.getFullYear();
+}
+
+function addDays(dt, n) {
+  return new Date(dt.getTime() + n * DAY_MS);
+}
+
+function diffDays(a, b) {
+  return Math.round((b.getTime() - a.getTime()) / DAY_MS);
+}
+
+function isWeekend(dt) {
+  const day = dt.getDay();
+  return day === 0 || day === 6;
+}
+
+function skipWeekend(dt) {
+  let skipped = 0;
+  let d = new Date(dt);
+  while (isWeekend(d)) { d = addDays(d, 1); skipped++; }
+  return { date: d, skipped };
+}
+
+function addWorkingDays(dt, n) {
+  let d = new Date(dt);
+  let remaining = n;
+  while (remaining > 0) {
+    d = addDays(d, 1);
+    if (!isWeekend(d)) remaining--;
+  }
+  return d;
+}
+
+function getWorkingDaysBetween(a, b) {
+  let count = 0;
+  let d = new Date(a);
+  while (d < b) {
+    d = addDays(d, 1);
+    if (!isWeekend(d)) count++;
+  }
+  return count;
+}
+
+function weekOfDate(dt) {
+  return Math.floor(diffDays(PROJECT_START, dt) / 7);
+}
+
+function isValidDate(str) {
+  if (!str || typeof str !== 'string') return false;
+  const parts = str.split('/');
+  if (parts.length !== 3) return false;
+  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return false;
+  if (m < 1 || m > 12 || d < 1 || d > 31 || y < 2000) return false;
+  const dt = new Date(y, m - 1, d);
+  return dt.getDate() === d && dt.getMonth() === m - 1 && dt.getFullYear() === y;
+}
+
+/* ═══════════════════════════════════════ */
+/* MODULE 3: TASK LOGIC (pure functions)   */
+/* ═══════════════════════════════════════ */
+
+let nextId = 100;
+
+function initNextId(tasks) {
+  let maxId = 99;
+  (tasks || []).forEach(epic => {
+    if (epic.id > maxId) maxId = epic.id;
+    (epic.children || []).forEach(t => { if (t.id > maxId) maxId = t.id; });
+  });
+  nextId = maxId + 1;
+}
+
+function genId() { return nextId++; }
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+function flattenTasks(tasks) {
+  const result = [];
+  (tasks || []).forEach(epic => {
+    result.push(epic);
+    if (epic.children && epic.expanded) {
+      const sorted = [...epic.children].sort((a, b) => {
+        const ta = TEAM_SORT_ORDER[a.team] ?? 99;
+        const tb = TEAM_SORT_ORDER[b.team] ?? 99;
+        return ta - tb || a.id - b.id;
+      });
+      sorted.forEach(t => result.push(t));
+    }
+  });
+  return result;
+}
+
+function detectCircularDeps(taskId, deps, allTasks) {
+  const taskMap = {};
+  allTasks.forEach(epic => {
+    (epic.children || []).forEach(t => { taskMap[t.id] = t; });
+  });
+  const visited = new Set();
+  const stack = [...deps];
+  while (stack.length > 0) {
+    const id = stack.pop();
+    if (id === taskId) return true;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    const t = taskMap[id];
+    if (t && t.deps) t.deps.forEach(d => stack.push(d));
+  }
+  return false;
+}
+
+function autoSchedule(tasks) {
+  const taskMap = {};
+  const allChildren = [];
+  tasks.forEach(epic => {
+    (epic.children || []).forEach(t => {
+      taskMap[t.id] = t;
+      allChildren.push(t);
+    });
+  });
+
+  // Topological sort
+  const inDegree = {};
+  allChildren.forEach(t => { inDegree[t.id] = 0; });
+  allChildren.forEach(t => {
+    (t.deps || []).forEach(depId => {
+      if (taskMap[depId]) inDegree[t.id] = (inDegree[t.id] || 0) + 1;
+    });
+  });
+  const queue = allChildren.filter(t => inDegree[t.id] === 0);
+  const sorted = [];
+  while (queue.length > 0) {
+    const t = queue.shift();
+    sorted.push(t);
+    allChildren.forEach(other => {
+      if ((other.deps || []).includes(t.id)) {
+        inDegree[other.id]--;
+        if (inDegree[other.id] === 0) queue.push(other);
+      }
+    });
+  }
+
+  // Forward pass
+  sorted.forEach(t => {
+    const startDt = parseDate(t.start);
+    const endDt = parseDate(t.end);
+    if (!startDt || !endDt) return;
+    const duration = getWorkingDaysBetween(startDt, endDt);
+
+    if (t.deps && t.deps.length > 0) {
+      let maxEnd = null;
+      t.deps.forEach(depId => {
+        const dep = taskMap[depId];
+        if (dep) {
+          const depEnd = parseDate(dep.end);
+          if (depEnd && (!maxEnd || depEnd > maxEnd)) maxEnd = depEnd;
+        }
+      });
+      if (maxEnd) {
+        let newStart = addDays(maxEnd, 1);
+        const sw = skipWeekend(newStart);
+        newStart = sw.date;
+        t.start = formatDate(newStart);
+        t.end = formatDate(addWorkingDays(newStart, duration));
+      }
+    } else {
+      const sw = skipWeekend(startDt);
+      if (sw.skipped > 0) {
+        t.start = formatDate(sw.date);
+        t.end = formatDate(addWorkingDays(sw.date, duration));
+      }
+    }
+  });
+
+  // Update Epic dates
+  tasks.forEach(epic => {
+    if (!epic.children || epic.children.length === 0) return;
+    let minStart = null, maxEnd = null;
+    epic.children.forEach(t => {
+      const s = parseDate(t.start), e = parseDate(t.end);
+      if (s && (!minStart || s < minStart)) minStart = s;
+      if (e && (!maxEnd || e > maxEnd)) maxEnd = e;
+    });
+    if (minStart) epic.start = formatDate(minStart);
+    if (maxEnd) epic.end = formatDate(maxEnd);
+    // Epic progress = average of children
+    const total = epic.children.reduce((sum, t) => sum + (t.pct || 0), 0);
+    epic.pct = Math.round(total / epic.children.length);
+  });
+
+  return tasks;
+}
+
+function calculateCriticalPath(tasks) {
+  const taskMap = {};
+  const allChildren = [];
+  tasks.forEach(epic => {
+    (epic.children || []).forEach(t => {
+      taskMap[t.id] = t;
+      allChildren.push(t);
+    });
+  });
+  if (allChildren.length === 0) return new Set();
+
+  // Build dependency reverse map
+  const dependents = {};
+  allChildren.forEach(t => { dependents[t.id] = []; });
+  allChildren.forEach(t => {
+    (t.deps || []).forEach(depId => {
+      if (dependents[depId]) dependents[depId].push(t.id);
+    });
+  });
+
+  // Early start/finish (forward pass)
+  const es = {}, ef = {};
+  allChildren.forEach(t => {
+    const s = parseDate(t.start), e = parseDate(t.end);
+    es[t.id] = s ? diffDays(PROJECT_START, s) : 0;
+    ef[t.id] = e ? diffDays(PROJECT_START, e) : 0;
+  });
+
+  // Late start/finish (reverse pass)
+  const projectEnd = Math.max(...allChildren.map(t => ef[t.id]));
+  const ls = {}, lf = {};
+  allChildren.forEach(t => { lf[t.id] = projectEnd; ls[t.id] = projectEnd; });
+
+  // Process in reverse topological order
+  const reversed = [...allChildren].sort((a, b) => ef[b.id] - ef[a.id]);
+  reversed.forEach(t => {
+    const deps = dependents[t.id];
+    if (deps.length > 0) {
+      lf[t.id] = Math.min(...deps.map(id => ls[id]));
+    } else {
+      lf[t.id] = projectEnd;
+    }
+    const duration = ef[t.id] - es[t.id];
+    ls[t.id] = lf[t.id] - duration;
+  });
+
+  // Float = LS - ES; critical if float === 0
+  const criticalIds = new Set();
+  allChildren.forEach(t => {
+    const float = ls[t.id] - es[t.id];
+    if (float === 0) criticalIds.add(t.id);
+  });
+
+  return criticalIds;
+}
+
+
+/* ═══════════════════════════════════════ */
+/* MODULE 4: DATA PERSISTENCE              */
+/* ═══════════════════════════════════════ */
+
+function lsSave(state) {
+  try {
+    localStorage.setItem('ptb-data', JSON.stringify({
+      tasks: state.tasks, members: state.members,
+      teamColors: state.teamColors, phaseColors: state.phaseColors,
+      version: state.version
+    }));
+  } catch (e) { /* quota exceeded - ignore */ }
+}
+
+function lsLoad() {
+  try {
+    const raw = localStorage.getItem('ptb-data');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+async function apiCall(method, path, body, token) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' }
+  };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || 'API error');
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+async function apiLoad(token) {
+  return apiCall('GET', '/api/data', null, token);
+}
+
+async function apiSave(data, token) {
+  return apiCall('POST', '/api/data', data, token);
+}
+
+function useAutoSave(data, token, version) {
+  const timerRef = React.useRef(null);
+  const dataRef = React.useRef(data);
+  dataRef.current = data;
+
+  React.useEffect(() => {
+    if (!token || !data.tasks || data.tasks.length === 0) return;
+    lsSave(data);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      try {
+        await apiSave({ ...data, version }, token);
+      } catch (e) {
+        if (e.status === 409) return { conflict: true, serverVersion: e.data?.serverVersion };
+        if (e.status === 401) return { authError: true };
+      }
+    }, DEBOUNCE_MS);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [data, token, version]);
+
+  React.useEffect(() => {
+    const handler = () => lsSave(dataRef.current);
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+}
+
+function useVersionPoll(token, currentVersion, onConflict) {
+  React.useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await apiCall('GET', '/api/version', null, token);
+        if (res.version > currentVersion) onConflict(res);
+      } catch (e) { /* ignore poll errors */ }
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [token, currentVersion]);
+}
+
+/* ═══════════════════════════════════════ */
+/* MODULE 5: IMPORT / EXPORT               */
+/* ═══════════════════════════════════════ */
+
+function exportJSON(data) {
+  const blob = new Blob([JSON.stringify({ tasks: data.tasks, members: data.members, teamColors: data.teamColors, phaseColors: data.phaseColors }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  a.href = url;
+  a.download = `poker_build_plan_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.tasks || !data.members || !data.teamColors || !data.phaseColors) {
+        callback(null, 'File JSON khong hop le: thieu truong bat buoc');
+        return;
+      }
+      callback(data, null);
+    } catch (err) {
+      callback(null, 'Khong the doc file JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportExcel(data, teamColors) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Build Plan');
+  const headers = ['Task Name', 'Phase', 'Team', 'Assignee', 'Priority', 'Status', 'Start', 'End', 'Duration', 'Progress', 'Notes'];
+  const headerRow = ws.addRow(headers);
+  headerRow.eachCell(cell => {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.border = { bottom: { style: 'thin' } };
+  });
+
+  const flat = [];
+  (data.tasks || []).forEach(epic => {
+    (epic.children || []).forEach(t => flat.push({ ...t, phase: epic.name }));
+  });
+
+  flat.forEach(t => {
+    const s = parseDate(t.start), e = parseDate(t.end);
+    const dur = s && e ? getWorkingDaysBetween(s, e) : 0;
+    const row = ws.addRow([t.name, t.phase, t.team, t.assignee, t.priority, t.status, t.start, t.end, dur, (t.pct || 0) + '%', t.notes || '']);
+    // Team color
+    const tc = teamColors[t.team];
+    if (tc) row.getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + tc.replace('#', '') } };
+    row.getCell(3).font = { color: { argb: 'FFFFFFFF' } };
+    // Status color
+    const sc = { 'Done': 'FF27AE60', 'In Progress': 'FF3498DB', 'Blocked': 'FFE74C3C', 'To Do': 'FF555555' };
+    if (sc[t.status]) { row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc[t.status] } }; row.getCell(6).font = { color: { argb: 'FFFFFFFF' } }; }
+    // Priority color
+    const pc = { 'High': 'FFE74C3C', 'Medium': 'FFF1C40F', 'Low': 'FF2ECC71' };
+    if (pc[t.priority]) row.getCell(5).font = { color: { argb: pc[t.priority] } };
+  });
+
+  ws.columns.forEach(col => { col.width = 18; });
+  ws.getColumn(1).width = 30;
+  ws.getColumn(11).width = 30;
+
+  wb.xlsx.writeBuffer().then(buf => {
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'Poker_Build_Plan.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function exportJiraCSV(data) {
+  const statusMap = { 'To Do': 'To Do', 'In Progress': 'In Progress', 'Done': 'Done', 'Blocked': 'Blocked' };
+  const lines = ['Summary,Issue Type,Epic Name,Epic Link,Status,Priority,Assignee,Start Date,Due Date,Original Estimate'];
+  (data.tasks || []).forEach(epic => {
+    lines.push(`"${epic.name}",Epic,"${epic.name}","","To Do","Medium","","","",""`);
+    (epic.children || []).forEach(t => {
+      const s = parseDate(t.start), e = parseDate(t.end);
+      const dur = s && e ? getWorkingDaysBetween(s, e) : 0;
+      const startISO = s ? `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,'0')}-${String(s.getDate()).padStart(2,'0')}` : '';
+      const endISO = e ? `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,'0')}-${String(e.getDate()).padStart(2,'0')}` : '';
+      lines.push(`"${t.name}",Task,"","${epic.name}","${statusMap[t.status] || t.status}","${t.priority}","${t.assignee}","${startISO}","${endISO}","${dur * 8}h"`);
+    });
+  });
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'Jira_Import_PTB.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importExcel(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      if (rows.length === 0) { callback(null, 'File Excel trong'); return; }
+
+      // Detect header mapping
+      const firstRow = rows[0];
+      const keys = Object.keys(firstRow);
+      const findKey = (keywords) => keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw))) || null;
+      const nameKey = findKey(['task', 'name', 'summary', 'ten']);
+      const phaseKey = findKey(['phase', 'epic', 'giai doan']);
+      const teamKey = findKey(['team', 'nhom']);
+      const assigneeKey = findKey(['assignee', 'nguoi', 'assign']);
+      const statusKey = findKey(['status', 'trang thai']);
+      const priorityKey = findKey(['priority', 'uu tien']);
+      const startKey = findKey(['start', 'bat dau']);
+      const endKey = findKey(['end', 'ket thuc', 'due']);
+
+      if (!nameKey) { callback(null, 'Khong tim thay cot Task Name'); return; }
+
+      const phases = {};
+      let epicId = 100;
+      rows.forEach(row => {
+        const phase = (phaseKey && row[phaseKey]) || 'Imported';
+        if (!phases[phase]) { phases[phase] = { id: epicId++, name: phase, isEpic: true, phase, expanded: true, children: [] }; }
+        const normalizeStatus = (s) => { const m = { 'done': 'Done', 'in progress': 'In Progress', 'blocked': 'Blocked', 'to do': 'To Do' }; return m[(s||'').toLowerCase()] || 'To Do'; };
+        const normalizePriority = (p) => { const m = { 'high': 'High', 'medium': 'Medium', 'low': 'Low' }; return m[(p||'').toLowerCase()] || 'Medium'; };
+        const normalizeDate = (d) => {
+          if (!d) return formatDate(new Date());
+          if (typeof d === 'number') { const dt = new Date((d - 25569) * 86400000); return formatDate(dt); }
+          const str = String(d);
+          if (str.includes('-')) { const p = str.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+          if (str.includes('/')) return str;
+          return formatDate(new Date());
+        };
+        phases[phase].children.push({
+          id: epicId++, name: row[nameKey] || 'Unnamed',
+          team: (teamKey && row[teamKey]) || '', assignee: (assigneeKey && row[assigneeKey]) || '',
+          priority: normalizePriority(priorityKey && row[priorityKey]),
+          status: normalizeStatus(statusKey && row[statusKey]),
+          start: normalizeDate(startKey && row[startKey]),
+          end: normalizeDate(endKey && row[endKey]),
+          pct: 0, deps: [], notes: ''
+        });
+      });
+
+      const tasks = Object.values(phases);
+      const members = [];
+      const seen = new Set();
+      tasks.forEach(e => e.children.forEach(t => {
+        if (t.assignee && !seen.has(t.assignee)) { seen.add(t.assignee); members.push({ name: t.assignee, team: t.team || 'Dev' }); }
+      }));
+
+      callback({ tasks, members }, null);
+    } catch (err) {
+      callback(null, 'Loi doc file Excel: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ═══════════════════════════════════════ */
+/* MODULE 6: UI COMPONENTS (presentational)*/
+/* ═══════════════════════════════════════ */
+
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await apiCall('POST', '/api/login', { username, password });
+      onLogin(res.token, res.username);
+    } catch (err) {
+      setError(err.status === 401 ? 'Sai ten dang nhap hoac mat khau' : 'Loi ket noi server');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-screen">
+      <form className="login-box" onSubmit={handleSubmit}>
+        <h2>Poker Texas Build Plan</h2>
+        <div className="login-field">
+          <label>Ten dang nhap</label>
+          <input value={username} onChange={e => setUsername(e.target.value)} autoFocus />
+        </div>
+        <div className="login-field">
+          <label>Mat khau</label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        </div>
+        <button className="btn btn-primary login-btn" type="submit" disabled={loading}>
+          {loading ? 'Dang nhap...' : 'Dang nhap'}
+        </button>
+        {error && <div className="login-error">{error}</div>}
+      </form>
+    </div>
+  );
+}
+
+function TaskRow({ task, isEpic, indent, expanded, onToggle, onSelect, selected, teamColors }) {
+  const statusClass = task.status ? 'status-' + task.status.toLowerCase().replace(/\s+/g, '') : '';
+  const priorityColor = task.priority === 'High' ? 'var(--red)' : task.priority === 'Medium' ? 'var(--yellow)' : 'var(--green)';
+
+  return (
+    <div
+      className={`task-row ${isEpic ? 'epic' : ''} ${selected ? 'selected' : ''}`}
+      onClick={() => onSelect(task.id)}
+      style={!isEpic ? { paddingLeft: indent + 'px' } : {}}
+    >
+      {isEpic ? (
+        <button className="expand-btn" onClick={e => { e.stopPropagation(); onToggle(task.id); }}>
+          {expanded ? '▼' : '▶'}
+        </button>
+      ) : <span style={{ width: 20 }} />}
+      <span className="task-name">{isEpic ? task.name : `${task.id}. ${task.name}`}</span>
+      {!isEpic && task.team && (
+        <span className="team-badge" style={{ background: teamColors[task.team] || '#555' }}>{task.team}</span>
+      )}
+      {!isEpic && task.priority && (
+        <span className="priority-dot" style={{ background: priorityColor }} />
+      )}
+      {!isEpic && task.status && (
+        <span className={`status-badge ${statusClass}`}>{task.status}</span>
+      )}
+      {!isEpic && <span className="task-dates">{task.start} - {task.end}</span>}
+      <span className="task-pct">{task.pct || 0}%</span>
+    </div>
+  );
+}
+
+function TaskPanel({ tasks, selectedId, onSelect, onToggle, onAddTask, teamColors, scrollRef }) {
+  const flat = flattenTasks(tasks);
+  return (
+    <div className="task-panel">
+      <div className="task-panel-header">
+        <span>Danh sach Task</span>
+        <span style={{ color: 'var(--text2)', fontSize: 'var(--font-size-xs)' }}>
+          {tasks.reduce((sum, e) => sum + (e.children ? e.children.length : 0), 0)} tasks
+        </span>
+      </div>
+      <div className="task-list" ref={scrollRef} onScroll={e => {
+        if (scrollRef._syncTarget) scrollRef._syncTarget.scrollTop = e.target.scrollTop;
+      }}>
+        {flat.map(t => {
+          const isEpic = !!t.isEpic;
+          return (
+            <React.Fragment key={t.id}>
+              <TaskRow
+                task={t} isEpic={isEpic} indent={isEpic ? 0 : 32}
+                expanded={t.expanded} onToggle={onToggle}
+                onSelect={onSelect} selected={t.id === selectedId}
+                teamColors={teamColors}
+              />
+              {isEpic && t.expanded && (
+                <button className="add-task-btn" onClick={() => onAddTask(t.id)}
+                  style={{ paddingLeft: 40 }}>
+                  + Them task
+                </button>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GanttBar({ task, teamColors, isCritical, onClick, totalDays, startOffset }) {
+  const s = parseDate(task.start), e = parseDate(task.end);
+  if (!s || !e) return null;
+  const left = diffDays(PROJECT_START, s);
+  const width = diffDays(s, e) + 1;
+  const pxPerDay = 100 / 7;
+  return (
+    <div
+      className={`gantt-bar ${isCritical ? 'critical' : ''}`}
+      style={{
+        left: left * pxPerDay + 'px',
+        width: Math.max(width * pxPerDay, 20) + 'px',
+        background: teamColors[task.team] || '#555'
+      }}
+      onClick={e => { e.stopPropagation(); onClick(task.id); }}
+    >
+      <div className="gantt-bar-progress" style={{ width: (task.pct || 0) + '%' }} />
+      <span className="gantt-bar-label">{task.name}</span>
+    </div>
+  );
+}
+
+function GanttPanel({ tasks, teamColors, criticalIds, selectedId, onSelect, scrollRef }) {
+  const flat = flattenTasks(tasks);
+  const weeks = [];
+  const now = new Date();
+  const currentWeek = weekOfDate(now);
+  for (let i = 0; i < NUM_WEEKS; i++) {
+    const wStart = addDays(PROJECT_START, i * 7);
+    const wEnd = addDays(wStart, 6);
+    weeks.push({
+      label: `W${i + 1}`,
+      sub: `${formatDate(wStart).slice(0, 5)} - ${formatDate(wEnd).slice(0, 5)}`,
+      isCurrent: i === currentWeek
+    });
+  }
+  return (
+    <div className="gantt-panel" ref={scrollRef} onScroll={e => {
+      if (scrollRef._syncTarget) scrollRef._syncTarget.scrollTop = e.target.scrollTop;
+    }}>
+      <div className="gantt-header">
+        {weeks.map((w, i) => (
+          <div key={i} className={`gantt-week ${w.isCurrent ? 'current' : ''}`}>
+            <div>{w.label}</div>
+            <div style={{ fontSize: '10px' }}>{w.sub}</div>
+          </div>
+        ))}
+      </div>
+      <div className="gantt-body">
+        {flat.map(t => (
+          <div key={t.id} className={`gantt-row ${t.isEpic ? 'epic' : ''}`}>
+            <div className="gantt-row-bg">
+              {weeks.map((w, i) => (
+                <div key={i} className={`gantt-row-bg-week ${w.isCurrent ? 'current' : ''}`} />
+              ))}
+            </div>
+            {!t.isEpic && (
+              <GanttBar
+                task={t} teamColors={teamColors}
+                isCritical={criticalIds.has(t.id)}
+                onClick={onSelect}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DatePicker({ value, onChange, label }) {
+  const [text, setText] = React.useState(value || '');
+  const valid = !text || isValidDate(text);
+  React.useEffect(() => { setText(value || ''); }, [value]);
+
+  const handleText = (v) => {
+    setText(v);
+    if (isValidDate(v)) onChange(v);
+  };
+  const handleNative = (e) => {
+    const d = e.target.value;
+    if (d) {
+      const [y, m, dd] = d.split('-');
+      const formatted = `${dd}/${m}/${y}`;
+      setText(formatted);
+      onChange(formatted);
+    }
+  };
+  const toNative = () => {
+    const dt = parseDate(text);
+    if (!dt) return '';
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+      <input
+        value={text} onChange={e => handleText(e.target.value)}
+        placeholder="DD/MM/YYYY"
+        style={{ flex: 1, borderColor: valid ? '' : 'var(--red)' }}
+      />
+      <input type="date" value={toNative()} onChange={handleNative}
+        style={{ width: 32, padding: 4, cursor: 'pointer' }} />
+    </div>
+  );
+}
+
+function DepsSelector({ value, onChange, allTasks, currentTaskId }) {
+  const [warning, setWarning] = React.useState('');
+  const available = [];
+  allTasks.forEach(epic => {
+    (epic.children || []).forEach(t => {
+      if (t.id !== currentTaskId) available.push(t);
+    });
+  });
+
+  const toggle = (id) => {
+    const current = value || [];
+    if (current.includes(id)) {
+      onChange(current.filter(d => d !== id));
+      setWarning('');
+    } else {
+      const newDeps = [...current, id];
+      if (detectCircularDeps(currentTaskId, newDeps, allTasks)) {
+        setWarning('Phat hien vong lap dependency!');
+        return;
+      }
+      onChange(newDeps);
+      setWarning('');
+    }
+  };
+
+  return (
+    <div>
+      <div className="deps-selector">
+        {available.map(t => (
+          <span key={t.id}
+            className={`dep-item ${(value || []).includes(t.id) ? 'selected' : ''}`}
+            onClick={() => toggle(t.id)}
+          >
+            {t.id}. {t.name}
+          </span>
+        ))}
+      </div>
+      {warning && <div className="dep-warning">{warning}</div>}
+    </div>
+  );
+}
+
+function DetailPanel({ task, isOpen, onClose, onUpdate, onDelete, members, teamColors, allTasks }) {
+  const [form, setForm] = React.useState({});
+  React.useEffect(() => { if (task) setForm({ ...task }); }, [task]);
+  if (!isOpen || !task) return null;
+
+  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const teamMembers = members.filter(m => m.team === form.team);
+  const startDt = parseDate(form.start);
+  const endDt = parseDate(form.end);
+  const duration = startDt && endDt ? getWorkingDaysBetween(startDt, endDt) : 0;
+
+  return (
+    <div className="detail-overlay">
+      <div className="detail-header">
+        <h3>Chi tiet Task #{form.id}</h3>
+        <button className="btn btn-icon" onClick={onClose}>✕</button>
+      </div>
+      <div className="detail-body">
+        <div className="detail-field">
+          <label>Ten task</label>
+          <input value={form.name || ''} onChange={e => set('name', e.target.value)} />
+        </div>
+        <div className="detail-field">
+          <label>Team</label>
+          <select value={form.team || ''} onChange={e => set('team', e.target.value)}>
+            <option value="">-- Chon team --</option>
+            {Object.keys(teamColors).map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="detail-field">
+          <label>Assignee</label>
+          <select value={form.assignee || ''} onChange={e => set('assignee', e.target.value)}>
+            <option value="">-- Chon assignee --</option>
+            {teamMembers.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+          <div className="detail-field" style={{ flex: 1 }}>
+            <label>Priority</label>
+            <select value={form.priority || ''} onChange={e => set('priority', e.target.value)}>
+              {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="detail-field" style={{ flex: 1 }}>
+            <label>Status</label>
+            <select value={form.status || ''} onChange={e => set('status', e.target.value)}>
+              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="detail-field">
+          <label>Tien do ({form.pct || 0}%)</label>
+          <div className="range-row">
+            <input type="range" min="0" max="100" value={form.pct || 0}
+              onChange={e => set('pct', parseInt(e.target.value))} />
+            <span style={{ width: 40, textAlign: 'right' }}>{form.pct || 0}%</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+          <div className="detail-field" style={{ flex: 1 }}>
+            <label>Ngay bat dau</label>
+            <DatePicker value={form.start} onChange={v => set('start', v)} />
+          </div>
+          <div className="detail-field" style={{ flex: 1 }}>
+            <label>Ngay ket thuc</label>
+            <DatePicker value={form.end} onChange={v => set('end', v)} />
+          </div>
+        </div>
+        <div className="detail-field">
+          <label>Duration: {duration} ngay lam viec</label>
+        </div>
+        <div className="detail-field">
+          <label>Dependencies</label>
+          <DepsSelector value={form.deps} onChange={v => set('deps', v)}
+            allTasks={allTasks} currentTaskId={form.id} />
+        </div>
+        <div className="detail-field">
+          <label>Ghi chu</label>
+          <textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
+        </div>
+      </div>
+      <div className="detail-footer">
+        <button className="btn btn-danger btn-sm" onClick={() => onDelete(form.id)}>Xoa task</button>
+        <button className="btn btn-primary" onClick={() => onUpdate(form)}>Luu thay doi</button>
+      </div>
+    </div>
+  );
+}
+
+function AdminPanel({ isOpen, onClose, members, teams, phases, teamColors, phaseColors, onUpdateMembers, onUpdateTeams, onUpdatePhases }) {
+  const [tab, setTab] = React.useState('members');
+  const [newMemberName, setNewMemberName] = React.useState('');
+  const [newMemberTeam, setNewMemberTeam] = React.useState('');
+  const [newTeamName, setNewTeamName] = React.useState('');
+  const [newTeamColor, setNewTeamColor] = React.useState('#3498db');
+  const [newPhaseName, setNewPhaseName] = React.useState('');
+  const [newPhaseColor, setNewPhaseColor] = React.useState('#27ae60');
+  const [confirmAction, setConfirmAction] = React.useState(null);
+
+  if (!isOpen) return null;
+  const teamList = Object.keys(teamColors);
+
+  return (
+    <div className="admin-modal" onClick={onClose}>
+      <div className="admin-content" onClick={e => e.stopPropagation()}>
+        <div className="admin-header">
+          <h3>Quan ly</h3>
+          <button className="btn btn-icon" onClick={onClose}>✕</button>
+        </div>
+        <div className="admin-tabs">
+          <button className={`admin-tab ${tab === 'members' ? 'active' : ''}`} onClick={() => setTab('members')}>Thanh vien</button>
+          <button className={`admin-tab ${tab === 'teams' ? 'active' : ''}`} onClick={() => setTab('teams')}>Team</button>
+          <button className={`admin-tab ${tab === 'phases' ? 'active' : ''}`} onClick={() => setTab('phases')}>Phase</button>
+        </div>
+        <div className="admin-body">
+          {tab === 'members' && (
+            <>
+              <table className="admin-table">
+                <thead><tr><th>Ten</th><th>Team</th><th></th></tr></thead>
+                <tbody>
+                  {members.map((m, i) => (
+                    <tr key={i}>
+                      <td><input value={m.name} onChange={e => {
+                        const updated = [...members]; updated[i] = { ...m, name: e.target.value }; onUpdateMembers(updated);
+                      }} /></td>
+                      <td><select value={m.team} onChange={e => {
+                        const updated = [...members]; updated[i] = { ...m, team: e.target.value }; onUpdateMembers(updated);
+                      }}>
+                        {teamList.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select></td>
+                      <td><button className="btn btn-sm btn-danger" onClick={() => {
+                        const updated = members.filter((_, j) => j !== i); onUpdateMembers(updated);
+                      }}>Xoa</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="admin-add-form">
+                <input placeholder="Ten" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} />
+                <select value={newMemberTeam} onChange={e => setNewMemberTeam(e.target.value)}>
+                  <option value="">Team</option>
+                  {teamList.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <button className="btn btn-primary btn-sm" onClick={() => {
+                  if (!newMemberName || !newMemberTeam) return;
+                  onUpdateMembers([...members, { name: newMemberName, team: newMemberTeam }]);
+                  setNewMemberName(''); setNewMemberTeam('');
+                }}>Them</button>
+              </div>
+            </>
+          )}
+          {tab === 'teams' && (
+            <>
+              <table className="admin-table">
+                <thead><tr><th>Team</th><th>Mau</th><th></th></tr></thead>
+                <tbody>
+                  {teamList.map(t => (
+                    <tr key={t}>
+                      <td>{t}</td>
+                      <td><input type="color" className="color-picker" value={teamColors[t]}
+                        onChange={e => { const updated = { ...teamColors, [t]: e.target.value }; onUpdateTeams(updated); }} /></td>
+                      <td><button className="btn btn-sm btn-danger" onClick={() => {
+                        if (members.some(m => m.team === t)) { alert('Team con thanh vien, hay chuyen ho truoc!'); return; }
+                        const updated = { ...teamColors }; delete updated[t]; onUpdateTeams(updated);
+                      }}>Xoa</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="admin-add-form">
+                <input placeholder="Team name" value={newTeamName} onChange={e => setNewTeamName(e.target.value)} />
+                <input type="color" className="color-picker" value={newTeamColor} onChange={e => setNewTeamColor(e.target.value)} />
+                <button className="btn btn-primary btn-sm" onClick={() => {
+                  if (!newTeamName) return;
+                  onUpdateTeams({ ...teamColors, [newTeamName]: newTeamColor });
+                  setNewTeamName(''); setNewTeamColor('#3498db');
+                }}>Them</button>
+              </div>
+            </>
+          )}
+          {tab === 'phases' && (
+            <>
+              <table className="admin-table">
+                <thead><tr><th>Phase</th><th>Mau</th><th></th></tr></thead>
+                <tbody>
+                  {Object.keys(phaseColors).map(p => (
+                    <tr key={p}>
+                      <td>{p}</td>
+                      <td><input type="color" className="color-picker" value={phaseColors[p]}
+                        onChange={e => { const updated = { ...phaseColors, [p]: e.target.value }; onUpdatePhases(updated, { type: 'updateColor', phase: p }); }} /></td>
+                      <td><button className="btn btn-sm btn-danger" onClick={() => {
+                        setConfirmAction({ phase: p });
+                      }}>Xoa</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="admin-add-form">
+                <input placeholder="Phase name" value={newPhaseName} onChange={e => setNewPhaseName(e.target.value)} />
+                <input type="color" className="color-picker" value={newPhaseColor} onChange={e => setNewPhaseColor(e.target.value)} />
+                <button className="btn btn-primary btn-sm" onClick={() => {
+                  if (!newPhaseName) return;
+                  onUpdatePhases({ ...phaseColors, [newPhaseName]: newPhaseColor }, { type: 'add', phase: newPhaseName });
+                  setNewPhaseName(''); setNewPhaseColor('#27ae60');
+                }}>Them</button>
+              </div>
+              {confirmAction && (
+                <ConfirmDialog
+                  title="Xoa Phase"
+                  message={`Se xoa Epic "${confirmAction.phase}" va tat ca task con. Ban chac chan?`}
+                  onConfirm={() => {
+                    const updated = { ...phaseColors }; delete updated[confirmAction.phase];
+                    onUpdatePhases(updated, { type: 'delete', phase: confirmAction.phase });
+                    setConfirmAction(null);
+                  }}
+                  onCancel={() => setConfirmAction(null)}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterBar({ filters, onChange, phases, teams, stats }) {
+  return (
+    <div className="filter-bar">
+      <select value={filters.phase} onChange={e => onChange({ ...filters, phase: e.target.value })}>
+        <option value="">Tat ca Phase</option>
+        {Object.keys(phases).map(p => <option key={p} value={p}>{p}</option>)}
+      </select>
+      <select value={filters.team} onChange={e => onChange({ ...filters, team: e.target.value })}>
+        <option value="">Tat ca Team</option>
+        {Object.keys(teams).map(t => <option key={t} value={t}>{t}</option>)}
+      </select>
+      <select value={filters.status} onChange={e => onChange({ ...filters, status: e.target.value })}>
+        <option value="">Tat ca Status</option>
+        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+      </select>
+      <input type="text" placeholder="Tim kiem task, member..."
+        value={filters.search} onChange={e => onChange({ ...filters, search: e.target.value })} />
+      <div className="stats">
+        <span>Tong: {stats.total}</span>
+        <span><span className="stat-dot" style={{ background: 'var(--primary)' }} />{stats.inProgress}</span>
+        <span><span className="stat-dot" style={{ background: 'var(--green)' }} />{stats.done}</span>
+        <span><span className="stat-dot" style={{ background: 'var(--red)' }} />{stats.blocked}</span>
+      </div>
+    </div>
+  );
+}
+
+function BoardCard({ task, teamColors, onClick }) {
+  const priorityColor = task.priority === 'High' ? 'var(--red)' : task.priority === 'Medium' ? 'var(--yellow)' : 'var(--green)';
+  return (
+    <div className="board-card" onClick={() => onClick(task.id)}>
+      <div className="card-name">{task.name}</div>
+      <div className="card-meta">
+        {task.team && <span className="team-badge" style={{ background: teamColors[task.team] || '#555' }}>{task.team}</span>}
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text2)' }}>{task.assignee}</span>
+        <span className="priority-dot" style={{ background: priorityColor }} />
+      </div>
+      <div className="card-progress">
+        <div className="card-progress-fill" style={{ width: (task.pct || 0) + '%' }} />
+      </div>
+    </div>
+  );
+}
+
+function BoardView({ tasks, teamColors, onSelect }) {
+  const flat = [];
+  tasks.forEach(epic => {
+    (epic.children || []).forEach(t => flat.push(t));
+  });
+  const columns = STATUSES.map(status => ({
+    status,
+    tasks: flat.filter(t => t.status === status)
+  }));
+  return (
+    <div className="board">
+      {columns.map(col => (
+        <div key={col.status} className="board-column">
+          <div className="board-column-header">
+            <span>{col.status}</span>
+            <span className="count-badge">{col.tasks.length}</span>
+          </div>
+          <div className="board-column-body">
+            {col.tasks.length === 0 && (
+              <div style={{ color: 'var(--text2)', fontSize: 'var(--font-size-xs)', textAlign: 'center', padding: '20px' }}>
+                Khong co task
+              </div>
+            )}
+            {col.tasks.map(t => (
+              <BoardCard key={t.id} task={t} teamColors={teamColors} onClick={onSelect} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConfirmDialog({ title, message, onConfirm, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="modal-actions">
+          <button className="btn" onClick={onCancel}>Huy</button>
+          <button className="btn btn-danger" onClick={onConfirm}>Xac nhan</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Toast({ message, type, onClose }) {
+  React.useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+  return <div className={`toast toast-${type || 'info'}`}>{message}</div>;
+}
+
+/* ═══════════════════════════════════════ */
+/* MODULE 7: APP CONTAINER (state + glue)  */
+/* ═══════════════════════════════════════ */
+
+function App() {
+  const [token, setToken] = React.useState(() => localStorage.getItem('ptb-token') || null);
+  const [username, setUsername] = React.useState(() => localStorage.getItem('ptb-username') || '');
+  const [tasks, setTasks] = React.useState([]);
+  const [members, setMembers] = React.useState([]);
+  const [teamColors, setTeamColors] = React.useState({});
+  const [phaseColors, setPhaseColors] = React.useState({});
+  const [version, setVersion] = React.useState(1);
+  const [selectedTaskId, setSelectedTaskId] = React.useState(null);
+  const [view, setView] = React.useState('gantt');
+  const [showDetail, setShowDetail] = React.useState(false);
+  const [showAdmin, setShowAdmin] = React.useState(false);
+  const [showConflict, setShowConflict] = React.useState(false);
+  const [confirm, setConfirm] = React.useState(null);
+  const [toast, setToast] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showDataMenu, setShowDataMenu] = React.useState(false);
+  const [filters, setFilters] = React.useState({ phase: '', team: '', status: '', search: '' });
+
+  const taskPanelRef = React.useRef(null);
+  const ganttPanelRef = React.useRef(null);
+  const jsonInputRef = React.useRef(null);
+  const excelInputRef = React.useRef(null);
+
+  // Scroll sync
+  React.useEffect(() => {
+    if (taskPanelRef.current && ganttPanelRef.current) {
+      taskPanelRef.current._syncTarget = ganttPanelRef.current;
+      ganttPanelRef.current._syncTarget = taskPanelRef.current;
+    }
+  });
+
+  const loadData = React.useCallback(async (tkn) => {
+    setIsLoading(true);
+    try {
+      const data = await apiLoad(tkn);
+      setTasks(data.tasks || []);
+      setMembers(data.members || INIT_MEMBERS);
+      setTeamColors(data.teamColors || INIT_TEAM_COLORS);
+      setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
+      setVersion(data.version || 1);
+      initNextId(data.tasks || []);
+    } catch (e) {
+      // Fallback to localStorage then INITIAL_TASKS
+      const cached = lsLoad();
+      if (cached) {
+        setTasks(cached.tasks || []);
+        setMembers(cached.members || INIT_MEMBERS);
+        setTeamColors(cached.teamColors || INIT_TEAM_COLORS);
+        setPhaseColors(cached.phaseColors || INIT_PHASE_COLORS);
+        setVersion(cached.version || 1);
+        initNextId(cached.tasks || []);
+      } else {
+        const data = deepClone(INITIAL_TASKS);
+        setTasks(data.tasks || []);
+        setMembers(data.members || INIT_MEMBERS);
+        setTeamColors(data.teamColors || INIT_TEAM_COLORS);
+        setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
+        setVersion(data.version || 1);
+        initNextId(data.tasks || []);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  // On mount: load data if token exists
+  React.useEffect(() => {
+    if (token) {
+      loadData(token);
+    } else {
+      const data = deepClone(INITIAL_TASKS);
+      setTasks(data.tasks || []);
+      setMembers(data.members || INIT_MEMBERS);
+      setTeamColors(data.teamColors || INIT_TEAM_COLORS);
+      setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
+      initNextId(data.tasks || []);
+    }
+  }, []);
+
+  const handleLogin = (tkn, user) => {
+    setToken(tkn);
+    setUsername(user);
+    localStorage.setItem('ptb-token', tkn);
+    localStorage.setItem('ptb-username', user);
+    loadData(tkn);
+  };
+
+  const handleLogout = () => {
+    setToken(null);
+    setUsername('');
+    localStorage.removeItem('ptb-token');
+    localStorage.removeItem('ptb-username');
+    localStorage.removeItem('ptb-data');
+    const data = deepClone(INITIAL_TASKS);
+    setTasks(data.tasks || []);
+    setMembers(data.members || INIT_MEMBERS);
+    setTeamColors(data.teamColors || INIT_TEAM_COLORS);
+    setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
+    setVersion(1);
+  };
+
+  // Auto-save
+  const autoSaveData = React.useMemo(() => ({
+    tasks, members, teamColors, phaseColors, version
+  }), [tasks, members, teamColors, phaseColors, version]);
+  useAutoSave(autoSaveData, token, version);
+
+  // Version poll
+  useVersionPoll(token, version, (info) => {
+    setShowConflict(true);
+  });
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        if (showDetail) { setShowDetail(false); setSelectedTaskId(null); }
+        else if (showAdmin) setShowAdmin(false);
+        else if (confirm) setConfirm(null);
+        else if (showDataMenu) setShowDataMenu(false);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (token) {
+          lsSave({ tasks, members, teamColors, phaseColors, version });
+          apiSave({ tasks, members, teamColors, phaseColors, version }, token)
+            .then(() => showToastMsg('Da luu', 'success'))
+            .catch(() => showToastMsg('Loi luu du lieu', 'error'));
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showDetail, showAdmin, confirm, showDataMenu, token, tasks, members, teamColors, phaseColors, version]);
+
+  // Online/offline detection
+  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+  React.useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+
+  const update = React.useCallback((fn) => {
+    setTasks(prev => {
+      const cloned = deepClone(prev);
+      fn(cloned);
+      return autoSchedule(cloned);
+    });
+  }, []);
+
+  const criticalIds = React.useMemo(() => calculateCriticalPath(tasks), [tasks]);
+
+  const selectedTask = React.useMemo(() => {
+    for (const epic of tasks) {
+      if (epic.id === selectedTaskId) return epic;
+      for (const t of (epic.children || [])) {
+        if (t.id === selectedTaskId) return t;
+      }
+    }
+    return null;
+  }, [tasks, selectedTaskId]);
+
+  const handleSelect = (id) => {
+    setSelectedTaskId(id);
+    const task = tasks.find(e => e.id === id) || null;
+    if (task && task.isEpic) {
+      setShowDetail(false);
+    } else {
+      setShowDetail(true);
+    }
+  };
+
+  const handleToggle = (epicId) => {
+    update(ts => {
+      const epic = ts.find(e => e.id === epicId);
+      if (epic) epic.expanded = !epic.expanded;
+    });
+  };
+
+  const handleAddTask = (epicId) => {
+    update(ts => {
+      const epic = ts.find(e => e.id === epicId);
+      if (!epic) return;
+      const newTask = {
+        id: genId(),
+        name: 'New Task',
+        team: '',
+        assignee: '',
+        priority: 'Medium',
+        status: 'To Do',
+        start: formatDate(new Date()),
+        end: formatDate(addWorkingDays(new Date(), 3)),
+        pct: 0,
+        deps: [],
+        notes: ''
+      };
+      if (!epic.children) epic.children = [];
+      epic.children.push(newTask);
+    });
+    showToastMsg('Da them task moi', 'success');
+  };
+
+  const handleUpdate = (updatedTask) => {
+    update(ts => {
+      for (const epic of ts) {
+        const idx = (epic.children || []).findIndex(t => t.id === updatedTask.id);
+        if (idx !== -1) {
+          epic.children[idx] = { ...updatedTask };
+          break;
+        }
+      }
+    });
+    showToastMsg('Da luu thay doi', 'success');
+  };
+
+  const handleDelete = (taskId) => {
+    setConfirm({
+      title: 'Xoa task',
+      message: 'Ban co chac chan muon xoa task nay?',
+      onConfirm: () => {
+        update(ts => {
+          for (const epic of ts) {
+            const idx = (epic.children || []).findIndex(t => t.id === taskId);
+            if (idx !== -1) {
+              epic.children.splice(idx, 1);
+              ts.forEach(ep => {
+                (ep.children || []).forEach(t => {
+                  if (t.deps) t.deps = t.deps.filter(d => d !== taskId);
+                });
+              });
+              break;
+            }
+          }
+        });
+        setShowDetail(false);
+        setSelectedTaskId(null);
+        setConfirm(null);
+        showToastMsg('Da xoa task', 'success');
+      }
+    });
+  };
+
+  const handleUpdateMembers = (newMembers) => {
+    setMembers(newMembers);
+  };
+
+  const handleUpdateTeams = (newTeamColors) => {
+    setTeamColors(newTeamColors);
+  };
+
+  const handleUpdatePhases = (newPhaseColors, action) => {
+    setPhaseColors(newPhaseColors);
+    if (action && action.type === 'add') {
+      update(ts => {
+        ts.push({
+          id: genId(), name: action.phase, isEpic: true,
+          phase: action.phase, expanded: true, children: []
+        });
+      });
+    } else if (action && action.type === 'delete') {
+      update(ts => {
+        const idx = ts.findIndex(e => e.name === action.phase || e.phase === action.phase);
+        if (idx !== -1) ts.splice(idx, 1);
+      });
+    }
+  };
+
+  const showToastMsg = (message, type) => {
+    setToast({ message, type });
+  };
+
+  // Filtered tasks for Board view
+  const filteredTasks = React.useMemo(() => {
+    const flat = [];
+    tasks.forEach(epic => {
+      (epic.children || []).forEach(t => flat.push({ ...t, _phase: epic.name }));
+    });
+    return flat.filter(t => {
+      if (filters.phase && t._phase !== filters.phase) return false;
+      if (filters.team && t.team !== filters.team) return false;
+      if (filters.status && t.status !== filters.status) return false;
+      if (filters.search) {
+        const s = filters.search.toLowerCase();
+        if (!(t.name || '').toLowerCase().includes(s) && !(t.assignee || '').toLowerCase().includes(s)) return false;
+      }
+      return true;
+    });
+  }, [tasks, filters]);
+
+  const stats = React.useMemo(() => ({
+    total: filteredTasks.length,
+    inProgress: filteredTasks.filter(t => t.status === 'In Progress').length,
+    done: filteredTasks.filter(t => t.status === 'Done').length,
+    blocked: filteredTasks.filter(t => t.status === 'Blocked').length,
+  }), [filteredTasks]);
+
+  // Build filtered tasks tree for Board view
+  const filteredTasksTree = React.useMemo(() => {
+    const filteredIds = new Set(filteredTasks.map(t => t.id));
+    return tasks.map(epic => ({
+      ...epic,
+      children: (epic.children || []).filter(t => filteredIds.has(t.id))
+    })).filter(epic => epic.children && epic.children.length > 0 || !filters.phase && !filters.team && !filters.status && !filters.search);
+  }, [tasks, filteredTasks, filters]);
+
+  if (!token) return <LoginScreen onLogin={handleLogin} />;
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text)' }}>
+        Dang tai du lieu...
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      {!isOnline && (
+        <div style={{ background: 'var(--red)', color: '#fff', padding: '4px var(--spacing-md)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>
+          Mat ket noi mang - Du lieu chi luu local
+        </div>
+      )}
+      <div className="header">
+        <span className="header-title">Poker Texas Build Plan</span>
+        <div className="header-actions">
+          <div className="view-tabs">
+            <button className={`view-tab ${view === 'gantt' ? 'active' : ''}`}
+              onClick={() => setView('gantt')}>Gantt</button>
+            <button className={`view-tab ${view === 'board' ? 'active' : ''}`}
+              onClick={() => setView('board')}>Board</button>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <button className="btn btn-sm" onClick={() => setShowDataMenu(!showDataMenu)}>Du lieu ▾</button>
+            {showDataMenu && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, background: 'var(--surface)',
+                border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+                minWidth: 180, zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+              }}>
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
+                  onClick={() => { exportJSON({ tasks, members, teamColors, phaseColors }); setShowDataMenu(false); }}>Export JSON</button>
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
+                  onClick={() => { exportExcel({ tasks, members, teamColors, phaseColors }, teamColors); setShowDataMenu(false); }}>Export Excel</button>
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
+                  onClick={() => { exportJiraCSV({ tasks }); setShowDataMenu(false); }}>Export Jira CSV</button>
+                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
+                  onClick={() => { jsonInputRef.current?.click(); setShowDataMenu(false); }}>Import JSON</button>
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
+                  onClick={() => { excelInputRef.current?.click(); setShowDataMenu(false); }}>Import Excel</button>
+                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
+                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0, color: 'var(--red)' }}
+                  onClick={() => {
+                    setShowDataMenu(false);
+                    setConfirm({
+                      title: 'Reset du lieu',
+                      message: 'Khoi phuc du lieu mac dinh? Tat ca thay doi se mat.',
+                      onConfirm: () => {
+                        const data = deepClone(INITIAL_TASKS);
+                        setTasks(autoSchedule(data.tasks || []));
+                        setMembers(data.members || INIT_MEMBERS);
+                        setTeamColors(data.teamColors || INIT_TEAM_COLORS);
+                        setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
+                        initNextId(data.tasks || []);
+                        setConfirm(null);
+                        showToastMsg('Da reset du lieu', 'success');
+                      }
+                    });
+                  }}>Reset mac dinh</button>
+              </div>
+            )}
+          </div>
+          <button className="btn btn-sm" onClick={() => setShowAdmin(true)}>Quan ly</button>
+          <span className="header-user">{username}</span>
+          <button className="btn btn-sm" onClick={handleLogout}>Dang xuat</button>
+        </div>
+      </div>
+      <FilterBar filters={filters} onChange={setFilters}
+        phases={phaseColors} teams={teamColors} stats={stats} />
+      <div className="main">
+        {view === 'gantt' && (
+          <>
+            <TaskPanel
+              tasks={tasks} selectedId={selectedTaskId}
+              onSelect={handleSelect} onToggle={handleToggle}
+              onAddTask={handleAddTask} teamColors={teamColors}
+              scrollRef={taskPanelRef}
+            />
+            <GanttPanel
+              tasks={tasks} teamColors={teamColors}
+              criticalIds={criticalIds} selectedId={selectedTaskId}
+              onSelect={handleSelect} scrollRef={ganttPanelRef}
+            />
+          </>
+        )}
+        {view === 'board' && (
+          <BoardView tasks={filteredTasksTree} teamColors={teamColors} onSelect={handleSelect} />
+        )}
+      </div>
+      {showDetail && selectedTask && !selectedTask.isEpic && (
+        <DetailPanel
+          task={selectedTask} isOpen={showDetail}
+          onClose={() => { setShowDetail(false); setSelectedTaskId(null); }}
+          onUpdate={handleUpdate} onDelete={handleDelete}
+          members={members} teamColors={teamColors} allTasks={tasks}
+        />
+      )}
+      {showAdmin && (
+        <AdminPanel
+          isOpen={showAdmin} onClose={() => setShowAdmin(false)}
+          members={members} teams={Object.keys(teamColors)}
+          phases={Object.keys(phaseColors)}
+          teamColors={teamColors} phaseColors={phaseColors}
+          onUpdateMembers={handleUpdateMembers}
+          onUpdateTeams={handleUpdateTeams}
+          onUpdatePhases={handleUpdatePhases}
+        />
+      )}
+      {showConflict && (
+        <ConfirmDialog
+          title="Du lieu da thay doi"
+          message="Du lieu da thay doi boi nguoi khac. Ban co muon tai lai?"
+          onConfirm={() => { setShowConflict(false); loadData(token); }}
+          onCancel={() => setShowConflict(false)}
+        />
+      )}
+      {confirm && (
+        <ConfirmDialog
+          title={confirm.title} message={confirm.message}
+          onConfirm={confirm.onConfirm}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <input ref={jsonInputRef} type="file" accept=".json" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          importJSON(file, (data, err) => {
+            if (err) { showToastMsg(err, 'error'); return; }
+            update(ts => {
+              ts.length = 0;
+              data.tasks.forEach(t => ts.push(t));
+            });
+            setMembers(data.members);
+            setTeamColors(data.teamColors);
+            setPhaseColors(data.phaseColors);
+            initNextId(data.tasks);
+            showToastMsg('Import JSON thanh cong', 'success');
+          });
+          e.target.value = '';
+        }} />
+      <input ref={excelInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }}
+        onChange={e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          importExcel(file, (data, err) => {
+            if (err) { showToastMsg(err, 'error'); return; }
+            update(ts => {
+              ts.length = 0;
+              data.tasks.forEach(t => ts.push(t));
+            });
+            if (data.members) setMembers(data.members);
+            initNextId(data.tasks);
+            showToastMsg('Import Excel thanh cong: ' + data.tasks.reduce((s, e) => s + e.children.length, 0) + ' tasks', 'success');
+          });
+          e.target.value = '';
+        }} />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════ */
+/* MODULE 8: BOOTSTRAP                     */
+/* ═══════════════════════════════════════ */
+
+const INITIAL_TASKS = {
+  tasks: [
+    {
+      id: 1, name: 'Pre-production', isEpic: true, phase: 'Pre-production', expanded: true,
+      children: [
+        {id:10,name:'Game Design Document (GDD)',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Tai lieu thiet ke game tong the'},
+        {id:11,name:'Resource & Timeline Planning',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Lap ke hoach nguon luc'},
+        {id:12,name:'UI/UX Wireframe - Lobby',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe lobby'},
+        {id:13,name:'UI/UX Wireframe - Gameplay',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe gameplay'},
+        {id:14,name:'Art Style Guide',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'05/03/2026',end:'10/03/2026',pct:0,deps:[10],notes:'Art direction'},
+        {id:15,name:'Technical Architecture',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Kien truc ky thuat'},
+        {id:16,name:'Prototype - Core Gameplay',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'09/03/2026',end:'16/03/2026',pct:0,deps:[15],notes:'Prototype logic'},
+        {id:17,name:'QA Test Plan',team:'QC',assignee:'NhanNT3',priority:'Medium',status:'To Do',start:'09/03/2026',end:'13/03/2026',pct:0,deps:[10],notes:'Ke hoach test'}
+      ]
+    },
+    {
+      id: 2, name: 'Production', isEpic: true, phase: 'Production', expanded: true,
+      children: [
+        {id:20,name:'Card Design (52 la bai)',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'52 la bai + mat sau'},
+        {id:21,name:'Table & Background Art',team:'Art',assignee:'TuND4',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[14],notes:'Ban choi, background'},
+        {id:22,name:'Character/Avatar Design',team:'Art',assignee:'NgocLA',priority:'Medium',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'Avatar, dealer'},
+        {id:23,name:'Chip & Token Assets',team:'Art',assignee:'TuND4',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[21],notes:'Chip, token, icon'},
+        {id:24,name:'Design Ban choi',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[12],notes:'Design ban poker'},
+        {id:25,name:'UI Design - Lobby & Menu',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[12],notes:'UI lobby, menu'},
+        {id:26,name:'UI Design - Gameplay Screen',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[13],notes:'UI gameplay'},
+        {id:27,name:'UI Design - Shop & Profile',team:'Design',assignee:'BinhNT',priority:'Medium',status:'To Do',start:'23/03/2026',end:'30/03/2026',pct:0,deps:[25],notes:'UI shop, profile'},
+        {id:28,name:'UI Animation Specs',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[25,26],notes:'Animation specs'},
+        {id:30,name:'Core Engine - Card Logic',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15,16],notes:'Card engine'},
+        {id:31,name:'Betting System',team:'Dev',assignee:'HuongBP',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15],notes:'Betting, pot'},
+        {id:32,name:'Multiplayer/Networking',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'20/03/2026',end:'03/04/2026',pct:0,deps:[15],notes:'Multiplayer, rooms'},
+        {id:33,name:'UI Implementation - Lobby',team:'Dev',assignee:'CongNT7',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[25],notes:'Code UI lobby'},
+        {id:34,name:'UI Implementation - Gameplay',team:'Dev',assignee:'PhucNN',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[26],notes:'Code UI gameplay'},
+        {id:35,name:'Backend API & Database',team:'Dev',assignee:'SonBNT',priority:'High',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[15],notes:'API, DB'},
+        {id:36,name:'AI Bot Logic',team:'Dev',assignee:'CongNN',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[30],notes:'AI bot'},
+        {id:37,name:'Shop & In-app Purchase',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[31,35],notes:'Shop, IAP'},
+        {id:40,name:'Sound Effects (SFX)',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[],notes:'SFX'},
+        {id:41,name:'Background Music',team:'Multimedia',assignee:'HungVM2',priority:'Low',status:'To Do',start:'01/04/2026',end:'07/04/2026',pct:0,deps:[40],notes:'BGM'},
+        {id:42,name:'Card Animation & VFX',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[20,40],notes:'Animation, VFX'},
+        {id:45,name:'Sprint Review & Tracking',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'18/03/2026',end:'14/04/2026',pct:0,deps:[],notes:'Weekly review'},
+        {id:46,name:'Build & Deployment Setup',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[15],notes:'CI/CD'}
+      ]
+    },
+    {
+      id: 3, name: 'Testing & QA', isEpic: true, phase: 'Testing & QA', expanded: true,
+      children: [
+        {id:50,name:'Functional Testing',team:'QC',assignee:'NhanNT3',priority:'High',status:'To Do',start:'15/04/2026',end:'21/04/2026',pct:0,deps:[17],notes:'Test core gameplay'},
+        {id:51,name:'Integration Testing',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'15/04/2026',end:'20/04/2026',pct:0,deps:[32,35],notes:'Integration test'},
+        {id:52,name:'Performance Testing',team:'Dev',assignee:'SonBNT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'22/04/2026',pct:0,deps:[51],notes:'Load test'},
+        {id:53,name:'Bug Fixing Sprint',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50,51],notes:'Fix bugs'},
+        {id:54,name:'UI/UX Polish',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish UI'},
+        {id:55,name:'Art Asset Polish',team:'Art',assignee:'HoaGTT',priority:'Low',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish art'},
+        {id:56,name:'Final Build & Release',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'26/04/2026',end:'28/04/2026',pct:0,deps:[53],notes:'Final build'},
+        {id:57,name:'Release Sign-off',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'28/04/2026',end:'28/04/2026',pct:0,deps:[56],notes:'Sign-off'}
+      ]
+    }
+  ],
+  members: [
+    {name:'ToanNM',team:'PM'},
+    {name:'LocPT',team:'Design'},{name:'QuynhNH',team:'Design'},{name:'BinhNT',team:'Design'},
+    {name:'HoaGTT',team:'Art'},{name:'TuND4',team:'Art'},{name:'NgocLA',team:'Art'},
+    {name:'CongNN',team:'Dev'},{name:'HuongBP',team:'Dev'},{name:'DienDQ',team:'Dev'},
+    {name:'CongNT7',team:'Dev'},{name:'PhucNN',team:'Dev'},{name:'SonBNT',team:'Dev'},
+    {name:'NhanNT3',team:'QC'},
+    {name:'HungVM2',team:'Multimedia'},
+    {name:'NienND',team:'OP'}
+  ],
+  teamColors: {
+    'PM':'#34495e','Design':'#e67e22','Art':'#9b59b6','Dev':'#2980b9',
+    'Client':'#16a085','Server':'#8e44ad','QC':'#c0392b','Multimedia':'#1abc9c','OP':'#7f8c8d'
+  },
+  phaseColors: {
+    'Pre-production':'#3498db','Production':'#27ae60','Testing & QA':'#e74c3c'
+  },
+  version: 1,
+  savedAt: '2026-03-07T00:00:00.000Z'
+};
+
+initNextId(INITIAL_TASKS.tasks);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+</script>
+</body>
+</html>

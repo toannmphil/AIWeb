@@ -42,3 +42,10 @@
 - Do NOT add a build step (webpack, vite, etc.)
 - Do NOT split index.html into multiple files
 - Do NOT change the data structure without updating both frontend and seed.js
+
+## Active Technologies
+- JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN), (001-project-management)
+- PostgreSQL 16 - JSONB column trong bang `projects` (001-project-management)
+
+## Recent Changes
+- 001-project-management: Added JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN),

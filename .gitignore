@@ -2,3 +2,6 @@
 .~lock.*
 *.tmp
 node_modules/
+.env
+*.log
+v2/.env
