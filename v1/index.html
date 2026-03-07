@@ -342,13 +342,14 @@ function computeCriticalPath(tasks){
 
 /* ─── Auto-save: localStorage (cache) + API (persistent) ─── */
 const LS_KEY='ptb_project';
-function lsLoad(){try{const v=localStorage.getItem(LS_KEY);return v?JSON.parse(v):null}catch(e){return null}}
-function lsSave(data){try{localStorage.setItem(LS_KEY,JSON.stringify(data))}catch(e){console.warn('localStorage save failed',e)}}
+function lsLoad(projectId){try{const v=localStorage.getItem(projectId?`ptb_p${projectId}`:LS_KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function lsSave(data,projectId){try{localStorage.setItem(projectId?`ptb_p${projectId}`:LS_KEY,JSON.stringify(data))}catch(e){console.warn('localStorage save failed',e)}}
 
 // ─── API Layer ───
 const API_BASE='';
 let AUTH_TOKEN=localStorage.getItem('ptb_token')||null;
 let CURRENT_VERSION=null;
+let CURRENT_PROJECT_ID=null;
 
 async function apiCall(method,path,body){
   const opts={method,headers:{'Content-Type':'application/json'}};
@@ -361,31 +362,54 @@ async function apiCall(method,path,body){
   return data;
 }
 
-async function apiLoad(){
+async function apiLoadProjects(){
+  return apiCall('GET','/api/projects');
+}
+
+async function apiLoadSettings(){
+  return apiCall('GET','/api/settings');
+}
+
+async function apiSaveSettings(data){
+  return apiCall('PUT','/api/settings',{data});
+}
+
+async function apiLoad(projectId){
+  const pid=projectId||CURRENT_PROJECT_ID;
+  if(!pid)return lsLoad();
   try{
-    const res=await apiCall('GET','/api/project');
+    const res=await apiCall('GET',`/api/project/${pid}`);
     CURRENT_VERSION=res.version;
-    lsSave(res.data);
+    lsSave(res.data,pid);
     return res.data;
-  }catch(e){console.warn('API load failed, using localStorage',e);return lsLoad()}
+  }catch(e){console.warn('API load failed, using localStorage',e);return lsLoad(pid)}
 }
 
 let _saveTimer=null;
-async function apiSave(data){
-  lsSave(data);
+async function apiSave(data,projectId){
+  const pid=projectId||CURRENT_PROJECT_ID;
+  lsSave(data,pid);
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(async()=>{
     try{
-      const res=await apiCall('PUT','/api/project',{data,version:CURRENT_VERSION});
+      const res=await apiCall('PUT',`/api/project/${pid}`,{data,version:CURRENT_VERSION});
       CURRENT_VERSION=res.version;
     }catch(e){
       if(e.message==='Version conflict'){
         if(confirm('Dữ liệu đã được cập nhật bởi người khác. Tải lại dữ liệu mới nhất?')){
-          const fresh=await apiLoad();
+          const fresh=await apiLoad(pid);
           window.__reloadData?.(fresh);
         }
       }else{console.warn('API save failed, cached locally',e)}
     }
+  },1000);
+}
+
+let _settingsTimer=null;
+async function apiSaveSettingsDebounced(data){
+  clearTimeout(_settingsTimer);
+  _settingsTimer=setTimeout(async()=>{
+    try{await apiSaveSettings(data)}catch(e){console.warn('Settings save failed',e)}
   },1000);
 }
 
@@ -485,6 +509,12 @@ function App(){
   const [loggedIn,setLoggedIn]=useState(!!AUTH_TOKEN);
   const [currentUser,setCurrentUser]=useState(null);
 
+  // Multi-project state
+  const [projects,setProjects]=useState([]);
+  const [currentProjectId,setCurrentProjectId]=useState(null);
+  const [currentProjectName,setCurrentProjectName]=useState('');
+  const [projectsLoaded,setProjectsLoaded]=useState(false);
+
   const [tasks,setTasks]=useState(()=>{
     const saved=lsLoad();
     if(saved&&saved.tasks){const t=saved.tasks;initNextId(t);autoSchedule(t);return t}
@@ -496,64 +526,106 @@ function App(){
   const [teamColors,setTeamColors]=useState(()=>{const s=lsLoad();return s&&s.teamColors?s.teamColors:{...INIT_TEAM_COLORS}});
   const [phaseColors,setPhaseColors]=useState(()=>{const s=lsLoad();return s&&s.phaseColors?s.phaseColors:{...INIT_PHASE_COLORS}});
 
-  // On login: fetch data from API
+  // On login: fetch projects list, shared settings, and default project data
   useEffect(()=>{
     if(!AUTH_TOKEN)return;
-    apiLoad().then(data=>{
-      if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
-      if(data&&data.members)setMembers(data.members);
-      if(data&&data.teamColors)setTeamColors(data.teamColors);
-      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
-    });
+    (async()=>{
+      try{
+        // Load projects list
+        const projList=await apiLoadProjects();
+        setProjects(projList);
+        // Load shared settings (members, teamColors)
+        const settings=await apiLoadSettings();
+        if(settings&&settings.members)setMembers(settings.members);
+        if(settings&&settings.teamColors)setTeamColors(settings.teamColors);
+        // Find default project
+        const defaultProj=projList.find(p=>p.is_default)||projList[0];
+        if(defaultProj){
+          CURRENT_PROJECT_ID=defaultProj.id;
+          setCurrentProjectId(defaultProj.id);
+          setCurrentProjectName(defaultProj.name);
+          const data=await apiLoad(defaultProj.id);
+          if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+          if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+        }
+        setProjectsLoaded(true);
+      }catch(e){console.warn('Init load failed',e);setProjectsLoaded(true)}
+    })();
   },[loggedIn]);
+
+  // Switch project
+  async function switchProject(projectId){
+    if(projectId===currentProjectId)return;
+    CURRENT_PROJECT_ID=projectId;
+    CURRENT_VERSION=null;
+    setCurrentProjectId(projectId);
+    const proj=projects.find(p=>p.id===projectId);
+    setCurrentProjectName(proj?proj.name:'');
+    skipFirstSave.current=true;
+    try{
+      const data=await apiLoad(projectId);
+      if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+      else{setTasks([])}
+      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+      else setPhaseColors({...INIT_PHASE_COLORS});
+    }catch(e){console.warn('Switch project failed',e);setTasks([]);setPhaseColors({...INIT_PHASE_COLORS})}
+  }
 
   // Register global callbacks for conflict resolution
   useEffect(()=>{
     window.__reloadData=(data)=>{
       if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
-      if(data&&data.members)setMembers(data.members);
-      if(data&&data.teamColors)setTeamColors(data.teamColors);
       if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
     };
     window.__showLogin=()=>{setLoggedIn(false);AUTH_TOKEN=null};
   },[]);
 
-  // Auto-save: localStorage (instant) + API (debounced 1s)
-  const latestData=useRef({tasks,members,teamColors,phaseColors});
+  // Auto-save project data: localStorage (instant) + API (debounced 1s)
+  const latestData=useRef({tasks,phaseColors});
   const skipFirstSave=useRef(true);
   useEffect(()=>{
-    latestData.current={tasks,members,teamColors,phaseColors};
-    const payload={tasks,members,teamColors,phaseColors,version:1,savedAt:new Date().toISOString()};
-    lsSave(payload);
-    if(AUTH_TOKEN&&!skipFirstSave.current)apiSave(payload);
+    if(!currentProjectId)return;
+    latestData.current={tasks,phaseColors};
+    const payload={tasks,phaseColors,savedAt:new Date().toISOString()};
+    lsSave(payload,currentProjectId);
+    if(AUTH_TOKEN&&!skipFirstSave.current)apiSave(payload,currentProjectId);
     skipFirstSave.current=false;
-  },[tasks,members,teamColors,phaseColors]);
+  },[tasks,phaseColors]);
+
+  // Auto-save shared settings (members, teamColors)
+  const skipFirstSettings=useRef(true);
+  useEffect(()=>{
+    if(!AUTH_TOKEN)return;
+    if(skipFirstSettings.current){skipFirstSettings.current=false;return}
+    apiSaveSettingsDebounced({members,teamColors});
+  },[members,teamColors]);
 
   // Backup save before browser/tab closes
   useEffect(()=>{
     const handleBeforeUnload=()=>{
+      if(!currentProjectId)return;
       const d=latestData.current;
-      lsSave({...d,version:1,savedAt:new Date().toISOString()});
+      lsSave({...d,savedAt:new Date().toISOString()},currentProjectId);
     };
     window.addEventListener('beforeunload',handleBeforeUnload);
     return()=>window.removeEventListener('beforeunload',handleBeforeUnload);
-  },[]);
+  },[currentProjectId]);
 
   // Poll for version changes every 30s
   useEffect(()=>{
-    if(!AUTH_TOKEN)return;
+    if(!AUTH_TOKEN||!currentProjectId)return;
     const iv=setInterval(async()=>{
       try{
-        const res=await apiCall('GET','/api/project/version');
+        const res=await apiCall('GET',`/api/project/${currentProjectId}/version`);
         if(res.version&&CURRENT_VERSION&&res.version>CURRENT_VERSION){
-          showToast('💡 Dữ liệu mới từ '+res.updated_by+'. Đang tải lại...');
-          const fresh=await apiLoad();
+          showToast('Dữ liệu mới từ '+res.updated_by+'. Đang tải lại...');
+          const fresh=await apiLoad(currentProjectId);
           window.__reloadData?.(fresh);
         }
       }catch(e){}
     },30000);
     return()=>clearInterval(iv);
-  },[loggedIn]);
+  },[loggedIn,currentProjectId]);
 
   // Show login if not authenticated
   if(!loggedIn)return <LoginScreen onLogin={(user)=>{setCurrentUser(user);setLoggedIn(true)}}/>;
@@ -565,6 +637,7 @@ function App(){
   const [search,setSearch]=useState('');
   const [showDetail,setShowDetail]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
+  const [showPhases,setShowPhases]=useState(false);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showCritical,setShowCritical]=useState(false);
   const [toast,setToast]=useState('');
@@ -993,7 +1066,15 @@ function App(){
     <div className="app">
       {/* Header */}
       <div className="header">
-        <h1>🎰 <span>Poker Texas Build</span> — Project Plan</h1>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <h1 style={{fontSize:16,fontWeight:700,whiteSpace:'nowrap'}}>📋 <span style={{color:'var(--primary)'}}>Build Plan</span></h1>
+          {projects.length>0&&(
+            <select value={currentProjectId||''} onChange={e=>switchProject(parseInt(e.target.value))}
+              style={{background:'var(--surface2)',color:'var(--text)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px',fontSize:13,fontWeight:600,cursor:'pointer',maxWidth:220}}>
+              {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          )}
+        </div>
         <div className="header-actions">
           <div className="view-tabs">
             <div className={`view-tab ${view==='gantt'?'active':''}`} onClick={()=>setView('gantt')}>📊 Gantt</div>
@@ -1004,6 +1085,7 @@ function App(){
           <button className="btn btn-ghost btn-sm" onClick={saveData}>💾 Export</button>
           <button className="btn btn-ghost btn-sm" onClick={exportExcel}>📗 Excel</button>
           <button className="btn btn-ghost btn-sm" onClick={exportJira}>🔷 Jira CSV</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setShowPhases(true)}>📁 Phases</button>
           <button className="btn btn-primary btn-sm" onClick={()=>setShowAdd(true)}>+ Add Task</button>
           {AUTH_TOKEN&&<button className="btn btn-ghost btn-sm" onClick={()=>{AUTH_TOKEN=null;localStorage.removeItem('ptb_token');setLoggedIn(false)}}>🚪 Logout</button>}
         </div>
@@ -1283,13 +1365,17 @@ function App(){
       {/* Add Task Modal */}
       {showAdd&&<AddTaskModal tasks={tasks} teams={TEAMS} members={members} phaseColors={PHASE_COLORS} teamColors={TEAM_COLORS} onAdd={addTask} onClose={()=>setShowAdd(false)} showToast={showToast}/>}
 
+      {/* Phase Modal */}
+      {showPhases&&<PhaseModal phaseColors={phaseColors} setPhaseColors={setPhaseColors} tasks={tasks} update={update} showToast={showToast} onClose={()=>setShowPhases(false)}/>}
+
       {/* Admin Modal */}
       {showAdmin&&<AdminModal
         members={members} setMembers={setMembers}
         teamColors={teamColors} setTeamColors={setTeamColors}
-        phaseColors={phaseColors} setPhaseColors={setPhaseColors}
         tasks={tasks} update={update}
         showToast={showToast} onClose={()=>setShowAdmin(false)}
+        projects={projects} setProjects={setProjects}
+        currentProjectId={currentProjectId} switchProject={switchProject}
       />}
 
       {/* Toast */}
@@ -1445,11 +1531,197 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
 }
 
 /* ═══════════════════════════════════════════ */
-/* Admin Modal - Member & Phase Management    */
+/* Phase Modal - Per-project Phase Management */
 /* ═══════════════════════════════════════════ */
-function AdminModal({members,setMembers,teamColors,setTeamColors,phaseColors,setPhaseColors,tasks,update,showToast,onClose}){
-  const [tab,setTab]=useState('members');
+function PhaseModal({phaseColors,setPhaseColors,tasks,update,showToast,onClose}){
+  const [newPhaseName,setNewPhaseName]=useState('');
+  const [newPhaseColor,setNewPhaseColor]=useState('#3498db');
+  const [editingPhase,setEditingPhase]=useState(null);
+  const [editPhaseName,setEditPhaseName]=useState('');
   const [confirm,setConfirm]=useState(null);
+
+  function addPhase(){
+    if(!newPhaseName.trim())return;
+    const name=newPhaseName.trim();
+    if(phaseColors[name]){showToast('Phase đã tồn tại!');return}
+    setPhaseColors(prev=>({...prev,[name]:newPhaseColor}));
+    update(t=>{
+      const newEpicId=genId();
+      t.push({id:newEpicId,name:name,type:'epic',phase:name,expanded:true,children:[]});
+    });
+    setNewPhaseName('');
+    showToast(`Đã thêm phase "${name}"`);
+  }
+
+  function savePhaseEdit(oldName){
+    if(!editPhaseName.trim()||editPhaseName.trim()===oldName){setEditingPhase(null);return}
+    const newName=editPhaseName.trim();
+    if(phaseColors[newName]){showToast('Tên phase đã tồn tại!');return}
+    setPhaseColors(prev=>{
+      const next={};
+      Object.entries(prev).forEach(([k,v])=>{next[k===oldName?newName:k]=v});
+      return next;
+    });
+    update(t=>{
+      t.forEach(ep=>{
+        if(ep.phase===oldName){ep.phase=newName;ep.name=newName}
+      });
+    });
+    setEditingPhase(null);
+    showToast(`Đổi tên phase ${oldName} → ${newName}`);
+  }
+
+  function deletePhase(phaseName){
+    const epic=tasks.find(ep=>ep.phase===phaseName);
+    const taskCount=epic&&epic.children?epic.children.length:0;
+    setConfirm({
+      title:`Xóa Phase "${phaseName}"?`,
+      message:`Hành động này sẽ xóa Phase và TẤT CẢ ${taskCount} task(s) bên trong. Không thể hoàn tác!`,
+      action:()=>{
+        setPhaseColors(prev=>{const next={...prev};delete next[phaseName];return next});
+        update(t=>{
+          const idx=t.findIndex(ep=>ep.phase===phaseName);
+          if(idx>=0){
+            const removedIds=(t[idx].children||[]).map(c=>c.id);
+            t.splice(idx,1);
+            getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>!removedIds.includes(x))});
+          }
+        });
+        setConfirm(null);
+        showToast(`Đã xóa phase "${phaseName}" và tất cả tasks`);
+      }
+    });
+  }
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h3>📁 Quản lý Phases</h3>
+        <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+          <div className="field" style={{flex:1,margin:0}}>
+            <label>Tên Phase mới</label>
+            <input value={newPhaseName} onChange={e=>setNewPhaseName(e.target.value)} placeholder="VD: Post-launch" autoFocus onKeyDown={e=>e.key==='Enter'&&addPhase()}/>
+          </div>
+          <div className="field" style={{width:80,margin:0}}>
+            <label>Màu</label>
+            <input type="color" value={newPhaseColor} onChange={e=>setNewPhaseColor(e.target.value)} style={{height:30,padding:2}}/>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={addPhase} style={{height:30}}>+ Thêm</button>
+        </div>
+        <table className="admin-table">
+          <thead><tr><th>Phase</th><th>Tasks</th><th>Màu</th><th></th></tr></thead>
+          <tbody>
+          {Object.entries(phaseColors).map(([phase,color])=>{
+            const epic=tasks.find(ep=>ep.phase===phase);
+            const taskCount=epic&&epic.children?epic.children.length:0;
+            return(
+              <tr key={phase}>
+                <td style={{fontWeight:600}}>
+                  {editingPhase===phase?(
+                    <input value={editPhaseName} onChange={e=>setEditPhaseName(e.target.value)} autoFocus
+                      onKeyDown={e=>{if(e.key==='Enter')savePhaseEdit(phase);if(e.key==='Escape')setEditingPhase(null)}}
+                      onBlur={()=>savePhaseEdit(phase)}/>
+                  ):(
+                    <><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:color,marginRight:6}}></span>{phase}</>
+                  )}
+                </td>
+                <td>{taskCount} tasks</td>
+                <td><input type="color" value={color} onChange={e=>setPhaseColors(prev=>({...prev,[phase]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
+                    onClick={()=>{setEditingPhase(phase);setEditPhaseName(phase)}}>✏ Sửa</button>
+                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                    onClick={()=>deletePhase(phase)}>🗑 Xóa</button>
+                </td>
+              </tr>
+            );
+          })}
+          </tbody>
+        </table>
+        <div style={{marginTop:12,padding:8,background:'rgba(239,68,68,.1)',borderRadius:6,fontSize:11,color:'var(--red)'}}>
+          ⚠ Xóa Phase sẽ xóa TẤT CẢ tasks trong Phase đó. Hành động không thể hoàn tác!
+        </div>
+        <div className="actions">
+          <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+
+      {confirm&&(
+        <div className="modal-overlay" style={{zIndex:250}} onClick={()=>setConfirm(null)}>
+          <div className="confirm-dialog" onClick={e=>e.stopPropagation()}>
+            <h4>{confirm.title}</h4>
+            <p>{confirm.message}</p>
+            <div className="actions">
+              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Hủy</button>
+              <button className="btn btn-danger" onClick={confirm.action}>Xác nhận Xóa</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════ */
+/* Admin Modal - Member & Team Management     */
+/* ═══════════════════════════════════════════ */
+function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,showToast,onClose,projects,setProjects,currentProjectId,switchProject}){
+  const [tab,setTab]=useState('projects');
+  const [confirm,setConfirm]=useState(null);
+
+  // ── Project Management ──
+  const [newProjectName,setNewProjectName]=useState('');
+  const [editingProject,setEditingProject]=useState(null);
+  const [editProjectName,setEditProjectName]=useState('');
+
+  async function addProject(){
+    if(!newProjectName.trim())return;
+    try{
+      const res=await apiCall('POST','/api/projects',{name:newProjectName.trim()});
+      setProjects(prev=>[...prev,res]);
+      setNewProjectName('');
+      showToast(`Tạo dự án "${res.name}" thành công`);
+    }catch(e){showToast('Lỗi tạo dự án: '+e.message)}
+  }
+
+  async function saveProjectEdit(id){
+    if(!editProjectName.trim())return;
+    try{
+      const res=await apiCall('PUT',`/api/projects/${id}`,{name:editProjectName.trim()});
+      setProjects(prev=>prev.map(p=>p.id===id?{...p,name:res.name}:p));
+      setEditingProject(null);
+      showToast('Đã cập nhật tên dự án');
+    }catch(e){showToast('Lỗi sửa dự án: '+e.message)}
+  }
+
+  async function setDefaultProject(id){
+    try{
+      await apiCall('PUT',`/api/projects/${id}`,{is_default:true});
+      setProjects(prev=>prev.map(p=>({...p,is_default:p.id===id})));
+      showToast('Đã đặt dự án mặc định');
+    }catch(e){showToast('Lỗi: '+e.message)}
+  }
+
+  function deleteProject(id,name){
+    if(id===currentProjectId&&projects.length<=1){showToast('Không thể xóa dự án duy nhất!');return}
+    setConfirm({
+      title:`Xóa dự án "${name}"?`,
+      message:'Tất cả tasks trong dự án này sẽ bị xóa vĩnh viễn. Hành động không thể hoàn tác!',
+      action:async()=>{
+        try{
+          await apiCall('DELETE',`/api/projects/${id}`);
+          const updated=projects.filter(p=>p.id!==id);
+          setProjects(updated);
+          if(id===currentProjectId&&updated.length>0){
+            const next=updated.find(p=>p.is_default)||updated[0];
+            switchProject(next.id);
+          }
+          setConfirm(null);
+          showToast(`Đã xóa dự án "${name}"`);
+        }catch(e){showToast('Lỗi xóa dự án: '+e.message);setConfirm(null)}
+      }
+    });
+  }
 
   // ── Member Management ──
   const [newMemberName,setNewMemberName]=useState('');
@@ -1460,12 +1732,6 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,phaseColors,set
   // ── Team Management ──
   const [newTeamName,setNewTeamName]=useState('');
   const [newTeamColor,setNewTeamColor]=useState('#9b59b6');
-
-  // ── Phase Management ──
-  const [newPhaseName,setNewPhaseName]=useState('');
-  const [newPhaseColor,setNewPhaseColor]=useState('#3498db');
-  const [editingPhase,setEditingPhase]=useState(null);
-  const [editPhaseName,setEditPhaseName]=useState('');
 
   const teams=Object.keys(members);
 
@@ -1554,70 +1820,58 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,phaseColors,set
     });
   }
 
-  // ── Phase Management ──
-  function addPhase(){
-    if(!newPhaseName.trim())return;
-    const name=newPhaseName.trim();
-    if(phaseColors[name]){showToast('Phase already exists!');return}
-    setPhaseColors(prev=>({...prev,[name]:newPhaseColor}));
-    // Create epic for this phase
-    update(t=>{
-      const newEpicId=genId();
-      t.push({id:newEpicId,name:name,type:'epic',phase:name,expanded:true,children:[]});
-    });
-    setNewPhaseName('');
-    showToast(`Added phase ${name}`);
-  }
-
-  function savePhaseEdit(oldName){
-    if(!editPhaseName.trim()||editPhaseName.trim()===oldName)return;
-    const newName=editPhaseName.trim();
-    if(phaseColors[newName]){showToast('Phase name already exists!');return}
-    setPhaseColors(prev=>{
-      const next={};
-      Object.entries(prev).forEach(([k,v])=>{next[k===oldName?newName:k]=v});
-      return next;
-    });
-    update(t=>{
-      t.forEach(ep=>{
-        if(ep.phase===oldName){ep.phase=newName;ep.name=newName}
-      });
-    });
-    setEditingPhase(null);
-    showToast(`Renamed phase ${oldName} → ${newName}`);
-  }
-
-  function deletePhase(phaseName){
-    const epic=tasks.find(ep=>ep.phase===phaseName);
-    const taskCount=epic&&epic.children?epic.children.length:0;
-    setConfirm({
-      title:`⚠ Xóa Phase "${phaseName}"?`,
-      message:`Hành động này sẽ xóa Phase và TẤT CẢ ${taskCount} task(s) bên trong. Không thể hoàn tác!`,
-      action:()=>{
-        setPhaseColors(prev=>{const next={...prev};delete next[phaseName];return next});
-        update(t=>{
-          const idx=t.findIndex(ep=>ep.phase===phaseName);
-          if(idx>=0){
-            const removedIds=(t[idx].children||[]).map(c=>c.id);
-            t.splice(idx,1);
-            getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>!removedIds.includes(x))});
-          }
-        });
-        setConfirm(null);
-        showToast(`Deleted phase ${phaseName} and all its tasks`);
-      }
-    });
-  }
-
   return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal wide" onClick={e=>e.stopPropagation()}>
-        <h3>⚙ Admin — Quản lý Project</h3>
+        <h3>⚙ Admin — Quản lý</h3>
         <div className="admin-tabs">
+          <div className={`admin-tab ${tab==='projects'?'active':''}`} onClick={()=>setTab('projects')}>📂 Dự án</div>
           <div className={`admin-tab ${tab==='members'?'active':''}`} onClick={()=>setTab('members')}>👥 Members</div>
           <div className={`admin-tab ${tab==='teams'?'active':''}`} onClick={()=>setTab('teams')}>🏷 Teams</div>
-          <div className={`admin-tab ${tab==='phases'?'active':''}`} onClick={()=>setTab('phases')}>📁 Phases</div>
         </div>
+
+        {/* ── Projects Tab ── */}
+        {tab==='projects'&&(
+          <div>
+            <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+              <div className="field" style={{flex:1,margin:0}}>
+                <label>Tên dự án mới</label>
+                <input value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} placeholder="VD: Game Bài Tiến Lên" onKeyDown={e=>e.key==='Enter'&&addProject()}/>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={addProject} style={{height:30}}>+ Tạo dự án</button>
+            </div>
+            <table className="admin-table">
+              <thead><tr><th>Dự án</th><th>Mặc định</th><th style={{textAlign:'right'}}></th></tr></thead>
+              <tbody>
+              {projects.map(p=>(
+                <tr key={p.id} style={p.id===currentProjectId?{background:'rgba(59,130,246,.1)'}:{}}>
+                  <td style={{fontWeight:600}}>
+                    {editingProject===p.id?(
+                      <input value={editProjectName} onChange={e=>setEditProjectName(e.target.value)} autoFocus
+                        onKeyDown={e=>{if(e.key==='Enter')saveProjectEdit(p.id);if(e.key==='Escape')setEditingProject(null)}}
+                        onBlur={()=>saveProjectEdit(p.id)}/>
+                    ):(
+                      <span style={{cursor:'pointer'}} onClick={()=>{if(p.id!==currentProjectId){switchProject(p.id);onClose()}}}>{p.name}{p.id===currentProjectId?' (đang mở)':''}</span>
+                    )}
+                  </td>
+                  <td style={{textAlign:'center'}}>
+                    <input type="radio" name="defaultProject" checked={!!p.is_default} onChange={()=>setDefaultProject(p.id)} style={{cursor:'pointer'}}/>
+                  </td>
+                  <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                    <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
+                      onClick={()=>{setEditingProject(p.id);setEditProjectName(p.name)}}>✏ Sửa</button>
+                    <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                      onClick={()=>deleteProject(p.id,p.name)}>🗑 Xóa</button>
+                  </td>
+                </tr>
+              ))}
+              </tbody>
+            </table>
+            <div style={{marginTop:12,padding:8,background:'rgba(59,130,246,.1)',borderRadius:6,fontSize:11,color:'var(--primary)'}}>
+              ℹ Dự án "Mặc định" sẽ được mở tự động khi đăng nhập. Members & Teams dùng chung cho tất cả dự án.
+            </div>
+          </div>
+        )}
 
         {/* ── Members Tab ── */}
         {tab==='members'&&(
@@ -1715,56 +1969,6 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,phaseColors,set
               })}
               </tbody>
             </table>
-          </div>
-        )}
-
-        {/* ── Phases Tab ── */}
-        {tab==='phases'&&(
-          <div>
-            <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
-              <div className="field" style={{flex:1,margin:0}}>
-                <label>Tên Phase mới</label>
-                <input value={newPhaseName} onChange={e=>setNewPhaseName(e.target.value)} placeholder="VD: Post-launch" onKeyDown={e=>e.key==='Enter'&&addPhase()}/>
-              </div>
-              <div className="field" style={{width:80,margin:0}}>
-                <label>Màu</label>
-                <input type="color" value={newPhaseColor} onChange={e=>setNewPhaseColor(e.target.value)} style={{height:30,padding:2}}/>
-              </div>
-              <button className="btn btn-primary btn-sm" onClick={addPhase} style={{height:30}}>+ Thêm Phase</button>
-            </div>
-            <table className="admin-table">
-              <thead><tr><th>Phase</th><th>Tasks</th><th>Màu</th><th></th></tr></thead>
-              <tbody>
-              {Object.entries(phaseColors).map(([phase,color])=>{
-                const epic=tasks.find(ep=>ep.phase===phase);
-                const taskCount=epic&&epic.children?epic.children.length:0;
-                return(
-                  <tr key={phase}>
-                    <td style={{fontWeight:600}}>
-                      {editingPhase===phase?(
-                        <input value={editPhaseName} onChange={e=>setEditPhaseName(e.target.value)} autoFocus
-                          onKeyDown={e=>{if(e.key==='Enter')savePhaseEdit(phase);if(e.key==='Escape')setEditingPhase(null)}}
-                          onBlur={()=>savePhaseEdit(phase)}/>
-                      ):(
-                        <><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:color,marginRight:6}}></span>{phase}</>
-                      )}
-                    </td>
-                    <td>{taskCount} tasks</td>
-                    <td><input type="color" value={color} onChange={e=>setPhaseColors(prev=>({...prev,[phase]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
-                    <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
-                      <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
-                        onClick={()=>{setEditingPhase(phase);setEditPhaseName(phase)}}>✏ Sửa</button>
-                      <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
-                        onClick={()=>deletePhase(phase)}>🗑 Xóa</button>
-                    </td>
-                  </tr>
-                );
-              })}
-              </tbody>
-            </table>
-            <div style={{marginTop:12,padding:8,background:'rgba(239,68,68,.1)',borderRadius:6,fontSize:11,color:'var(--red)'}}>
-              ⚠ Xóa Phase sẽ xóa TẤT CẢ tasks trong Phase đó. Hành động không thể hoàn tác!
-            </div>
           </div>
         )}
 
