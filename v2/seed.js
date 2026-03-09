@@ -39,6 +39,21 @@ async function seed() {
       )
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id SERIAL PRIMARY KEY,
+        data JSONB NOT NULL DEFAULT '{}',
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
+    // Ensure settings row exists (singleton)
+    const settingsExist = await client.query('SELECT id FROM settings LIMIT 1');
+    if (settingsExist.rows.length === 0) {
+      await client.query(`INSERT INTO settings (data) VALUES ('{"members":{},"teamColors":{}}')`);
+      console.log('Settings row created');
+    }
+
     const hashedPassword = await bcrypt.hash('admin123', 10);
 
     await client.query(`

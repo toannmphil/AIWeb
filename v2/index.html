@@ -4,2173 +4,1672 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poker Texas Build Plan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
-/* ═══════════════════════════════════════ */
-/* THEME & VARIABLES                       */
-/* ═══════════════════════════════════════ */
-:root {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface2: #334155;
-  --border: #475569;
-  --text: #e2e8f0;
-  --text2: #94a3b8;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --green: #22c55e;
-  --yellow: #eab308;
-  --red: #ef4444;
-  --orange: #f97316;
-  --purple: #a855f7;
-  --cyan: #06b6d4;
-  --pink: #ec4899;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-md: 14px;
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: var(--font-size-md);
-  overflow: hidden;
-  height: 100vh;
-}
-
-/* ═══════════════════════════════════════ */
-/* LAYOUT                                  */
-/* ═══════════════════════════════════════ */
-.app { display: flex; flex-direction: column; height: 100vh; }
-.header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  min-height: 48px;
-}
-.header-title { font-size: 16px; font-weight: 700; color: var(--primary); }
-.header-actions { display: flex; align-items: center; gap: var(--spacing-sm); }
-.header-user { color: var(--text2); font-size: var(--font-size-sm); }
-.toolbar {
-  display: flex; align-items: center; gap: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--surface); border-bottom: 1px solid var(--border);
-}
-.main { display: flex; flex: 1; overflow: hidden; }
-.btn {
-  padding: 6px 14px; border: none; border-radius: 6px;
-  cursor: pointer; font-size: var(--font-size-sm); font-weight: 600; color: var(--text);
-  background: var(--surface2); transition: all 0.15s; display: flex; align-items: center; gap: 5px;
-}
-.btn:hover { background: var(--primary); }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-hover); }
-.btn-success { background: var(--green); color: #fff; }
-.btn-success:hover { opacity: 0.9; }
-.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--surface2); }
-.btn-danger { background: var(--red); color: #fff; }
-.btn-danger:hover { opacity: 0.9; }
-.btn-sm { padding: 4px 10px; font-size: var(--font-size-xs); }
-.btn-icon { background: none; padding: 4px 6px; }
-.btn-icon:hover { background: var(--surface2); }
-.view-tabs { display: flex; gap: 2px; }
-.view-tab {
-  padding: 5px 12px; border-radius: 4px; border: none;
-  cursor: pointer; font-size: 11px; font-weight: 600; color: var(--text2); background: transparent;
-  transition: all .15s;
-}
-.view-tab.active { background: var(--primary); color: #fff; }
-.view-tab:hover:not(.active) { background: var(--surface2); }
-input, select, textarea {
-  background: var(--bg); border: 1px solid var(--border); color: var(--text);
-  padding: 6px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-sm);
-  outline: none;
-}
-input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-select { cursor: pointer; }
-.login-screen {
-  display: flex; align-items: center; justify-content: center;
-  height: 100vh; background: var(--bg);
-}
-.login-box {
-  background: var(--surface); border-radius: var(--radius-md);
-  padding: 40px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.login-box h2 { text-align: center; margin-bottom: 24px; color: var(--primary); }
-.login-box .login-field { margin-bottom: 16px; }
-.login-box .login-field label { display: block; margin-bottom: 4px; color: var(--text2); font-size: var(--font-size-sm); }
-.login-box .login-field input { width: 100%; padding: 10px; }
-.login-box .login-btn { width: 100%; padding: 10px; margin-top: 8px; font-size: 15px; }
-.login-error { color: var(--red); font-size: var(--font-size-sm); text-align: center; margin-top: 12px; }
-
-/* ═══════════════════════════════════════ */
-/* TASK PANEL                              */
-/* ═══════════════════════════════════════ */
-.task-panel {
-  width: 480px; min-width: 400px; border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
-}
-.task-panel-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  font-size: 13px; font-weight: 700;
-}
-.task-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
-.task-list::-webkit-scrollbar { width: 6px; }
-.task-list::-webkit-scrollbar-track { background: var(--surface); }
-.task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.task-col-header {
-  display: flex; align-items: center; padding: 0 8px; height: 28px;
-  border-bottom: 1px solid var(--border); background: var(--surface);
-  font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase;
-}
-.task-col-header .col-id { width: 44px; flex-shrink: 0; }
-.task-col-header .col-name { flex: 1; min-width: 0; padding-left: 28px; }
-.task-col-header .col-assignee { width: 70px; flex-shrink: 0; text-align: center; }
-.task-col-header .col-start { width: 44px; flex-shrink: 0; text-align: center; }
-.task-col-header .col-dur { width: 28px; flex-shrink: 0; text-align: center; }
-.task-col-header .col-end { width: 44px; flex-shrink: 0; text-align: center; }
-.task-col-header .col-pct { width: 44px; flex-shrink: 0; text-align: right; }
-.task-row {
-  display: flex; align-items: center;
-  padding: 0 8px; height: 32px; border-bottom: 1px solid rgba(71,85,105,.3);
-  cursor: pointer; font-size: var(--font-size-sm);
-  transition: background 0.1s;
-}
-.task-row:hover { background: rgba(59,130,246,.08); }
-.task-row.selected { background: rgba(59,130,246,.15); }
-.task-row.epic {
-  background: rgba(59,130,246,.05); font-weight: 700;
-  padding: 0 8px;
-}
-.task-row .expand-btn {
-  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
-  background: none; border: none; color: var(--text2); cursor: pointer; font-size: 10px;
-  flex-shrink: 0; border-radius: 3px; transition: all .15s;
-}
-.task-row .expand-btn:hover { background: var(--surface2); }
-.task-row .epic-name { flex: 1; font-size: 13px; padding-left: 4px; }
-.task-row .epic-count { font-size: 11px; color: var(--text2); font-weight: 600; flex-shrink: 0; }
-.task-row .task-id { width: 44px; flex-shrink: 0; font-size: 10px; color: var(--text2); font-variant-numeric: tabular-nums; }
-.task-row .task-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding: 0 6px; }
-.task-row .task-assignee { width: 70px; flex-shrink: 0; font-size: 11px; color: var(--primary); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task-row .task-date { font-size: 10px; color: var(--text2); width: 44px; text-align: center; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.task-row .task-dur { font-size: 10px; color: var(--text2); width: 28px; text-align: center; flex-shrink: 0; }
-.task-row .task-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin: 0 4px; }
-.task-row .pct { font-size: 10px; color: var(--text2); width: 36px; text-align: right; flex-shrink: 0; }
-.team-badge {
-  padding: 1px 5px; border-radius: 3px; font-size: 9px;
-  color: #fff; font-weight: 600; white-space: nowrap; flex-shrink: 0; margin-right: 4px; letter-spacing: .3px;
-}
-.priority-dot {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-right: 4px;
-}
-.status-badge {
-  padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600;
-  white-space: nowrap; flex-shrink: 0;
-}
-.status-todo { background: var(--surface2); color: var(--text2); }
-.status-inprogress { background: rgba(59,130,246,.2); color: var(--primary); }
-.status-done { background: rgba(34,197,94,.2); color: var(--green); }
-.status-blocked { background: rgba(239,68,68,.2); color: var(--red); }
-.add-task-btn {
-  display: flex; align-items: center; gap: 4px;
-  padding: 4px var(--spacing-sm); color: var(--primary);
-  cursor: pointer; font-size: var(--font-size-sm); border: none; background: none;
-}
-.add-task-btn:hover { background: rgba(59,130,246,.08); }
-
-/* ═══════════════════════════════════════ */
-/* GANTT PANEL                             */
-/* ═══════════════════════════════════════ */
-.gantt-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.gantt-header {
-  display: flex; border-bottom: 1px solid var(--border);
-  background: var(--surface); flex-shrink: 0;
-}
-.gantt-week {
-  min-width: 180px; text-align: center; padding: 4px;
-  font-size: 10px; font-weight: 600; color: var(--text2);
-  border-right: 1px solid rgba(71,85,105,.3);
-}
-.gantt-week .week-num { color: var(--primary); font-size: 11px; }
-.gantt-week.current { background: rgba(59,130,246,.1); }
-.gantt-body { flex: 1; overflow: auto; position: relative; }
-.gantt-body::-webkit-scrollbar { width: 6px; height: 6px; }
-.gantt-body::-webkit-scrollbar-track { background: var(--surface); }
-.gantt-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.gantt-row {
-  display: flex; height: 32px;
-  border-bottom: 1px solid rgba(71,85,105,.15); position: relative;
-}
-.gantt-row.epic { height: 36px; background: var(--surface); }
-.gantt-row-bg { display: flex; width: 100%; height: 100%; position: absolute; }
-.gantt-row-bg-week {
-  min-width: 180px; border-right: 1px solid rgba(71,85,105,.15);
-}
-.gantt-row-bg-week.current { background: rgba(59,130,246,.05); }
-.gantt-cell { min-width: 180px; position: relative; border-right: 1px solid rgba(71,85,105,.15); }
-.gantt-cell.today { background: rgba(59,130,246,.05); }
-.gantt-bar {
-  position: absolute; height: 22px; border-radius: 4px;
-  display: flex; align-items: center; padding: 0 6px;
-  font-size: 10px; font-weight: 600; color: #fff; white-space: nowrap;
-  overflow: hidden; cursor: pointer; z-index: 2; top: 5px; min-width: 12px;
-  transition: opacity 0.15s;
-}
-.gantt-bar:hover { opacity: 0.85; z-index: 3; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
-.gantt-bar.critical { box-shadow: 0 0 0 2px var(--red); }
-.gantt-bar-progress {
-  position: absolute; left: 0; top: 0; bottom: 0;
-  background: #fff; opacity: .3; border-radius: 4px;
-}
-.gantt-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
-.dep-line { position: absolute; pointer-events: none; z-index: 1; }
-
-/* ═══════════════════════════════════════ */
-/* BOARD VIEW                              */
-/* ═══════════════════════════════════════ */
-.board { display: flex; gap: var(--spacing-md); flex: 1; padding: var(--spacing-md); overflow-x: auto; }
-.board-column {
-  flex: 1; min-width: 240px; display: flex; flex-direction: column;
-  background: var(--surface); border-radius: var(--radius-md); overflow: hidden;
-}
-.board-column-header {
-  padding: var(--spacing-sm) var(--spacing-md); font-weight: 600;
-  font-size: var(--font-size-sm); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0;
-}
-.board-column-header .count-badge {
-  background: var(--surface2); padding: 1px 8px; border-radius: 10px;
-  font-size: var(--font-size-xs); color: var(--text2);
-}
-.board-column-body { flex: 1; overflow-y: auto; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-xs); }
-.board-card {
-  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: var(--spacing-sm); cursor: pointer; transition: border-color 0.2s;
-}
-.board-card:hover { border-color: var(--primary); }
-.board-card .card-name { font-size: var(--font-size-sm); margin-bottom: 6px; }
-.board-card .card-meta { display: flex; align-items: center; gap: var(--spacing-xs); flex-wrap: wrap; }
-.board-card .card-progress {
-  width: 100%; height: 3px; background: var(--border); border-radius: 2px; margin-top: 6px;
-}
-.board-card .card-progress-fill { height: 100%; border-radius: 2px; background: var(--green); }
-.filter-bar {
-  display: flex; align-items: center; gap: var(--spacing-sm);
-  padding: 6px var(--spacing-md);
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.filter-group { display: flex; align-items: center; gap: 4px; }
-.filter-group label { font-size: 11px; color: var(--text2); font-weight: 600; }
-.filter-bar select, .filter-bar input { padding: 4px 8px; font-size: var(--font-size-xs); }
-.filter-bar input[type="text"] { width: 180px; }
-.stats { display: flex; gap: var(--spacing-md); margin-left: auto; font-size: var(--font-size-xs); color: var(--text2); }
-.stats .stat-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
-
-
-/* ═══════════════════════════════════════ */
-/* DETAIL PANEL                            */
-/* ═══════════════════════════════════════ */
-.detail-overlay {
-  position: fixed; top: 0; right: 0; width: 380px; height: 100%;
-  background: var(--surface); border-left: 1px solid var(--border);
-  z-index: 100; transform: translateX(100%); transition: transform .2s;
-  overflow-y: auto; padding: 16px;
-}
-.detail-overlay.open { transform: translateX(0); }
-.detail-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--spacing-md); border-bottom: 1px solid var(--border);
-}
-.detail-header h3 { font-size: 15px; }
-.detail-body { flex: 1; overflow-y: auto; padding: var(--spacing-md); }
-.detail-field { margin-bottom: var(--spacing-md); }
-.detail-field label {
-  display: block; font-size: var(--font-size-xs); color: var(--text2);
-  margin-bottom: var(--spacing-xs); text-transform: uppercase; letter-spacing: 0.5px;
-}
-.detail-field input, .detail-field select, .detail-field textarea {
-  width: 100%;
-}
-.detail-field textarea { min-height: 60px; resize: vertical; }
-.detail-field .range-row { display: flex; align-items: center; gap: var(--spacing-sm); }
-.detail-field input[type="range"] { flex: 1; background: none; }
-.detail-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--spacing-md); border-top: 1px solid var(--border);
-}
-.deps-selector { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); max-height: 120px; overflow-y: auto; }
-.dep-item {
-  padding: 2px 8px; border-radius: 3px; font-size: var(--font-size-xs);
-  cursor: pointer; border: 1px solid var(--border); background: var(--bg);
-}
-.dep-item.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
-.dep-item.warning { border-color: var(--red); }
-.dep-warning { color: var(--red); font-size: var(--font-size-xs); margin-top: 4px; }
-
-/* ═══════════════════════════════════════ */
-/* ADMIN PANEL                             */
-/* ═══════════════════════════════════════ */
-.admin-modal {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6); z-index: 150;
-  display: flex; align-items: center; justify-content: center;
-}
-.admin-content {
-  background: var(--surface); border-radius: var(--radius-md);
-  width: 700px; max-height: 80vh; display: flex; flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.admin-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: var(--spacing-md); border-bottom: 1px solid var(--border);
-}
-.admin-tabs { display: flex; gap: 2px; padding: 0 var(--spacing-md); background: var(--surface); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-.admin-tab {
-  padding: 6px 16px; border-radius: 4px 4px 0 0; border: none; background: transparent;
-  color: var(--text2); cursor: pointer; font-size: 12px; font-weight: 600;
-  transition: all .15s;
-}
-.admin-tab.active { background: var(--primary); color: #fff; }
-.admin-tab:hover:not(.active) { background: var(--surface2); }
-.admin-body { flex: 1; overflow-y: auto; padding: var(--spacing-md); }
-.admin-table { width: 100%; border-collapse: collapse; }
-.admin-table th {
-  text-align: left; padding: 8px; font-size: var(--font-size-xs);
-  color: var(--text2); border-bottom: 1px solid var(--border); text-transform: uppercase;
-}
-.admin-table td { padding: 5px 8px; border-bottom: 1px solid rgba(71,85,105,.3); font-size: var(--font-size-sm); }
-.admin-table input, .admin-table select { padding: 4px 6px; font-size: var(--font-size-sm); }
-.color-picker { width: 32px; height: 24px; padding: 0; border: 1px solid var(--border); cursor: pointer; border-radius: 3px; }
-.admin-add-form {
-  display: flex; gap: var(--spacing-sm); align-items: center;
-  padding: var(--spacing-sm) 0; margin-top: var(--spacing-sm);
-  border-top: 1px solid var(--border);
-}
-
-/* ═══════════════════════════════════════ */
-/* SAVE BUTTON & MISC                      */
-/* ═══════════════════════════════════════ */
-.btn-update { background: var(--green); color: #fff; border: none; border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .3s; display: inline-flex; align-items: center; gap: 5px; min-width: 90px; justify-content: center; }
-.btn-update:hover { opacity: .9; }
-.btn-update.saving { background: var(--surface2); color: var(--text2); pointer-events: none; }
-@keyframes dotPulse { 0%,80%,100% { opacity: .3; } 40% { opacity: 1; } }
-.saving-dots span { animation: dotPulse 1.4s infinite; font-size: 16px; line-height: 1; }
-.saving-dots span:nth-child(2) { animation-delay: .2s; }
-.saving-dots span:nth-child(3) { animation-delay: .4s; }
-.delete-link { background: none; border: none; color: var(--text2); font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: underline; opacity: .5; padding: 4px 0; }
-.delete-link:hover { color: var(--red); opacity: 1; }
-.resize-handle { position: absolute; top: 0; right: -3px; width: 8px; height: 100%; cursor: col-resize; z-index: 10; }
-input[type=date] { width: 28px; min-width: 28px; padding: 0; border: none; background: transparent; cursor: pointer; opacity: .6; }
-input[type=date]::-webkit-calendar-picker-indicator { filter: invert(.7); cursor: pointer; }
-input[type=date]::-webkit-datetime-edit { display: none; }
-
-/* ═══════════════════════════════════════ */
-/* RESPONSIVE                              */
-/* ═══════════════════════════════════════ */
-@media (max-width: 768px) {
-  .main { flex-direction: column; }
-  .task-panel { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
-  .gantt-panel { flex: 1; }
-  .board { flex-wrap: wrap; }
-  .board-column { min-width: 200px; }
-  .detail-overlay { width: 100%; }
-  .admin-content { width: 95vw; }
-  .header { flex-wrap: wrap; gap: var(--spacing-xs); }
-  .header-actions { flex-wrap: wrap; }
-  .filter-bar { flex-wrap: wrap; }
-}
-
-
-/* ═══════════════════════════════════════ */
-/* MODALS & TOASTS                         */
-/* ═══════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6); z-index: 200;
-  display: flex; align-items: center; justify-content: center;
-}
-.modal {
-  background: var(--surface); border-radius: var(--radius-md);
-  padding: var(--spacing-lg); min-width: 320px; max-width: 480px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.modal h3 { margin-bottom: var(--spacing-md); }
-.modal p { color: var(--text2); margin-bottom: var(--spacing-md); font-size: var(--font-size-sm); }
-.modal-actions { display: flex; gap: var(--spacing-sm); justify-content: flex-end; }
-.toast {
-  position: fixed; bottom: 20px; right: 20px; z-index: 300;
-  padding: 10px 16px; border-radius: 6px;
-  color: #fff; font-size: 13px; font-weight: 600;
-  animation: toastIn 0.3s ease;
-}
-@keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.toast-success { background: var(--green); }
-.toast-error { background: var(--red); }
-.toast-info { background: var(--primary); }
-
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#475569;--text:#e2e8f0;--text2:#94a3b8;--primary:#3b82f6;--primary-hover:#2563eb;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;--pink:#ec4899}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+.app{display:flex;flex-direction:column;height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.header h1{font-size:16px;font-weight:700;white-space:nowrap}
+.header h1 span{color:var(--primary)}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:6px 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-hover)}
+.btn-success{background:var(--green);color:#fff}.btn-success:hover{opacity:.9}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface2)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:11px}
+.toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.filter-group{display:flex;align-items:center;gap:4px}
+.filter-group label{font-size:11px;color:var(--text2);font-weight:600}
+select,input[type=text]{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:12px;outline:none}
+select:focus,input:focus{border-color:var(--primary)}
+.search-box{width:180px}
+.stats{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text2)}
+.stats .stat{display:flex;align-items:center;gap:4px}
+.stats .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.main{display:flex;flex:1;overflow:hidden}
+.task-panel{width:480px;min-width:400px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.task-panel-header{padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.task-panel-header h2{font-size:13px;font-weight:700}
+.task-list{flex:1;overflow-y:auto;overflow-x:hidden}
+.task-list::-webkit-scrollbar{width:6px}
+.task-list::-webkit-scrollbar-track{background:var(--surface)}
+.task-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.task-row{display:flex;align-items:center;padding:0 8px;height:32px;border-bottom:1px solid rgba(71,85,105,.3);cursor:pointer;transition:background .1s;font-size:12px}
+.task-row:hover{background:rgba(59,130,246,.08)}
+.task-row.selected{background:rgba(59,130,246,.15)}
+.task-row.epic{background:rgba(59,130,246,.05);font-weight:700}
+.task-row .expand-btn{width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:10px;flex-shrink:0;border-radius:3px;transition:all .15s}
+.task-row .expand-btn:hover{background:var(--surface2)}
+.task-row .indent{flex-shrink:0}
+.task-row .task-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}
+.task-row .task-name input{background:transparent;border:none;color:var(--text);width:100%;font-size:12px;outline:none;font-family:inherit}
+.task-row .team-badge{font-size:9px;padding:1px 5px;border-radius:3px;color:#fff;font-weight:600;flex-shrink:0;margin-right:4px;letter-spacing:.3px}
+.task-row .priority-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-right:4px}
+.task-row .status-badge{font-size:10px;padding:1px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
+.task-row .pct{font-size:10px;color:var(--text2);width:28px;text-align:right;flex-shrink:0}
+.task-row .task-date{font-size:10px;color:var(--text2);width:44px;text-align:center;flex-shrink:0;font-variant-numeric:tabular-nums}
+.gantt-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.gantt-header{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.gantt-week{min-width:180px;text-align:center;padding:4px;border-right:1px solid rgba(71,85,105,.3);font-size:10px;font-weight:600;color:var(--text2)}
+.gantt-week .week-num{color:var(--primary);font-size:11px}
+.gantt-body{flex:1;overflow:auto;position:relative}
+.gantt-body::-webkit-scrollbar{width:6px;height:6px}
+.gantt-body::-webkit-scrollbar-track{background:var(--surface)}
+.gantt-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.gantt-row{display:flex;height:32px;border-bottom:1px solid rgba(71,85,105,.15);position:relative}
+.gantt-cell{min-width:180px;position:relative;border-right:1px solid rgba(71,85,105,.15)}
+.gantt-cell.today{background:rgba(59,130,246,.05)}
+.gantt-bar{position:absolute;top:5px;height:22px;border-radius:4px;display:flex;align-items:center;font-size:10px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s;z-index:2;min-width:12px;padding:0 6px;overflow:hidden}
+.gantt-bar:hover{opacity:.85;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.gantt-bar .bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.gantt-bar-progress{position:absolute;left:0;top:0;bottom:0;border-radius:4px;opacity:.3;background:#fff}
+.dep-line{position:absolute;pointer-events:none;z-index:1}
+.detail-overlay{position:fixed;top:0;right:0;width:380px;height:100%;background:var(--surface);border-left:1px solid var(--border);z-index:100;transform:translateX(100%);transition:transform .2s;overflow-y:auto;padding:16px}
+.detail-overlay.open{transform:translateX(0)}
+.detail-overlay h3{font-size:14px;margin-bottom:12px}
+.detail-overlay .field{margin-bottom:10px}
+.detail-overlay .field label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:600}
+.detail-overlay .field input,.detail-overlay .field select,.detail-overlay .field textarea{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;outline:none;font-family:inherit}
+.detail-overlay .field input[type=date]{width:28px;min-width:28px;padding:0;border:none;background:transparent;cursor:pointer;opacity:.6}
+.detail-overlay .field textarea{height:60px;resize:vertical}
+.detail-overlay .close-btn{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer}
+.team-Art{background:#9b59b6}.team-Dev{background:#2980b9}.team-Design{background:#e67e22}
+.team-Multimedia{background:#1abc9c}.team-PM{background:#34495e}.team-OP{background:#7f8c8d}.team-QC{background:#c0392b}
+.team-Client{background:#16a085}.team-Server{background:#8e44ad}
+.pri-High{background:var(--red)}.pri-Medium{background:var(--yellow)}.pri-Low{background:var(--green)}
+.status-todo{background:var(--surface2);color:var(--text2)}
+.status-progress{background:rgba(59,130,246,.2);color:var(--primary)}
+.status-done{background:rgba(34,197,94,.2);color:var(--green)}
+.status-blocked{background:rgba(239,68,68,.2);color:var(--red)}
+.critical .gantt-bar{box-shadow:0 0 0 2px var(--red)}
+.resize-handle{position:absolute;top:0;right:-3px;width:8px;height:100%;cursor:col-resize;z-index:10}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;width:500px;max-height:80vh;overflow-y:auto}
+.modal.wide{width:700px}
+.modal h3{margin-bottom:12px;font-size:16px}
+.modal .field{margin-bottom:10px}
+.modal .field label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:600}
+.modal .field input,.modal .field select,.modal .field textarea{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;outline:none;font-family:inherit}
+.modal .field input[type=date]{width:28px;min-width:28px;padding:0;border:none;background:transparent;cursor:pointer;opacity:.6}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.admin-tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.admin-tab{padding:6px 16px;border-radius:4px 4px 0 0;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
+.admin-tab.active{background:var(--primary);color:#fff}
+.admin-tab:hover:not(.active){background:var(--surface2)}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px}
+.admin-table th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text2);font-size:11px;font-weight:600}
+.admin-table td{padding:5px 8px;border-bottom:1px solid rgba(71,85,105,.3)}
+.admin-table tr:hover{background:rgba(59,130,246,.05)}
+.admin-table input{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px;outline:none;width:100%}
+.admin-table select{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:12px;outline:none}
+.confirm-dialog{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;width:420px}
+.confirm-dialog h4{margin-bottom:8px;font-size:14px;color:var(--red)}
+.confirm-dialog p{font-size:13px;margin-bottom:16px;color:var(--text2);line-height:1.5}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:6px;font-size:13px;font-weight:600;z-index:300;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.btn-update{background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;display:inline-flex;align-items:center;gap:5px;min-width:90px;justify-content:center}
+.btn-update:hover{opacity:.9}
+.btn-update.saving{background:var(--surface2);color:var(--text2);pointer-events:none}
+@keyframes dotPulse{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.saving-dots span{animation:dotPulse 1.4s infinite;font-size:16px;line-height:1}.saving-dots span:nth-child(2){animation-delay:.2s}.saving-dots span:nth-child(3){animation-delay:.4s}
+.delete-link{background:none;border:none;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;opacity:.5;padding:4px 0}.delete-link:hover{color:var(--red);opacity:1}
+input[type=date]{width:28px;min-width:28px;padding:0;border:none;background:transparent;cursor:pointer;opacity:.6}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
+input[type=date]::-webkit-datetime-edit{display:none}
+.view-tabs{display:flex;gap:2px}
+.view-tab{padding:5px 12px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
+.view-tab.active{background:var(--primary);color:#fff}
+.view-tab:hover:not(.active){background:var(--surface2)}
 </style>
 </head>
 <body>
-
 <div id="root"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script type="text/babel">
-
-/* ═══════════════════════════════════════ */
-/* MODULE 1: CONFIG & CONSTANTS            */
-/* ═══════════════════════════════════════ */
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
 const PROJECT_START = new Date(2026, 2, 3);
 const NUM_WEEKS = 9;
 const DAY_MS = 86400000;
-const PRIORITIES = ['High', 'Medium', 'Low'];
-const STATUSES = ['To Do', 'In Progress', 'Done', 'Blocked'];
+const INIT_TEAMS = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
+const TEAM_SORT_ORDER = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
+const PRIORITIES = ['High','Medium','Low'];
+const STATUSES = ['To Do','In Progress','Done','Blocked'];
+const INIT_TEAM_COLORS = {PM:'#34495e',Design:'#e67e22',Art:'#9b59b6',Dev:'#2980b9',Client:'#16a085',Server:'#8e44ad',QC:'#c0392b',Multimedia:'#1abc9c',OP:'#7f8c8d'};
+const INIT_PHASE_COLORS = {'Pre-production':'#3498db',Production:'#27ae60','Testing & QA':'#e74c3c'};
+const INIT_MEMBERS = {PM:['ToanNM'],Design:['LocPT','QuynhNH','BinhNT'],Art:['HoaGTT','TuND4','NgocLA'],Dev:['CongNN','HuongBP','DienDQ','CongNT7','PhucNN','SonBNT'],Client:[],Server:[],QC:['NhanNT3'],Multimedia:['HungVM2'],OP:['NienND']};
+const PALETTE = ['#9b59b6','#2980b9','#e67e22','#1abc9c','#34495e','#7f8c8d','#c0392b','#e74c3c','#f39c12','#16a085','#8e44ad','#d35400','#2c3e50','#27ae60'];
 
-const INIT_TEAMS = ['PM', 'Design', 'Art', 'Dev', 'Client', 'Server', 'QC', 'Multimedia', 'OP'];
-const TEAM_SORT_ORDER = {};
-INIT_TEAMS.forEach((t, i) => TEAM_SORT_ORDER[t] = i);
-
-const INIT_TEAM_COLORS = {
-  'PM': '#34495e', 'Design': '#e67e22', 'Art': '#9b59b6', 'Dev': '#2980b9',
-  'Client': '#16a085', 'Server': '#8e44ad', 'QC': '#c0392b', 'Multimedia': '#1abc9c', 'OP': '#7f8c8d'
-};
-
-const INIT_PHASE_COLORS = {
-  'Pre-production': '#3498db', 'Production': '#27ae60', 'Testing & QA': '#e74c3c'
-};
-
-const INIT_MEMBERS = [
-  {name: 'ToanNM', team: 'PM'},
-  {name: 'LocPT', team: 'Design'}, {name: 'QuynhNH', team: 'Design'}, {name: 'BinhNT', team: 'Design'},
-  {name: 'HoaGTT', team: 'Art'}, {name: 'TuND4', team: 'Art'}, {name: 'NgocLA', team: 'Art'},
-  {name: 'CongNN', team: 'Dev'}, {name: 'HuongBP', team: 'Dev'}, {name: 'DienDQ', team: 'Dev'},
-  {name: 'CongNT7', team: 'Dev'}, {name: 'PhucNN', team: 'Dev'}, {name: 'SonBNT', team: 'Dev'},
-  {name: 'NhanNT3', team: 'QC'},
-  {name: 'HungVM2', team: 'Multimedia'},
-  {name: 'NienND', team: 'OP'}
-];
-
-const PALETTE = [
-  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6',
-  '#34495e','#16a085','#27ae60','#2980b9','#8e44ad','#c0392b','#7f8c8d'
-];
-
-const API_BASE = '';
-const DEBOUNCE_MS = 1000;
-const POLL_INTERVAL_MS = 30000;
-
-/* ═══════════════════════════════════════ */
-/* MODULE 2: DATE UTILITIES                */
-/* ═══════════════════════════════════════ */
-
-function parseDate(str) {
-  if (!str) return null;
-  const parts = str.split('/');
-  if (parts.length !== 3) return null;
-  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
-  const dt = new Date(y, m, d);
-  if (dt.getDate() !== d || dt.getMonth() !== m || dt.getFullYear() !== y) return null;
-  return dt;
+function d(s){const p=s.split('/');return new Date(+p[2],+p[1]-1,+p[0])}
+function fmt(dt){if(!dt)return'';return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`}
+function addDays(dt,n){return new Date(dt.getTime()+n*DAY_MS)}
+function diffDays(a,b){return Math.round((b-a)/DAY_MS)}
+function workingDays(a,b){let count=0;let cur=new Date(a);while(cur<=b){const day=cur.getDay();if(day!==0&&day!==6)count++;cur=new Date(cur.getTime()+DAY_MS)}return Math.max(count-1,0)}
+function addWorkingDays(dt,n){let cur=new Date(dt);let added=0;while(added<n){cur=new Date(cur.getTime()+DAY_MS);const day=cur.getDay();if(day!==0&&day!==6)added++}return cur}
+function weekOfDate(dt){return Math.floor(diffDays(PROJECT_START,dt)/7)}
+function skipWeekend(dt){
+  const day=dt.getDay();
+  if(day===6)return{date:addDays(dt,2),skipped:true};
+  if(day===0)return{date:addDays(dt,1),skipped:true};
+  return{date:dt,skipped:false};
 }
-
-function formatDate(dt) {
-  if (!dt) return '';
-  const d = String(dt.getDate()).padStart(2, '0');
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  return d + '/' + m + '/' + dt.getFullYear();
-}
-
-function addDays(dt, n) {
-  return new Date(dt.getTime() + n * DAY_MS);
-}
-
-function diffDays(a, b) {
-  return Math.round((b.getTime() - a.getTime()) / DAY_MS);
-}
-
-function isWeekend(dt) {
-  const day = dt.getDay();
-  return day === 0 || day === 6;
-}
-
-function skipWeekend(dt) {
-  let skipped = 0;
-  let d = new Date(dt);
-  while (isWeekend(d)) { d = addDays(d, 1); skipped++; }
-  return { date: d, skipped };
-}
-
-function addWorkingDays(dt, n) {
-  let d = new Date(dt);
-  let remaining = n;
-  while (remaining > 0) {
-    d = addDays(d, 1);
-    if (!isWeekend(d)) remaining--;
-  }
-  return d;
-}
-
-function getWorkingDaysBetween(a, b) {
-  let count = 0;
-  let d = new Date(a);
-  while (d < b) {
-    d = addDays(d, 1);
-    if (!isWeekend(d)) count++;
-  }
-  return count;
-}
-
-function weekOfDate(dt) {
-  return Math.floor(diffDays(PROJECT_START, dt) / 7);
-}
-
-function isValidDate(str) {
-  if (!str || typeof str !== 'string') return false;
-  const parts = str.split('/');
-  if (parts.length !== 3) return false;
-  const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10), y = parseInt(parts[2], 10);
-  if (isNaN(d) || isNaN(m) || isNaN(y)) return false;
-  if (m < 1 || m > 12 || d < 1 || d > 31 || y < 2000) return false;
-  const dt = new Date(y, m - 1, d);
-  return dt.getDate() === d && dt.getMonth() === m - 1 && dt.getFullYear() === y;
-}
-
-/* ═══════════════════════════════════════ */
-/* MODULE 3: TASK LOGIC (pure functions)   */
-/* ═══════════════════════════════════════ */
+function isValidDate(s){if(!s)return false;const p=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(!p)return false;const dt=new Date(+p[3],+p[2]-1,+p[1]);return dt.getDate()===+p[1]&&dt.getMonth()===+p[2]-1&&dt.getFullYear()===+p[3]}
 
 let nextId = 100;
-
-function initNextId(tasks) {
-  let maxId = 99;
-  (tasks || []).forEach(epic => {
-    if (epic.id > maxId) maxId = epic.id;
-    (epic.children || []).forEach(t => { if (t.id > maxId) maxId = t.id; });
-  });
-  nextId = maxId + 1;
+function initNextId(tasks){
+  let max=99;
+  tasks.forEach(t=>{if(t.id>max)max=t.id;if(t.children)t.children.forEach(c=>{if(c.id>max)max=c.id})});
+  nextId=max+1;
 }
+function genId(){return nextId++}
 
-function genId() { return nextId++; }
+const INITIAL_TASKS = [
+  {id:1,name:'Pre-production',type:'epic',phase:'Pre-production',expanded:true,children:[
+    {id:10,name:'Game Design Document (GDD)',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Tai lieu thiet ke game tong the'},
+    {id:11,name:'Resource & Timeline Planning',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Lap ke hoach nguon luc'},
+    {id:12,name:'UI/UX Wireframe - Lobby',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe lobby'},
+    {id:13,name:'UI/UX Wireframe - Gameplay',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe gameplay'},
+    {id:14,name:'Art Style Guide',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'05/03/2026',end:'10/03/2026',pct:0,deps:[10],notes:'Art direction'},
+    {id:15,name:'Technical Architecture',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Kien truc ky thuat'},
+    {id:16,name:'Prototype - Core Gameplay',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'09/03/2026',end:'16/03/2026',pct:0,deps:[15],notes:'Prototype logic'},
+    {id:17,name:'QA Test Plan',team:'QC',assignee:'NhanNT3',priority:'Medium',status:'To Do',start:'09/03/2026',end:'13/03/2026',pct:0,deps:[10],notes:'Ke hoach test'},
+  ]},
+  {id:2,name:'Production',type:'epic',phase:'Production',expanded:true,children:[
+    {id:20,name:'Card Design (52 la bai)',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'52 la bai + mat sau'},
+    {id:21,name:'Table & Background Art',team:'Art',assignee:'TuND4',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[14],notes:'Ban choi, background'},
+    {id:22,name:'Character/Avatar Design',team:'Art',assignee:'NgocLA',priority:'Medium',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'Avatar, dealer'},
+    {id:23,name:'Chip & Token Assets',team:'Art',assignee:'TuND4',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[21],notes:'Chip, token, icon'},
+    {id:24,name:'Design Ban choi',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[12],notes:'Design ban poker'},
+    {id:25,name:'UI Design - Lobby & Menu',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[12],notes:'UI lobby, menu'},
+    {id:26,name:'UI Design - Gameplay Screen',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[13],notes:'UI gameplay'},
+    {id:27,name:'UI Design - Shop & Profile',team:'Design',assignee:'BinhNT',priority:'Medium',status:'To Do',start:'23/03/2026',end:'30/03/2026',pct:0,deps:[25],notes:'UI shop, profile'},
+    {id:28,name:'UI Animation Specs',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[25,26],notes:'Animation specs'},
+    {id:30,name:'Core Engine - Card Logic',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15,16],notes:'Card engine'},
+    {id:31,name:'Betting System',team:'Dev',assignee:'HuongBP',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15],notes:'Betting, pot'},
+    {id:32,name:'Multiplayer/Networking',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'20/03/2026',end:'03/04/2026',pct:0,deps:[15],notes:'Multiplayer, rooms'},
+    {id:33,name:'UI Implementation - Lobby',team:'Dev',assignee:'CongNT7',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[25],notes:'Code UI lobby'},
+    {id:34,name:'UI Implementation - Gameplay',team:'Dev',assignee:'PhucNN',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[26],notes:'Code UI gameplay'},
+    {id:35,name:'Backend API & Database',team:'Dev',assignee:'SonBNT',priority:'High',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[15],notes:'API, DB'},
+    {id:36,name:'AI Bot Logic',team:'Dev',assignee:'CongNN',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[30],notes:'AI bot'},
+    {id:37,name:'Shop & In-app Purchase',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[31,35],notes:'Shop, IAP'},
+    {id:40,name:'Sound Effects (SFX)',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[],notes:'SFX'},
+    {id:41,name:'Background Music',team:'Multimedia',assignee:'HungVM2',priority:'Low',status:'To Do',start:'01/04/2026',end:'07/04/2026',pct:0,deps:[40],notes:'BGM'},
+    {id:42,name:'Card Animation & VFX',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[20,40],notes:'Animation, VFX'},
+    {id:45,name:'Sprint Review & Tracking',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'18/03/2026',end:'14/04/2026',pct:0,deps:[],notes:'Weekly review'},
+    {id:46,name:'Build & Deployment Setup',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[15],notes:'CI/CD'},
+  ]},
+  {id:3,name:'Testing & QA',type:'epic',phase:'Testing & QA',expanded:true,children:[
+    {id:50,name:'Functional Testing',team:'QC',assignee:'NhanNT3',priority:'High',status:'To Do',start:'15/04/2026',end:'21/04/2026',pct:0,deps:[17],notes:'Test core gameplay'},
+    {id:51,name:'Integration Testing',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'15/04/2026',end:'20/04/2026',pct:0,deps:[32,35],notes:'Integration test'},
+    {id:52,name:'Performance Testing',team:'Dev',assignee:'SonBNT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'22/04/2026',pct:0,deps:[51],notes:'Load test'},
+    {id:53,name:'Bug Fixing Sprint',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50,51],notes:'Fix bugs'},
+    {id:54,name:'UI/UX Polish',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish UI'},
+    {id:55,name:'Art Asset Polish',team:'Art',assignee:'HoaGTT',priority:'Low',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish art'},
+    {id:56,name:'Final Build & Release',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'26/04/2026',end:'28/04/2026',pct:0,deps:[53],notes:'Final build'},
+    {id:57,name:'Release Sign-off',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'28/04/2026',end:'28/04/2026',pct:0,deps:[56],notes:'Sign-off'},
+  ]}
+];
 
-function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
-
-function flattenTasks(tasks) {
-  const result = [];
-  (tasks || []).forEach(epic => {
-    result.push(epic);
-    if (epic.children && epic.expanded) {
-      const sorted = [...epic.children].sort((a, b) => {
-        const ta = TEAM_SORT_ORDER[a.team] ?? 99;
-        const tb = TEAM_SORT_ORDER[b.team] ?? 99;
-        return ta - tb || a.id - b.id;
+function flattenTasks(tasks){
+  const result=[];
+  tasks.forEach(t=>{
+    result.push(t);
+    if(t.children && t.expanded){
+      const sorted=[...t.children].sort((a,b)=>{
+        const teamA=TEAM_SORT_ORDER.indexOf(a.team),teamB=TEAM_SORT_ORDER.indexOf(b.team);
+        const tA=teamA===-1?999:teamA,tB=teamB===-1?999:teamB;
+        if(tA!==tB)return tA-tB;
+        if((a.assignee||'')<(b.assignee||''))return -1;
+        if((a.assignee||'')>(b.assignee||''))return 1;
+        return d(a.start)-d(b.start);
       });
-      sorted.forEach(t => result.push(t));
+      sorted.forEach(c=>result.push(c));
     }
   });
   return result;
 }
 
-function detectCircularDeps(taskId, deps, allTasks) {
-  const taskMap = {};
-  allTasks.forEach(epic => {
-    (epic.children || []).forEach(t => { taskMap[t.id] = t; });
+function getAllTasks(tasks){
+  const result=[];
+  tasks.forEach(t=>{
+    result.push(t);
+    if(t.children)t.children.forEach(c=>result.push(c));
   });
-  const visited = new Set();
-  const stack = [...deps];
-  while (stack.length > 0) {
-    const id = stack.pop();
-    if (id === taskId) return true;
-    if (visited.has(id)) continue;
-    visited.add(id);
-    const t = taskMap[id];
-    if (t && t.deps) t.deps.forEach(d => stack.push(d));
-  }
-  return false;
+  return result;
 }
 
-function autoSchedule(tasks) {
-  const taskMap = {};
-  const allChildren = [];
-  tasks.forEach(epic => {
-    (epic.children || []).forEach(t => {
-      taskMap[t.id] = t;
-      allChildren.push(t);
-    });
-  });
+function findTask(tasks,id){
+  for(const t of tasks){
+    if(t.id===id)return t;
+    if(t.children){const c=t.children.find(x=>x.id===id);if(c)return c;}
+  }
+  return null;
+}
 
-  // Topological sort
-  const inDegree = {};
-  allChildren.forEach(t => { inDegree[t.id] = 0; });
-  allChildren.forEach(t => {
-    (t.deps || []).forEach(depId => {
-      if (taskMap[depId]) inDegree[t.id] = (inDegree[t.id] || 0) + 1;
-    });
-  });
-  const queue = allChildren.filter(t => inDegree[t.id] === 0);
-  const sorted = [];
-  while (queue.length > 0) {
-    const t = queue.shift();
-    sorted.push(t);
-    allChildren.forEach(other => {
-      if ((other.deps || []).includes(t.id)) {
-        inDegree[other.id]--;
-        if (inDegree[other.id] === 0) queue.push(other);
+function autoSchedule(tasks){
+  const all=getAllTasks(tasks);
+  const map=new Map(all.map(t=>[t.id,t]));
+  const visited=new Set();
+  function resolve(t){
+    if(visited.has(t.id)||!t.deps||t.deps.length===0)return;
+    visited.add(t.id);
+    let maxEnd=null;
+    t.deps.forEach(depId=>{
+      const dep=map.get(depId);
+      if(dep){
+        resolve(dep);
+        const depEnd=d(dep.end);
+        if(!maxEnd||depEnd>maxEnd)maxEnd=depEnd;
       }
     });
+    if(maxEnd){
+      const curStart=d(t.start);
+      const curEnd=d(t.end);
+      const duration=diffDays(curStart,curEnd);
+      let newStart=addDays(maxEnd,1);
+      newStart=skipWeekend(newStart).date;
+      if(newStart>curStart){
+        t.start=fmt(newStart);
+        let newEnd=addDays(newStart,duration);
+        newEnd=skipWeekend(newEnd).date;
+        t.end=fmt(newEnd);
+      }
+    }
   }
-
-  // Forward pass
-  sorted.forEach(t => {
-    const startDt = parseDate(t.start);
-    const endDt = parseDate(t.end);
-    if (!startDt || !endDt) return;
-    const duration = getWorkingDaysBetween(startDt, endDt);
-
-    if (t.deps && t.deps.length > 0) {
-      let maxEnd = null;
-      t.deps.forEach(depId => {
-        const dep = taskMap[depId];
-        if (dep) {
-          const depEnd = parseDate(dep.end);
-          if (depEnd && (!maxEnd || depEnd > maxEnd)) maxEnd = depEnd;
-        }
+  all.filter(t=>t.type!=='epic').forEach(t=>resolve(t));
+  tasks.forEach(ep=>{
+    if(ep.type==='epic'&&ep.children&&ep.children.length>0){
+      let minS=null,maxE=null;
+      ep.children.forEach(c=>{
+        const s=d(c.start),e=d(c.end);
+        if(!minS||s<minS)minS=s;
+        if(!maxE||e>maxE)maxE=e;
       });
-      if (maxEnd) {
-        let newStart = addDays(maxEnd, 1);
-        const sw = skipWeekend(newStart);
-        newStart = sw.date;
-        t.start = formatDate(newStart);
-        t.end = formatDate(addWorkingDays(newStart, duration));
-      }
-    } else {
-      const sw = skipWeekend(startDt);
-      if (sw.skipped > 0) {
-        t.start = formatDate(sw.date);
-        t.end = formatDate(addWorkingDays(sw.date, duration));
-      }
+      if(minS)ep.start=fmt(minS);
+      if(maxE)ep.end=fmt(maxE);
     }
   });
+}
 
-  // Update Epic dates
-  tasks.forEach(epic => {
-    if (!epic.children || epic.children.length === 0) return;
-    let minStart = null, maxEnd = null;
-    epic.children.forEach(t => {
-      const s = parseDate(t.start), e = parseDate(t.end);
-      if (s && (!minStart || s < minStart)) minStart = s;
-      if (e && (!maxEnd || e > maxEnd)) maxEnd = e;
+function computeCriticalPath(tasks){
+  const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+  const map=new Map(all.map(t=>[t.id,t]));
+  const ids=new Set();
+  let latest=null;
+  all.forEach(t=>{if(!latest||d(t.end)>d(latest.end))latest=t});
+  if(!latest)return ids;
+  function trace(t){
+    ids.add(t.id);
+    if(!t.deps)return;
+    let maxDep=null;
+    t.deps.forEach(depId=>{
+      const dep=map.get(depId);
+      if(dep&&(!maxDep||d(dep.end)>d(maxDep.end)))maxDep=dep;
     });
-    if (minStart) epic.start = formatDate(minStart);
-    if (maxEnd) epic.end = formatDate(maxEnd);
-    // Epic progress = average of children
-    const total = epic.children.reduce((sum, t) => sum + (t.pct || 0), 0);
-    epic.pct = Math.round(total / epic.children.length);
-  });
-
-  return tasks;
-}
-
-function calculateCriticalPath(tasks) {
-  const taskMap = {};
-  const allChildren = [];
-  tasks.forEach(epic => {
-    (epic.children || []).forEach(t => {
-      taskMap[t.id] = t;
-      allChildren.push(t);
-    });
-  });
-  if (allChildren.length === 0) return new Set();
-
-  // Build dependency reverse map
-  const dependents = {};
-  allChildren.forEach(t => { dependents[t.id] = []; });
-  allChildren.forEach(t => {
-    (t.deps || []).forEach(depId => {
-      if (dependents[depId]) dependents[depId].push(t.id);
-    });
-  });
-
-  // Early start/finish (forward pass)
-  const es = {}, ef = {};
-  allChildren.forEach(t => {
-    const s = parseDate(t.start), e = parseDate(t.end);
-    es[t.id] = s ? diffDays(PROJECT_START, s) : 0;
-    ef[t.id] = e ? diffDays(PROJECT_START, e) : 0;
-  });
-
-  // Late start/finish (reverse pass)
-  const projectEnd = Math.max(...allChildren.map(t => ef[t.id]));
-  const ls = {}, lf = {};
-  allChildren.forEach(t => { lf[t.id] = projectEnd; ls[t.id] = projectEnd; });
-
-  // Process in reverse topological order
-  const reversed = [...allChildren].sort((a, b) => ef[b.id] - ef[a.id]);
-  reversed.forEach(t => {
-    const deps = dependents[t.id];
-    if (deps.length > 0) {
-      lf[t.id] = Math.min(...deps.map(id => ls[id]));
-    } else {
-      lf[t.id] = projectEnd;
-    }
-    const duration = ef[t.id] - es[t.id];
-    ls[t.id] = lf[t.id] - duration;
-  });
-
-  // Float = LS - ES; critical if float === 0
-  const criticalIds = new Set();
-  allChildren.forEach(t => {
-    const float = ls[t.id] - es[t.id];
-    if (float === 0) criticalIds.add(t.id);
-  });
-
-  return criticalIds;
-}
-
-
-/* ═══════════════════════════════════════ */
-/* MODULE 4: DATA PERSISTENCE              */
-/* ═══════════════════════════════════════ */
-
-function lsSave(state) {
-  try {
-    localStorage.setItem('ptb-data', JSON.stringify({
-      tasks: state.tasks, members: state.members,
-      teamColors: state.teamColors, phaseColors: state.phaseColors,
-      version: state.version
-    }));
-  } catch (e) { /* quota exceeded - ignore */ }
-}
-
-function lsLoad() {
-  try {
-    const raw = localStorage.getItem('ptb-data');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-
-async function apiCall(method, path, body, token) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' }
-  };
-  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(API_BASE + path, opts);
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.error || 'API error');
-    err.status = res.status;
-    err.data = data;
-    throw err;
+    if(maxDep)trace(maxDep);
   }
+  trace(latest);
+  return ids;
+}
+
+/* ── API Layer (multi-project) ── */
+const LS_KEY='ptb_project';
+function lsLoad(projectId){try{const v=localStorage.getItem(projectId?`ptb_p${projectId}`:LS_KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function lsSave(data,projectId){try{localStorage.setItem(projectId?`ptb_p${projectId}`:LS_KEY,JSON.stringify(data))}catch(e){}}
+
+let AUTH_TOKEN=localStorage.getItem('ptb_token')||null;
+let CURRENT_VERSION=null;
+let CURRENT_PROJECT_ID=null;
+
+async function apiCall(method,path,body){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(AUTH_TOKEN)opts.headers['Authorization']='Bearer '+AUTH_TOKEN;
+  if(body)opts.body=JSON.stringify(body);
+  const res=await fetch(path,opts);
+  if(res.status===401){AUTH_TOKEN=null;localStorage.removeItem('ptb_token');window.__showLogin?.();throw new Error('Unauthorized')}
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||'API error');
   return data;
 }
 
-async function apiLoad(token) {
-  return apiCall('GET', '/api/data', null, token);
+async function apiLoadProjects(){
+  return apiCall('GET','/api/projects');
 }
 
-async function apiSave(data, token) {
-  return apiCall('POST', '/api/data', data, token);
+async function apiLoad(projectId){
+  const pid=projectId||CURRENT_PROJECT_ID;
+  if(!pid)return lsLoad();
+  try{
+    const res=await apiCall('GET',`/api/project/${pid}`);
+    CURRENT_VERSION=res.version;
+    lsSave(res.data,pid);
+    return res.data;
+  }catch(e){console.warn('API load failed, using localStorage',e);return lsLoad(pid)}
 }
 
-function useAutoSave(data, token, version) {
-  const timerRef = React.useRef(null);
-  const dataRef = React.useRef(data);
-  dataRef.current = data;
-
-  React.useEffect(() => {
-    if (!token || !data.tasks || data.tasks.length === 0) return;
-    lsSave(data);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(async () => {
-      try {
-        await apiSave({ ...data, version }, token);
-      } catch (e) {
-        if (e.status === 409) return { conflict: true, serverVersion: e.data?.serverVersion };
-        if (e.status === 401) return { authError: true };
-      }
-    }, DEBOUNCE_MS);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [data, token, version]);
-
-  React.useEffect(() => {
-    const handler = () => lsSave(dataRef.current);
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, []);
-}
-
-function useVersionPoll(token, currentVersion, onConflict) {
-  React.useEffect(() => {
-    if (!token) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await apiCall('GET', '/api/version', null, token);
-        if (res.version > currentVersion) onConflict(res);
-      } catch (e) { /* ignore poll errors */ }
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [token, currentVersion]);
-}
-
-/* ═══════════════════════════════════════ */
-/* MODULE 5: IMPORT / EXPORT               */
-/* ═══════════════════════════════════════ */
-
-function exportJSON(data) {
-  const blob = new Blob([JSON.stringify({ tasks: data.tasks, members: data.members, teamColors: data.teamColors, phaseColors: data.phaseColors }, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const d = new Date();
-  a.href = url;
-  a.download = `poker_build_plan_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importJSON(file, callback) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.tasks || !data.members || !data.teamColors || !data.phaseColors) {
-        callback(null, 'File JSON khong hop le: thieu truong bat buoc');
-        return;
-      }
-      callback(data, null);
-    } catch (err) {
-      callback(null, 'Khong the doc file JSON: ' + err.message);
+let _saveTimer=null;
+async function apiSave(data,projectId){
+  const pid=projectId||CURRENT_PROJECT_ID;
+  lsSave(data,pid);
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(async()=>{
+    try{
+      const res=await apiCall('PUT',`/api/project/${pid}`,{data,version:CURRENT_VERSION});
+      CURRENT_VERSION=res.version;
+    }catch(e){
+      if(e.message&&e.message.includes('conflict')){
+        if(confirm('Du lieu da duoc cap nhat boi nguoi khac. Tai lai du lieu moi nhat?')){
+          const fresh=await apiLoad(pid);
+          window.__reloadData?.(fresh);
+        }
+      }else{console.warn('API save failed',e)}
     }
-  };
-  reader.readAsText(file);
+  },1000);
 }
 
-function exportExcel(data, teamColors) {
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('Build Plan');
-  const headers = ['Task Name', 'Phase', 'Team', 'Assignee', 'Priority', 'Status', 'Start', 'End', 'Duration', 'Progress', 'Notes'];
-  const headerRow = ws.addRow(headers);
-  headerRow.eachCell(cell => {
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    cell.border = { bottom: { style: 'thin' } };
-  });
-
-  const flat = [];
-  (data.tasks || []).forEach(epic => {
-    (epic.children || []).forEach(t => flat.push({ ...t, phase: epic.name }));
-  });
-
-  flat.forEach(t => {
-    const s = parseDate(t.start), e = parseDate(t.end);
-    const dur = s && e ? getWorkingDaysBetween(s, e) : 0;
-    const row = ws.addRow([t.name, t.phase, t.team, t.assignee, t.priority, t.status, t.start, t.end, dur, (t.pct || 0) + '%', t.notes || '']);
-    // Team color
-    const tc = teamColors[t.team];
-    if (tc) row.getCell(3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + tc.replace('#', '') } };
-    row.getCell(3).font = { color: { argb: 'FFFFFFFF' } };
-    // Status color
-    const sc = { 'Done': 'FF27AE60', 'In Progress': 'FF3498DB', 'Blocked': 'FFE74C3C', 'To Do': 'FF555555' };
-    if (sc[t.status]) { row.getCell(6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sc[t.status] } }; row.getCell(6).font = { color: { argb: 'FFFFFFFF' } }; }
-    // Priority color
-    const pc = { 'High': 'FFE74C3C', 'Medium': 'FFF1C40F', 'Low': 'FF2ECC71' };
-    if (pc[t.priority]) row.getCell(5).font = { color: { argb: pc[t.priority] } };
-  });
-
-  ws.columns.forEach(col => { col.width = 18; });
-  ws.getColumn(1).width = 30;
-  ws.getColumn(11).width = 30;
-
-  wb.xlsx.writeBuffer().then(buf => {
-    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'Poker_Build_Plan.xlsx'; a.click();
-    URL.revokeObjectURL(url);
-  });
+async function apiLoadSettings(){
+  return apiCall('GET','/api/settings');
 }
 
-function exportJiraCSV(data) {
-  const statusMap = { 'To Do': 'To Do', 'In Progress': 'In Progress', 'Done': 'Done', 'Blocked': 'Blocked' };
-  const lines = ['Summary,Issue Type,Epic Name,Epic Link,Status,Priority,Assignee,Start Date,Due Date,Original Estimate'];
-  (data.tasks || []).forEach(epic => {
-    lines.push(`"${epic.name}",Epic,"${epic.name}","","To Do","Medium","","","",""`);
-    (epic.children || []).forEach(t => {
-      const s = parseDate(t.start), e = parseDate(t.end);
-      const dur = s && e ? getWorkingDaysBetween(s, e) : 0;
-      const startISO = s ? `${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,'0')}-${String(s.getDate()).padStart(2,'0')}` : '';
-      const endISO = e ? `${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,'0')}-${String(e.getDate()).padStart(2,'0')}` : '';
-      lines.push(`"${t.name}",Task,"","${epic.name}","${statusMap[t.status] || t.status}","${t.priority}","${t.assignee}","${startISO}","${endISO}","${dur * 8}h"`);
-    });
-  });
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'Jira_Import_PTB.csv'; a.click();
-  URL.revokeObjectURL(url);
+async function apiSaveSettings(data){
+  return apiCall('PUT','/api/settings',{data});
 }
 
-function importExcel(file, callback) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-      if (rows.length === 0) { callback(null, 'File Excel trong'); return; }
-
-      // Detect header mapping
-      const firstRow = rows[0];
-      const keys = Object.keys(firstRow);
-      const findKey = (keywords) => keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw))) || null;
-      const nameKey = findKey(['task', 'name', 'summary', 'ten']);
-      const phaseKey = findKey(['phase', 'epic', 'giai doan']);
-      const teamKey = findKey(['team', 'nhom']);
-      const assigneeKey = findKey(['assignee', 'nguoi', 'assign']);
-      const statusKey = findKey(['status', 'trang thai']);
-      const priorityKey = findKey(['priority', 'uu tien']);
-      const startKey = findKey(['start', 'bat dau']);
-      const endKey = findKey(['end', 'ket thuc', 'due']);
-
-      if (!nameKey) { callback(null, 'Khong tim thay cot Task Name'); return; }
-
-      const phases = {};
-      let epicId = 100;
-      rows.forEach(row => {
-        const phase = (phaseKey && row[phaseKey]) || 'Imported';
-        if (!phases[phase]) { phases[phase] = { id: epicId++, name: phase, isEpic: true, phase, expanded: true, children: [] }; }
-        const normalizeStatus = (s) => { const m = { 'done': 'Done', 'in progress': 'In Progress', 'blocked': 'Blocked', 'to do': 'To Do' }; return m[(s||'').toLowerCase()] || 'To Do'; };
-        const normalizePriority = (p) => { const m = { 'high': 'High', 'medium': 'Medium', 'low': 'Low' }; return m[(p||'').toLowerCase()] || 'Medium'; };
-        const normalizeDate = (d) => {
-          if (!d) return formatDate(new Date());
-          if (typeof d === 'number') { const dt = new Date((d - 25569) * 86400000); return formatDate(dt); }
-          const str = String(d);
-          if (str.includes('-')) { const p = str.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
-          if (str.includes('/')) return str;
-          return formatDate(new Date());
-        };
-        phases[phase].children.push({
-          id: epicId++, name: row[nameKey] || 'Unnamed',
-          team: (teamKey && row[teamKey]) || '', assignee: (assigneeKey && row[assigneeKey]) || '',
-          priority: normalizePriority(priorityKey && row[priorityKey]),
-          status: normalizeStatus(statusKey && row[statusKey]),
-          start: normalizeDate(startKey && row[startKey]),
-          end: normalizeDate(endKey && row[endKey]),
-          pct: 0, deps: [], notes: ''
-        });
-      });
-
-      const tasks = Object.values(phases);
-      const members = [];
-      const seen = new Set();
-      tasks.forEach(e => e.children.forEach(t => {
-        if (t.assignee && !seen.has(t.assignee)) { seen.add(t.assignee); members.push({ name: t.assignee, team: t.team || 'Dev' }); }
-      }));
-
-      callback({ tasks, members }, null);
-    } catch (err) {
-      callback(null, 'Loi doc file Excel: ' + err.message);
-    }
-  };
-  reader.readAsArrayBuffer(file);
+let _settingsTimer=null;
+async function apiSaveSettingsDebounced(data){
+  clearTimeout(_settingsTimer);
+  _settingsTimer=setTimeout(async()=>{
+    try{await apiSaveSettings(data)}catch(e){console.warn('Settings save failed',e)}
+  },1000);
 }
 
-/* ═══════════════════════════════════════ */
-/* MODULE 6: UI COMPONENTS (presentational)*/
-/* ═══════════════════════════════════════ */
-
-function LoginScreen({ onLogin }) {
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const res = await apiCall('POST', '/api/login', { username, password });
-      onLogin(res.token, res.username);
-    } catch (err) {
-      setError(err.status === 401 ? 'Sai ten dang nhap hoac mat khau' : 'Loi ket noi server');
-    }
+/* ── Login Screen ── */
+function LoginScreen({onLogin}){
+  const [username,setUsername]=useState('');
+  const [password,setPassword]=useState('');
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+  async function handleSubmit(e){
+    e.preventDefault();setLoading(true);setError('');
+    try{
+      const res=await apiCall('POST','/api/login',{username,password});
+      AUTH_TOKEN=res.token;localStorage.setItem('ptb_token',res.token);
+      onLogin(res.username);
+    }catch(err){setError('Sai username hoac password')}
     setLoading(false);
-  };
-
-  return (
-    <div className="login-screen">
-      <form className="login-box" onSubmit={handleSubmit}>
-        <h2>Poker Texas Build Plan</h2>
-        <div className="login-field">
-          <label>Ten dang nhap</label>
-          <input value={username} onChange={e => setUsername(e.target.value)} autoFocus />
+  }
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)'}}>
+      <form onSubmit={handleSubmit} style={{background:'var(--surface)',padding:32,borderRadius:12,width:360,border:'1px solid var(--border)'}}>
+        <h2 style={{marginBottom:8,textAlign:'center',fontSize:18}}>Poker Texas Build Plan</h2>
+        <p style={{textAlign:'center',color:'var(--text2)',fontSize:12,marginBottom:20}}>Dang nhap de tiep tuc</p>
+        <div style={{marginBottom:12}}>
+          <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:4}}>Username</label>
+          <input value={username} onChange={e=>setUsername(e.target.value)} autoFocus
+            style={{width:'100%',padding:'8px 12px',background:'var(--surface2)',color:'var(--text)',border:'1px solid var(--border)',borderRadius:6,fontSize:14,outline:'none'}}/>
         </div>
-        <div className="login-field">
-          <label>Mat khau</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:4}}>Password</label>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+            style={{width:'100%',padding:'8px 12px',background:'var(--surface2)',color:'var(--text)',border:'1px solid var(--border)',borderRadius:6,fontSize:14,outline:'none'}}/>
         </div>
-        <button className="btn btn-primary login-btn" type="submit" disabled={loading}>
-          {loading ? 'Dang nhap...' : 'Dang nhap'}
+        {error&&<div style={{color:'var(--red)',fontSize:12,marginBottom:12,textAlign:'center'}}>{error}</div>}
+        <button type="submit" disabled={loading}
+          style={{width:'100%',padding:'10px',background:'var(--primary)',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:600,cursor:'pointer'}}>
+          {loading?'Dang dang nhap...':'Dang nhap'}
         </button>
-        {error && <div className="login-error">{error}</div>}
       </form>
     </div>
   );
 }
 
-function TaskRow({ task, isEpic, indent, expanded, onToggle, onSelect, selected, teamColors, childCount, phaseColors }) {
-  const priorityColor = task.priority === 'High' ? 'var(--red)' : task.priority === 'Medium' ? 'var(--yellow)' : 'var(--green)';
-  const statusColor = task.status === 'Done' ? 'var(--green)' : task.status === 'In Progress' ? 'var(--primary)' : task.status === 'Blocked' ? 'var(--red)' : 'var(--text2)';
-
-  if (isEpic) {
-    const phaseColor = (phaseColors && phaseColors[task.name]) || 'var(--primary)';
-    return (
-      <div className="task-row epic" onClick={() => onSelect(task.id)}>
-        <button className="expand-btn" onClick={e => { e.stopPropagation(); onToggle(task.id); }}>
-          {expanded ? '▼' : '►'}
-        </button>
-        <span className="epic-name" style={{ color: phaseColor }}>{task.name}</span>
-        <span className="epic-count">{childCount || 0} tasks</span>
-      </div>
-    );
+/* ── DatePicker ── */
+function DatePicker({value,onChange,onWeekendSkip,label}){
+  const ref=useRef(null);
+  const [text,setText]=useState(value||'');
+  useEffect(()=>{setText(value||'')},[value]);
+  function handleText(e){
+    let v=e.target.value;
+    const digits=v.replace(/[^\d]/g,'');
+    if(digits.length<=2)v=digits;
+    else if(digits.length<=4)v=digits.slice(0,2)+'/'+digits.slice(2);
+    else v=digits.slice(0,2)+'/'+digits.slice(2,4)+'/'+digits.slice(4,8);
+    setText(v);
+    if(isValidDate(v)){
+      const dt=d(v);
+      const sk=skipWeekend(dt);
+      if(sk.skipped){
+        const fixed=fmt(sk.date);setText(fixed);onChange(fixed);
+        if(onWeekendSkip)onWeekendSkip(fixed);
+      } else { onChange(v); }
+    }
   }
-
-  const s = task.start ? task.start.slice(0, 5) : '';
-  const e = task.end ? task.end.slice(0, 5) : '';
-  const startDt = parseDate(task.start);
-  const endDt = parseDate(task.end);
-  const dur = startDt && endDt ? getWorkingDaysBetween(startDt, endDt) : 0;
-
-  return (
-    <div
-      className={`task-row ${selected ? 'selected' : ''}`}
-      onClick={() => onSelect(task.id)}
-    >
-      <span className="task-id">T{String(task.id).padStart(3, '0')}</span>
-      <span className="priority-dot" style={{ background: priorityColor }} />
-      {task.team && (
-        <span className="team-badge" style={{ background: teamColors[task.team] || '#555' }}>{task.team}</span>
-      )}
-      <span className="task-name">{task.name}</span>
-      <span className="task-assignee">{task.assignee || ''}</span>
-      <span className="task-date">{s}</span>
-      <span className="task-dur">{dur}d</span>
-      <span className="task-date">{e}</span>
-      <span className="task-status-dot" style={{ background: statusColor }} />
-      <span className="pct">{task.pct || 0}%</span>
+  function handleCalendar(e){
+    const p=e.target.value.split('-');
+    const ddmm=`${p[2]}/${p[1]}/${p[0]}`;
+    const dt=d(ddmm);
+    const sk=skipWeekend(dt);
+    if(sk.skipped){
+      const fixed=fmt(sk.date);setText(fixed);onChange(fixed);
+      if(onWeekendSkip)onWeekendSkip(fixed);
+    } else { setText(ddmm);onChange(ddmm); }
+  }
+  const isoVal=value&&isValidDate(value)?value.split('/').reverse().join('-'):'';
+  return(
+    <div style={{display:'flex',gap:4,alignItems:'center'}}>
+      <input type="text" value={text} onChange={handleText} placeholder="DD/MM/YYYY" maxLength={10}
+        style={{flex:1,fontVariantNumeric:'tabular-nums'}}/>
+      <input type="date" value={isoVal} onChange={handleCalendar} ref={ref}
+        style={{width:28,padding:0,border:'none',background:'transparent',cursor:'pointer',opacity:.6}}/>
     </div>
   );
 }
 
-function TaskPanel({ tasks, selectedId, onSelect, onToggle, onAddTask, teamColors, phaseColors, scrollRef }) {
-  const flat = flattenTasks(tasks);
-  const totalTasks = tasks.reduce((sum, e) => sum + (e.children ? e.children.length : 0), 0);
-  return (
-    <div className="task-panel">
-      <div className="task-panel-header">
-        <span>Tasks ({totalTasks})</span>
+/* ── DepsSelector ── */
+function DepsSelector({deps,onChange,allTasks,currentTaskId,onDepsAutoDate}){
+  const available=allTasks.filter(t=>t.type!=='epic'&&t.id!==currentTaskId);
+  const validIds=new Set(available.map(t=>t.id));
+  const [text,setText]=useState('');
+  const [invalidIds,setInvalidIds]=useState([]);
+
+  useEffect(()=>{
+    setText(deps.length>0?deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '):'');
+  },[deps.join(',')]);
+
+  function parseDepsText(val){
+    const parts=val.split(/[,;\s]+/).filter(Boolean);
+    const ids=[];const bad=[];
+    parts.forEach(p=>{
+      const n=parseInt(p.replace(/^[tT]/,''),10);
+      if(!isNaN(n)&&validIds.has(n))ids.push(n);
+      else if(p.trim())bad.push(p.trim());
+    });
+    setInvalidIds(bad);
+    return [...new Set(ids)];
+  }
+
+  function handleTextChange(e){
+    const val=e.target.value;setText(val);
+    const ids=parseDepsText(val);
+    onChange(ids);
+    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  }
+
+  function handleTextBlur(){
+    if(deps.length>0)setText(deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '));
+    else setText('');
+    setInvalidIds([]);
+  }
+
+  function handleSelectChange(e){
+    const vals=[...e.target.selectedOptions].map(o=>o.value);
+    if(vals.includes('root')){onChange([]);if(onDepsAutoDate)onDepsAutoDate([]);return}
+    const ids=vals.map(Number);
+    onChange(ids);
+    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  }
+
+  return(
+    <div className="field">
+      <label>Dependencies</label>
+      <input value={text} onChange={handleTextChange} onBlur={handleTextBlur}
+        placeholder="Nhap T010, T015... hoac 10, 15..."
+        style={{marginBottom:4,width:'100%',padding:'4px 8px',background:'var(--surface2)',color:'var(--text)',border:`1px solid ${invalidIds.length>0?'var(--red)':'var(--border)'}`,borderRadius:4,fontSize:12}}/>
+      {invalidIds.length>0&&<div style={{fontSize:10,color:'var(--red)',marginBottom:2}}>ID khong hop le: {invalidIds.join(', ')}</div>}
+      <select multiple value={deps.length===0?['root']:deps.map(String)} onChange={handleSelectChange} style={{height:100}}>
+        <option value="root">--- (Root - No dependency) ---</option>
+        {available.map(t=>(
+          <option key={t.id} value={t.id}>T{String(t.id).padStart(3,'0')} - {t.name}</option>
+        ))}
+      </select>
+      <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Nhap TaskID phia tren hoac Ctrl/Cmd + click de chon nhieu.</div>
+    </div>
+  );
+}
+
+/* ── AddTaskModal ── */
+function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,showToast}){
+  const [name,setName]=useState('');
+  const [team,setTeam]=useState(teams[0]||'Dev');
+  const [assignee,setAssignee]=useState((members[teams[0]]||[''])[0]);
+  const [priority,setPriority]=useState('Medium');
+  const phases=Object.keys(phaseColors);
+  const [phase,setPhase]=useState(phases[1]||phases[0]||'Production');
+  const _today=skipWeekend(new Date()).date;
+  const [start,setStart]=useState(fmt(_today));
+  const [end,setEnd]=useState(fmt(addWorkingDays(_today,1)));
+  const [duration,setDuration]=useState(1);
+  const [notes,setNotes]=useState('');
+  const [deps,setDeps]=useState([]);
+  const allFlat=getAllTasks(tasks).filter(t=>t.type!=='epic');
+
+  useEffect(()=>{
+    if(members[team])setAssignee(members[team][0]||'');
+  },[team]);
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h3>Add New Task</h3>
+        <div className="field"><label>Task Name *</label><input value={name} onChange={e=>setName(e.target.value)} autoFocus/></div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <div className="field"><label>Phase</label>
+            <select value={phase} onChange={e=>setPhase(e.target.value)}>
+              {phases.map(p=><option key={p}>{p}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Team</label>
+            <select value={team} onChange={e=>setTeam(e.target.value)}>
+              {teams.map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Assignee</label>
+            <select value={assignee} onChange={e=>setAssignee(e.target.value)}>
+              {(members[team]||[]).map(m=><option key={m}>{m}</option>)}
+            </select>
+          </div>
+          <div className="field"><label>Priority</label>
+            <select value={priority} onChange={e=>setPriority(e.target.value)}>
+              {PRIORITIES.map(p=><option key={p}>{p}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8}}>
+          <div className="field"><label>Start Date</label>
+            <DatePicker value={start} onChange={s=>{setStart(s);if(duration>0){const en=addWorkingDays(d(s),duration);setEnd(fmt(en))}}}
+              onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+          </div>
+          <div className="field"><label>Duration</label>
+            <input type="number" min="0" value={duration} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);setDuration(days);if(start){const en=addWorkingDays(d(start),days);setEnd(fmt(en))}}} style={{width:70}}/>
+          </div>
+          <div className="field"><label>End Date</label>
+            <DatePicker value={end} onChange={en=>{setEnd(en);if(start){setDuration(workingDays(d(start),d(en)))}}}
+              onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+          </div>
+        </div>
+        <DepsSelector deps={deps} onChange={setDeps} allTasks={allFlat} currentTaskId={null}
+          onDepsAutoDate={ids=>{
+            if(ids.length===0)return;
+            let maxEnd=null;
+            ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+            if(maxEnd){
+              const ns=skipWeekend(addDays(maxEnd,1)).date;
+              setStart(fmt(ns));setEnd(fmt(addWorkingDays(ns,duration)));
+            }
+          }}/>
+        <div className="field"><label>Notes</label><textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div>
+        <div className="actions">
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,deps})}>Create Task</button>
+        </div>
       </div>
-      <div className="task-col-header">
-        <span className="col-id">ID</span>
-        <span className="col-name">Task Name</span>
-        <span className="col-assignee">Assignee</span>
-        <span className="col-start">Start</span>
-        <span className="col-dur">Dur</span>
-        <span className="col-end">End</span>
-        <span className="col-pct">%</span>
+    </div>
+  );
+}
+
+/* ── PhaseModal ── */
+function PhaseModal({phaseColors,setPhaseColors,tasks,update,showToast,onClose}){
+  const [newPhaseName,setNewPhaseName]=useState('');
+  const [newPhaseColor,setNewPhaseColor]=useState('#3498db');
+  const [editingPhase,setEditingPhase]=useState(null);
+  const [editPhaseName,setEditPhaseName]=useState('');
+  const [confirm,setConfirm]=useState(null);
+
+  function addPhase(){
+    if(!newPhaseName.trim())return;
+    const name=newPhaseName.trim();
+    if(phaseColors[name]){showToast('Phase da ton tai!');return}
+    setPhaseColors(prev=>({...prev,[name]:newPhaseColor}));
+    update(t=>{t.push({id:genId(),name:name,type:'epic',phase:name,expanded:true,children:[]})});
+    setNewPhaseName('');showToast(`Da them phase "${name}"`);
+  }
+
+  function savePhaseEdit(oldName){
+    if(!editPhaseName.trim()||editPhaseName.trim()===oldName){setEditingPhase(null);return}
+    const newName=editPhaseName.trim();
+    if(phaseColors[newName]){showToast('Ten phase da ton tai!');return}
+    setPhaseColors(prev=>{const next={};Object.entries(prev).forEach(([k,v])=>{next[k===oldName?newName:k]=v});return next});
+    update(t=>{t.forEach(ep=>{if(ep.phase===oldName){ep.phase=newName;ep.name=newName}})});
+    setEditingPhase(null);showToast(`Doi ten phase ${oldName} -> ${newName}`);
+  }
+
+  function deletePhase(phaseName){
+    const epic=tasks.find(ep=>ep.phase===phaseName);
+    const taskCount=epic&&epic.children?epic.children.length:0;
+    setConfirm({
+      title:`Xoa Phase "${phaseName}"?`,
+      message:`Hanh dong nay se xoa Phase va TAT CA ${taskCount} task(s) ben trong. Khong the hoan tac!`,
+      action:()=>{
+        setPhaseColors(prev=>{const next={...prev};delete next[phaseName];return next});
+        update(t=>{
+          const idx=t.findIndex(ep=>ep.phase===phaseName);
+          if(idx>=0){const removedIds=(t[idx].children||[]).map(c=>c.id);t.splice(idx,1);getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>!removedIds.includes(x))})}
+        });
+        setConfirm(null);showToast(`Da xoa phase "${phaseName}" va tat ca tasks`);
+      }
+    });
+  }
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <h3>Quan ly Phases</h3>
+        <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+          <div className="field" style={{flex:1,margin:0}}>
+            <label>Ten Phase moi</label>
+            <input value={newPhaseName} onChange={e=>setNewPhaseName(e.target.value)} placeholder="VD: Post-launch" autoFocus onKeyDown={e=>e.key==='Enter'&&addPhase()}/>
+          </div>
+          <div className="field" style={{width:80,margin:0}}>
+            <label>Mau</label>
+            <input type="color" value={newPhaseColor} onChange={e=>setNewPhaseColor(e.target.value)} style={{height:30,padding:2}}/>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={addPhase} style={{height:30}}>+ Them</button>
+        </div>
+        <table className="admin-table">
+          <thead><tr><th>Phase</th><th>Tasks</th><th>Mau</th><th></th></tr></thead>
+          <tbody>
+          {Object.entries(phaseColors).map(([phase,color])=>{
+            const epic=tasks.find(ep=>ep.phase===phase);
+            const taskCount=epic&&epic.children?epic.children.length:0;
+            return(
+              <tr key={phase}>
+                <td style={{fontWeight:600}}>
+                  {editingPhase===phase?(
+                    <input value={editPhaseName} onChange={e=>setEditPhaseName(e.target.value)} autoFocus
+                      onKeyDown={e=>{if(e.key==='Enter')savePhaseEdit(phase);if(e.key==='Escape')setEditingPhase(null)}}
+                      onBlur={()=>savePhaseEdit(phase)}/>
+                  ):(
+                    <><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:color,marginRight:6}}></span>{phase}</>
+                  )}
+                </td>
+                <td>{taskCount} tasks</td>
+                <td><input type="color" value={color} onChange={e=>setPhaseColors(prev=>({...prev,[phase]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
+                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
+                    onClick={()=>{setEditingPhase(phase);setEditPhaseName(phase)}}>Sua</button>
+                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                    onClick={()=>deletePhase(phase)}>Xoa</button>
+                </td>
+              </tr>
+            );
+          })}
+          </tbody>
+        </table>
+        <div style={{marginTop:12,padding:8,background:'rgba(239,68,68,.1)',borderRadius:6,fontSize:11,color:'var(--red)'}}>
+          Xoa Phase se xoa TAT CA tasks trong Phase do. Hanh dong khong the hoan tac!
+        </div>
+        <div className="actions"><button className="btn btn-ghost" onClick={onClose}>Dong</button></div>
       </div>
-      <div className="task-list" ref={scrollRef} onScroll={e => {
-        if (scrollRef._syncTarget) scrollRef._syncTarget.scrollTop = e.target.scrollTop;
-      }}>
-        {flat.map(t => {
-          const isEpic = !!t.isEpic;
-          const childCount = isEpic ? (t.children || []).length : 0;
-          return (
-            <React.Fragment key={t.id}>
-              <TaskRow
-                task={t} isEpic={isEpic}
-                expanded={t.expanded} onToggle={onToggle}
-                onSelect={onSelect} selected={t.id === selectedId}
-                teamColors={teamColors} phaseColors={phaseColors}
-                childCount={childCount}
-              />
-              {isEpic && t.expanded && (
-                <button className="add-task-btn" onClick={() => onAddTask(t.id)}
-                  style={{ paddingLeft: 40 }}>
-                  + Them task
-                </button>
-              )}
-            </React.Fragment>
+      {confirm&&(
+        <div className="modal-overlay" style={{zIndex:250}} onClick={()=>setConfirm(null)}>
+          <div className="confirm-dialog" onClick={e=>e.stopPropagation()}>
+            <h4>{confirm.title}</h4>
+            <p>{confirm.message}</p>
+            <div className="actions">
+              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Huy</button>
+              <button className="btn btn-danger" onClick={confirm.action}>Xac nhan Xoa</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── AdminModal ── */
+function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,showToast,onClose,projects,setProjects,currentProjectId,switchProject}){
+  const [tab,setTab]=useState('members');
+  const [confirm,setConfirm]=useState(null);
+  const [newMemberName,setNewMemberName]=useState('');
+  const [newMemberTeam,setNewMemberTeam]=useState(Object.keys(members)[0]||'');
+  const [editingMember,setEditingMember]=useState(null);
+  const [editName,setEditName]=useState('');
+  const [newTeamName,setNewTeamName]=useState('');
+  const [newTeamColor,setNewTeamColor]=useState('#9b59b6');
+  const teams=Object.keys(members);
+
+  function addMember(){
+    if(!newMemberName.trim()||!newMemberTeam)return;
+    const name=newMemberName.trim();
+    if(Object.values(members).flat().includes(name)){showToast('Member already exists!');return}
+    setMembers(prev=>{const next={...prev};next[newMemberTeam]=[...(next[newMemberTeam]||[]),name];return next});
+    setNewMemberName('');showToast(`Added ${name} to ${newMemberTeam}`);
+  }
+
+  function saveMemberEdit(team,oldName){
+    if(!editName.trim())return;
+    const name=editName.trim();
+    setMembers(prev=>{const next={...prev};next[team]=next[team].map(m=>m===oldName?name:m);return next});
+    update(t=>{getAllTasks(t).forEach(task=>{if(task.assignee===oldName)task.assignee=name})});
+    setEditingMember(null);showToast(`Renamed ${oldName} -> ${name}`);
+  }
+
+  function changeMemberTeam(oldTeam,memberName,newTeam){
+    if(oldTeam===newTeam)return;
+    setMembers(prev=>{const next={...prev};next[oldTeam]=next[oldTeam].filter(m=>m!==memberName);next[newTeam]=[...(next[newTeam]||[]),memberName];return next});
+    update(t=>{getAllTasks(t).forEach(task=>{if(task.assignee===memberName)task.team=newTeam})});
+    showToast(`Moved ${memberName} -> ${newTeam}`);
+  }
+
+  function deleteMember(team,name){
+    const taskCount=getAllTasks(tasks).filter(t=>t.assignee===name).length;
+    if(taskCount>0){
+      setConfirm({title:`Xoa member "${name}"?`,message:`Member nay dang duoc assign cho ${taskCount} task(s). Cac task do se bo trong assignee.`,
+        action:()=>{
+          setMembers(prev=>{const next={...prev};next[team]=next[team].filter(m=>m!==name);return next});
+          update(t=>{getAllTasks(t).forEach(task=>{if(task.assignee===name)task.assignee=''})});
+          setConfirm(null);showToast(`Deleted member ${name}`);
+        }
+      });
+    } else {
+      setMembers(prev=>{const next={...prev};next[team]=next[team].filter(m=>m!==name);return next});
+      showToast(`Deleted member ${name}`);
+    }
+  }
+
+  function addTeam(){
+    if(!newTeamName.trim())return;
+    const name=newTeamName.trim();
+    if(members[name]){showToast('Team already exists!');return}
+    setMembers(prev=>({...prev,[name]:[]}));
+    setTeamColors(prev=>({...prev,[name]:newTeamColor}));
+    setNewTeamName('');showToast(`Added team ${name}`);
+  }
+
+  function deleteTeam(teamName){
+    const teamMembers=members[teamName]||[];
+    const taskCount=getAllTasks(tasks).filter(t=>t.team===teamName).length;
+    setConfirm({title:`Xoa team "${teamName}"?`,message:`Team co ${teamMembers.length} member(s) va ${taskCount} task(s).`,
+      action:()=>{
+        setMembers(prev=>{const next={...prev};delete next[teamName];return next});
+        setTeamColors(prev=>{const next={...prev};delete next[teamName];return next});
+        if(taskCount>0)update(t=>{getAllTasks(t).forEach(task=>{if(task.team===teamName){task.team='';task.assignee=''}})});
+        setConfirm(null);showToast(`Deleted team ${teamName}`);
+      }
+    });
+  }
+
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal wide" onClick={e=>e.stopPropagation()}>
+        <h3>Admin - Quan ly</h3>
+        <div className="admin-tabs">
+          <div className={`admin-tab ${tab==='members'?'active':''}`} onClick={()=>setTab('members')}>Members</div>
+          <div className={`admin-tab ${tab==='teams'?'active':''}`} onClick={()=>setTab('teams')}>Teams</div>
+          <div className={`admin-tab ${tab==='projects'?'active':''}`} onClick={()=>setTab('projects')}>Du an</div>
+        </div>
+
+        {tab==='members'&&(
+          <div>
+            <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+              <div className="field" style={{flex:1,margin:0}}>
+                <label>Ten Member</label>
+                <input value={newMemberName} onChange={e=>setNewMemberName(e.target.value)} placeholder="VD: NguyenVA" onKeyDown={e=>e.key==='Enter'&&addMember()}/>
+              </div>
+              <div className="field" style={{width:140,margin:0}}>
+                <label>Team</label>
+                <select value={newMemberTeam} onChange={e=>setNewMemberTeam(e.target.value)}>
+                  {teams.map(t=><option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={addMember} style={{height:30}}>+ Them</button>
+            </div>
+            <div style={{maxHeight:350,overflow:'auto'}}>
+              {teams.map(team=>(
+                <div key={team} style={{marginBottom:12}}>
+                  <div style={{fontSize:12,fontWeight:700,color:teamColors[team]||'var(--text)',marginBottom:4,display:'flex',alignItems:'center',gap:6}}>
+                    <span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:teamColors[team]||'#666'}}></span>
+                    {team} ({(members[team]||[]).length})
+                  </div>
+                  <table className="admin-table">
+                    <tbody>
+                    {(members[team]||[]).map(m=>(
+                      <tr key={m}>
+                        <td style={{width:'40%'}}>
+                          {editingMember===`${team}:${m}`?(
+                            <input value={editName} onChange={e=>setEditName(e.target.value)} autoFocus
+                              onKeyDown={e=>{if(e.key==='Enter')saveMemberEdit(team,m);if(e.key==='Escape')setEditingMember(null)}}
+                              onBlur={()=>saveMemberEdit(team,m)}/>
+                          ):m}
+                        </td>
+                        <td style={{width:'20%'}}>
+                          <select value={team} onChange={e=>changeMemberTeam(team,m,e.target.value)} style={{fontSize:11,padding:'2px 4px'}}>
+                            {teams.map(t=><option key={t}>{t}</option>)}
+                          </select>
+                        </td>
+                        <td style={{width:'15%',fontSize:10,color:'var(--text2)'}}>
+                          {getAllTasks(tasks).filter(t=>t.assignee===m).length} tasks
+                        </td>
+                        <td style={{width:'25%',textAlign:'right'}}>
+                          <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
+                            onClick={()=>{setEditingMember(`${team}:${m}`);setEditName(m)}}>Sua</button>
+                          <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                            onClick={()=>deleteMember(team,m)}>X</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {(!members[team]||members[team].length===0)&&(
+                      <tr><td colSpan={4} style={{color:'var(--text2)',fontStyle:'italic'}}>Chua co member</td></tr>
+                    )}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab==='teams'&&(
+          <div>
+            <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+              <div className="field" style={{flex:1,margin:0}}>
+                <label>Ten Team moi</label>
+                <input value={newTeamName} onChange={e=>setNewTeamName(e.target.value)} placeholder="VD: Marketing" onKeyDown={e=>e.key==='Enter'&&addTeam()}/>
+              </div>
+              <div className="field" style={{width:80,margin:0}}>
+                <label>Mau</label>
+                <input type="color" value={newTeamColor} onChange={e=>setNewTeamColor(e.target.value)} style={{height:30,padding:2}}/>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={addTeam} style={{height:30}}>+ Them Team</button>
+            </div>
+            <table className="admin-table">
+              <thead><tr><th>Team</th><th>Members</th><th>Tasks</th><th>Mau</th><th></th></tr></thead>
+              <tbody>
+              {teams.map(team=>{
+                const memberCount=(members[team]||[]).length;
+                const taskCount=getAllTasks(tasks).filter(t=>t.team===team).length;
+                return(
+                  <tr key={team}>
+                    <td style={{fontWeight:600}}><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:teamColors[team]||'#666',marginRight:6}}></span>{team}</td>
+                    <td>{memberCount}</td>
+                    <td>{taskCount}</td>
+                    <td><input type="color" value={teamColors[team]||'#666'} onChange={e=>setTeamColors(prev=>({...prev,[team]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
+                    <td style={{textAlign:'right'}}>
+                      <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                        onClick={()=>deleteTeam(team)}>Xoa</button>
+                    </td>
+                  </tr>
+                );
+              })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {tab==='projects'&&(
+          <ProjectsTab projects={projects} setProjects={setProjects} currentProjectId={currentProjectId} switchProject={switchProject} showToast={showToast} confirm={confirm} setConfirm={setConfirm}/>
+        )}
+
+        <div style={{marginTop:8,padding:8,background:'rgba(59,130,246,.08)',borderRadius:6,fontSize:11,color:'var(--text2)'}}>
+          Members va Team Colors duoc chia se giua tat ca du an. Tasks va Phase Colors la rieng cho tung du an.
+        </div>
+
+        <div className="actions"><button className="btn btn-ghost" onClick={onClose}>Dong</button></div>
+      </div>
+
+      {confirm&&(
+        <div className="modal-overlay" style={{zIndex:250}} onClick={()=>setConfirm(null)}>
+          <div className="confirm-dialog" onClick={e=>e.stopPropagation()}>
+            <h4>{confirm.title}</h4>
+            <p>{confirm.message}</p>
+            <div className="actions">
+              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Huy</button>
+              <button className="btn btn-danger" onClick={confirm.action}>Xac nhan Xoa</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── ProjectsTab (inside AdminModal) ── */
+function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showToast,confirm,setConfirm}){
+  const [newProjectName,setNewProjectName]=useState('');
+  const [editingProject,setEditingProject]=useState(null);
+  const [editProjectName,setEditProjectName]=useState('');
+
+  async function addProject(){
+    if(!newProjectName.trim())return;
+    try{
+      const res=await apiCall('POST','/api/projects',{name:newProjectName.trim()});
+      setProjects(prev=>[...prev,res]);
+      setNewProjectName('');
+      showToast(`Tao du an "${res.name}" thanh cong`);
+    }catch(e){showToast('Loi tao du an: '+e.message)}
+  }
+
+  async function saveProjectEdit(id){
+    if(!editProjectName.trim())return;
+    try{
+      const res=await apiCall('PUT',`/api/projects/${id}`,{name:editProjectName.trim()});
+      setProjects(prev=>prev.map(p=>p.id===id?{...p,name:res.name}:p));
+      setEditingProject(null);
+      showToast('Da cap nhat ten du an');
+    }catch(e){showToast('Loi sua du an: '+e.message)}
+  }
+
+  async function setDefaultProject(id){
+    try{
+      await apiCall('PUT',`/api/projects/${id}`,{is_default:true});
+      setProjects(prev=>prev.map(p=>({...p,is_default:p.id===id})));
+      showToast('Da dat du an mac dinh');
+    }catch(e){showToast('Loi: '+e.message)}
+  }
+
+  function deleteProject(id,name){
+    if(id===currentProjectId&&projects.length<=1){showToast('Khong the xoa du an duy nhat!');return}
+    setConfirm({
+      title:`Xoa du an "${name}"?`,
+      message:'Tat ca tasks trong du an nay se bi xoa vinh vien. Hanh dong khong the hoan tac!',
+      action:async()=>{
+        try{
+          await apiCall('DELETE',`/api/projects/${id}`);
+          const updated=projects.filter(p=>p.id!==id);
+          setProjects(updated);
+          if(id===currentProjectId&&updated.length>0){
+            const next=updated.find(p=>p.is_default)||updated[0];
+            switchProject(next.id);
+          }
+          setConfirm(null);
+          showToast(`Da xoa du an "${name}"`);
+        }catch(e){showToast('Loi xoa du an: '+e.message);setConfirm(null)}
+      }
+    });
+  }
+
+  return(
+    <div>
+      <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
+        <div className="field" style={{flex:1,margin:0}}>
+          <label>Ten du an moi</label>
+          <input value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} placeholder="VD: Side Project" onKeyDown={e=>e.key==='Enter'&&addProject()}/>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={addProject} style={{height:30}}>+ Tao</button>
+      </div>
+      <table className="admin-table">
+        <thead><tr><th>Du an</th><th style={{width:70,textAlign:'center'}}>Mac dinh</th><th style={{width:120,textAlign:'right'}}></th></tr></thead>
+        <tbody>
+        {projects.map(p=>(
+          <tr key={p.id} style={{background:p.id===currentProjectId?'rgba(59,130,246,.1)':''}}>
+            <td style={{fontWeight:600}}>
+              {editingProject===p.id?(
+                <input value={editProjectName} onChange={e=>setEditProjectName(e.target.value)} autoFocus
+                  onKeyDown={e=>{if(e.key==='Enter')saveProjectEdit(p.id);if(e.key==='Escape')setEditingProject(null)}}
+                  onBlur={()=>saveProjectEdit(p.id)}/>
+              ):p.name}
+              {p.id===currentProjectId&&<span style={{fontSize:9,color:'var(--primary)',marginLeft:6}}>(dang xem)</span>}
+            </td>
+            <td style={{textAlign:'center'}}>
+              <input type="radio" name="defaultProject" checked={p.is_default} onChange={()=>setDefaultProject(p.id)} style={{cursor:'pointer'}}/>
+            </td>
+            <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
+              <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
+                onClick={()=>{setEditingProject(p.id);setEditProjectName(p.name)}}>Sua</button>
+              <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
+                onClick={()=>deleteProject(p.id,p.name)}>Xoa</button>
+            </td>
+          </tr>
+        ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── Import/Export helpers ── */
+function detectHeaders(headers){
+  const find=keywords=>{for(const h of headers){const l=String(h).toLowerCase().trim();if(keywords.some(k=>l===k||l.includes(k)))return h}return null};
+  return{id:find(['id']),phase:find(['phase','epic']),task:find(['task','summary','task name','name']),team:find(['team','label']),assignee:find(['assignee','assigned']),priority:find(['priority','pri']),status:find(['status','state']),start:find(['start date','start','begin']),end:find(['end date','end','due date','due']),pct:find(['% complete','complete','progress','pct']),deps:find(['dependencies','deps','depends']),notes:find(['notes','description','comment'])};
+}
+function normalizeDate(val){
+  if(!val)return'';const str=String(val).trim();
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(str))return str;
+  if(typeof val==='number'||/^\d{5}$/.test(str)){const num=typeof val==='number'?val:parseInt(str);const dt=new Date((num-25569)*86400000);return fmt(dt)}
+  const iso=str.match(/^(\d{4})-(\d{2})-(\d{2})/);if(iso)return`${iso[3]}/${iso[2]}/${iso[1]}`;
+  const dt2=new Date(str);if(!isNaN(dt2.getTime()))return fmt(dt2);
+  return'';
+}
+function normalizePct(val){if(val===null||val===undefined||val==='')return 0;const num=typeof val==='number'?val:parseFloat(String(val).replace('%',''));if(isNaN(num))return 0;if(num>0&&num<=1)return Math.round(num*100);return Math.max(0,Math.min(100,Math.round(num)))}
+function normalizePriority(val){const s=String(val).toLowerCase().trim();if(s.includes('high')||s==='h')return'High';if(s.includes('low')||s==='l')return'Low';return'Medium'}
+function normalizeStatus(val){const s=String(val).toLowerCase().trim();if(s.includes('progress')||s.includes('doing'))return'In Progress';if(s.includes('done')||s.includes('complete'))return'Done';if(s.includes('block'))return'Blocked';return'To Do'}
+
+/* ── App Component ── */
+function App(){
+  const [loggedIn,setLoggedIn]=useState(!!AUTH_TOKEN);
+  const [currentUser,setCurrentUser]=useState(localStorage.getItem('ptb_username')||'');
+
+  const [tasks,setTasks]=useState(()=>{
+    const saved=lsLoad();
+    if(saved&&saved.tasks){const t=saved.tasks;initNextId(t);autoSchedule(t);return t}
+    const t=JSON.parse(JSON.stringify(INITIAL_TASKS));initNextId(t);autoSchedule(t);return t;
+  });
+  const [members,setMembers]=useState(()=>{const s=lsLoad();return s&&s.members?s.members:JSON.parse(JSON.stringify(INIT_MEMBERS))});
+  const [teamColors,setTeamColors]=useState(()=>{const s=lsLoad();return s&&s.teamColors?s.teamColors:{...INIT_TEAM_COLORS}});
+  const [phaseColors,setPhaseColors]=useState(()=>{const s=lsLoad();return s&&s.phaseColors?s.phaseColors:{...INIT_PHASE_COLORS}});
+
+  // Multi-project state
+  const [projects,setProjects]=useState([]);
+  const [currentProjectId,setCurrentProjectId]=useState(null);
+  const [currentProjectName,setCurrentProjectName]=useState('');
+  const [projectsLoaded,setProjectsLoaded]=useState(false);
+
+  // Switch project
+  const skipFirstSave=useRef(true);
+  async function switchProject(projectId){
+    if(projectId===currentProjectId)return;
+    CURRENT_PROJECT_ID=projectId;
+    CURRENT_VERSION=null;
+    setCurrentProjectId(projectId);
+    const proj=projects.find(p=>p.id===projectId);
+    setCurrentProjectName(proj?proj.name:'');
+    skipFirstSave.current=true;
+    try{
+      const data=await apiLoad(projectId);
+      if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+      else{setTasks([])}
+      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+      else setPhaseColors({...INIT_PHASE_COLORS});
+    }catch(e){console.warn('Switch project failed',e);setTasks([]);setPhaseColors({...INIT_PHASE_COLORS})}
+  }
+
+  // On login: fetch projects list, shared settings, and default project data
+  useEffect(()=>{
+    if(!AUTH_TOKEN)return;
+    (async()=>{
+      try{
+        // Load projects list
+        const projList=await apiLoadProjects();
+        setProjects(projList);
+        // Load shared settings (members, teamColors)
+        const settings=await apiLoadSettings();
+        if(settings&&settings.members)setMembers(settings.members);
+        if(settings&&settings.teamColors)setTeamColors(settings.teamColors);
+        // Find default project
+        const defaultProj=projList.find(p=>p.is_default)||projList[0];
+        if(defaultProj){
+          CURRENT_PROJECT_ID=defaultProj.id;
+          setCurrentProjectId(defaultProj.id);
+          setCurrentProjectName(defaultProj.name);
+          const data=await apiLoad(defaultProj.id);
+          if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+          if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+        }
+        setProjectsLoaded(true);
+      }catch(e){console.warn('Init load failed',e);setProjectsLoaded(true)}
+    })();
+  },[loggedIn]);
+
+  useEffect(()=>{
+    window.__reloadData=(data)=>{
+      if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
+      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+    };
+    window.__showLogin=()=>{setLoggedIn(false);AUTH_TOKEN=null};
+  },[]);
+
+  // Auto-save project data (tasks, phaseColors) - per project
+  useEffect(()=>{
+    if(!currentProjectId)return;
+    const payload={tasks,phaseColors,savedAt:new Date().toISOString()};
+    lsSave(payload,currentProjectId);
+    if(AUTH_TOKEN&&!skipFirstSave.current)apiSave(payload,currentProjectId);
+    skipFirstSave.current=false;
+  },[tasks,phaseColors]);
+
+  // Auto-save shared settings (members, teamColors)
+  const skipFirstSettings=useRef(true);
+  useEffect(()=>{
+    if(!AUTH_TOKEN)return;
+    if(skipFirstSettings.current){skipFirstSettings.current=false;return}
+    apiSaveSettingsDebounced({members,teamColors});
+  },[members,teamColors]);
+
+  // Poll for version changes every 30s
+  useEffect(()=>{
+    if(!AUTH_TOKEN||!currentProjectId)return;
+    const iv=setInterval(async()=>{
+      try{
+        const res=await apiCall('GET',`/api/project/${currentProjectId}/version`);
+        if(res.version&&CURRENT_VERSION&&res.version>CURRENT_VERSION){
+          showToast('Du lieu moi tu '+res.updated_by+'. Dang tai lai...');
+          const fresh=await apiLoad(currentProjectId);
+          window.__reloadData?.(fresh);
+        }
+      }catch(e){}
+    },30000);
+    return()=>clearInterval(iv);
+  },[loggedIn,currentProjectId]);
+
+  if(!loggedIn)return <LoginScreen onLogin={(user)=>{setCurrentUser(user);localStorage.setItem('ptb_username',user);setLoggedIn(true)}}/>;
+
+  const [selectedId,setSelectedId]=useState(null);
+  const [filterTeam,setFilterTeam]=useState('All');
+  const [filterStatus,setFilterStatus]=useState('All');
+  const [filterPhase,setFilterPhase]=useState('All');
+  const [search,setSearch]=useState('');
+  const [showDetail,setShowDetail]=useState(false);
+  const [showAdd,setShowAdd]=useState(false);
+  const [showPhases,setShowPhases]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
+  const [showCritical,setShowCritical]=useState(false);
+  const [toast,setToast]=useState('');
+  const [view,setView]=useState('gantt');
+  const [updating,setUpdating]=useState(false);
+  const [editBuffer,setEditBuffer]=useState(null);
+  const ganttRef=useRef(null);
+  const taskListRef=useRef(null);
+
+  const TEAMS=useMemo(()=>Object.keys(members),[members]);
+  const ALL_MEMBERS=useMemo(()=>Object.values(members).flat(),[members]);
+  const PHASE_COLORS=phaseColors;
+  const TEAM_COLORS=teamColors;
+
+  const showToast=(msg)=>{setToast(msg);setTimeout(()=>setToast(''),2500)};
+
+  const update=(fn)=>{
+    setTasks(prev=>{
+      const next=JSON.parse(JSON.stringify(prev));
+      fn(next);
+      autoSchedule(next);
+      return next;
+    });
+  };
+
+  const flat=useMemo(()=>{
+    let rows=flattenTasks(tasks);
+    return rows.filter(t=>{
+      if(t.type==='epic')return true;
+      const matchTeam=filterTeam==='All'||t.team===filterTeam;
+      const matchStatus=filterStatus==='All'||t.status===filterStatus;
+      const q=search.toLowerCase();const matchSearch=!search||t.name.toLowerCase().includes(q)||(t.assignee&&t.assignee.toLowerCase().includes(q));
+      let phaseMatch=true;
+      if(filterPhase!=='All'){
+        const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
+        phaseMatch=parent&&parent.phase===filterPhase;
+      }
+      return matchTeam&&matchStatus&&phaseMatch&&matchSearch;
+    });
+  },[tasks,filterTeam,filterStatus,filterPhase,search]);
+
+  const allFlat=useMemo(()=>getAllTasks(tasks),[tasks]);
+  const criticalIds=useMemo(()=>showCritical?computeCriticalPath(tasks):new Set(),[tasks,showCritical]);
+
+  const stats=useMemo(()=>{
+    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+    return {total:all.length,todo:all.filter(t=>t.status==='To Do').length,progress:all.filter(t=>t.status==='In Progress').length,done:all.filter(t=>t.status==='Done').length,blocked:all.filter(t=>t.status==='Blocked').length};
+  },[tasks]);
+
+  const weeks=useMemo(()=>{
+    const w=[];
+    for(let i=0;i<NUM_WEEKS;i++){
+      const s=addDays(PROJECT_START,i*7);const e=addDays(s,6);
+      w.push({num:i+1,start:s,end:e,label:`W${i+1}`,dateLabel:`${fmt(s).slice(0,5)} - ${fmt(e).slice(0,5)}`});
+    }
+    return w;
+  },[]);
+
+  const WEEK_WIDTH=180;
+  const today=new Date();
+
+  function getBarStyle(task){
+    if(task.type==='epic'){
+      const ch=task.children||[];if(ch.length===0)return null;
+      let minS=null,maxE=null;
+      ch.forEach(c=>{const s=d(c.start),e=d(c.end);if(!minS||s<minS)minS=s;if(!maxE||e>maxE)maxE=e});
+      if(!minS)return null;
+      const startOff=diffDays(PROJECT_START,minS);const dur=diffDays(minS,maxE)+1;
+      return{left:startOff/7*WEEK_WIDTH,width:dur/7*WEEK_WIDTH,bg:PHASE_COLORS[task.phase]||'#666',opacity:0.4,height:6,top:13};
+    }
+    const s=d(task.start),e=d(task.end);
+    const startOff=diffDays(PROJECT_START,s);const dur=diffDays(s,e)+1;
+    return{left:startOff/7*WEEK_WIDTH,width:Math.max(dur/7*WEEK_WIDTH,8),bg:TEAM_COLORS[task.team]||'#666'};
+  }
+
+  function toggleExpand(epicId){update(t=>{const ep=t.find(x=>x.id===epicId);if(ep)ep.expanded=!ep.expanded})}
+  function updateTask(id,field,value){update(t=>{const task=findTask(t,id);if(task)task[field]=value})}
+  function deleteTask(id){
+    update(t=>{
+      t.forEach(ep=>{if(ep.children)ep.children=ep.children.filter(c=>c.id!==id)});
+      getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>x!==id)});
+    });
+    setSelectedId(null);setShowDetail(false);showToast('Task deleted');
+  }
+
+  function handleUpdate(){
+    if(!editBuffer)return;
+    setUpdating(true);
+    const eb=editBuffer;
+    update(t=>{
+      const task=findTask(t,eb.id);if(!task)return;
+      Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Done'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||''});
+      const currentEpic=t.find(ep=>ep.children&&ep.children.some(c=>c.id===eb.id));
+      if(currentEpic&&currentEpic.phase!==eb.phase){
+        const newEpic=t.find(ep=>ep.phase===eb.phase);
+        if(newEpic){currentEpic.children=currentEpic.children.filter(c=>c.id!==eb.id);newEpic.children.push(task)}
+      }
+    });
+    setTimeout(()=>{setUpdating(false);showToast('Updated!')},800);
+  }
+
+  function addTask(data){
+    update(t=>{
+      const epic=t.find(ep=>ep.phase===data.phase);
+      if(epic){epic.children.push({id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||''})}
+    });
+    setShowAdd(false);showToast('Task added');
+  }
+
+  function syncScroll(e){
+    if(taskListRef.current&&e.target===ganttRef.current)taskListRef.current.scrollTop=e.target.scrollTop;
+    if(ganttRef.current&&e.target===taskListRef.current)ganttRef.current.scrollTop=e.target.scrollTop;
+  }
+
+  // Export Excel
+  function exportExcel(){
+    const hexToArgb=hex=>'FF'+hex.replace('#','');
+    const STATUS_COLORS={'To Do':{bg:'FFE8E8E8',fg:'FF666666'},'In Progress':{bg:'FFDBEAFE',fg:'FF2563EB'},'Done':{bg:'FFDCFCE7',fg:'FF16A34A'},'Blocked':{bg:'FFFEE2E2',fg:'FFDC2626'}};
+    const PRIORITY_COLORS={'High':{bg:'FFFEE2E2',fg:'FFDC2626'},'Medium':{bg:'FFFEF3C7',fg:'FFD97706'},'Low':{bg:'FFDCFCE7',fg:'FF16A34A'}};
+    const thinBorder={style:'thin',color:{argb:'FFE2E8F0'}};
+    const wb=new ExcelJS.Workbook();wb.creator='Poker Texas Build Plan';
+    const ws=wb.addWorksheet('Task Assignment',{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=[{header:'ID',key:'id',width:10},{header:'Phase',key:'phase',width:18},{header:'Task',key:'task',width:40},{header:'Team',key:'team',width:15},{header:'Assignee',key:'assignee',width:15},{header:'Priority',key:'priority',width:12},{header:'Status',key:'status',width:14},{header:'Start Date',key:'start',width:14},{header:'End Date',key:'end',width:14},{header:'% Complete',key:'pct',width:12},{header:'Dependencies',key:'deps',width:18},{header:'Notes',key:'notes',width:35}];
+    const hdr=ws.getRow(1);hdr.font={bold:true,color:{argb:'FFFFFFFF'},size:11};hdr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e293b'}};hdr.alignment={vertical:'middle',horizontal:'center'};hdr.height=28;
+    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+    all.forEach((t,idx)=>{
+      const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
+      const row=ws.addRow({id:`T${String(t.id).padStart(3,'0')}`,phase:parent?parent.phase:'',task:t.name,team:t.team,assignee:t.assignee,priority:t.priority,status:t.status,start:t.start,end:t.end,pct:t.pct/100,deps:(t.deps||[]).map(x=>`T${String(x).padStart(3,'0')}`).join(', '),notes:t.notes||''});
+      const rowBg=idx%2===0?'FFFFFFFF':'FFF8FAFC';
+      row.eachCell((cell,col)=>{cell.border={bottom:thinBorder,left:thinBorder,right:thinBorder};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};cell.alignment={vertical:'middle',wrapText:col===12}});
+      if(parent&&PHASE_COLORS[parent.phase]){const c=row.getCell('phase');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(PHASE_COLORS[parent.phase])}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      if(TEAM_COLORS[t.team]){const c=row.getCell('team');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(TEAM_COLORS[t.team])}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      const pc=PRIORITY_COLORS[t.priority];if(pc){const c=row.getCell('priority');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc.bg}};c.font={color:{argb:pc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      const sc=STATUS_COLORS[t.status];if(sc){const c=row.getCell('status');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:sc.bg}};c.font={color:{argb:sc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      const pctCell=row.getCell('pct');pctCell.numFmt='0%';pctCell.alignment={horizontal:'center',vertical:'middle'};
+    });
+    wb.xlsx.writeBuffer().then(buf=>{const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Poker_Build_Plan.xlsx';link.click();URL.revokeObjectURL(link.href);showToast('Exported to Excel!')});
+  }
+
+  function exportJira(){
+    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+    function csvF(v){if(v===null||v===undefined)return'""';const s=String(v);return'"'+s.replace(/"/g,'""')+'"'}
+    function toIsoDate(dateStr){if(!dateStr)return'';const dt=d(dateStr);return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`}
+    const headers=['Summary','Issue Type','Priority','Epic Name','Epic Link','Assignee','Labels','Description','Due date','Original Estimate'];
+    let csv=headers.join(',')+'\n';
+    tasks.filter(t=>t.type==='epic').forEach(ep=>{csv+=[csvF(ep.name),csvF('Epic'),csvF('Medium'),csvF(ep.name),csvF(''),csvF(''),csvF(''),csvF(ep.phase||''),csvF(''),csvF('')].join(',')+'\n'});
+    all.forEach(t=>{
+      const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
+      const epicName=parent?parent.name:'';const dueDate=toIsoDate(t.end);
+      const wd=t.start&&t.end?workingDays(d(t.start),d(t.end)):0;const estimate=wd>0?String(wd*8*3600):'';
+      let desc=(t.notes||'');if(t.start)desc+=(desc?'\n':'')+'Start: '+t.start;if(t.deps&&t.deps.length>0)desc+='\nDeps: '+t.deps.map(x=>'T'+String(x).padStart(3,'0')).join(', ');
+      csv+=[csvF(t.name),csvF('Task'),csvF(t.priority),csvF(''),csvF(epicName),csvF(t.assignee||''),csvF(t.team),csvF(desc),csvF(dueDate),csvF(estimate)].join(',')+'\n';
+    });
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Jira_Import_PTB.csv';link.click();URL.revokeObjectURL(link.href);showToast('Exported Jira CSV!');
+  }
+
+  function saveData(){
+    const project={tasks,members,teamColors,phaseColors,version:1,savedAt:new Date().toISOString()};
+    const json=JSON.stringify(project,null,2);const blob=new Blob([json],{type:'application/json'});
+    const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='poker_build_plan.json';link.click();showToast('Exported backup file!');
+  }
+
+  function normalizeTeam(val){const str=String(val).trim();const teams=Object.keys(members);const exact=teams.find(t=>t.toLowerCase()===str.toLowerCase());if(exact)return exact;const partial=teams.find(t=>str.toLowerCase().includes(t.toLowerCase()));return partial||str}
+
+  function importExcelFile(file){
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=new Uint8Array(ev.target.result);const workbook=XLSX.read(data,{type:'array'});const sheet=workbook.Sheets[workbook.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+        if(rows.length===0){showToast('Excel file is empty');return}
+        const hm=detectHeaders(Object.keys(rows[0]));if(!hm.task){showToast('Error: Could not find Task/Summary column');return}
+        const idMap={};const imported=[];
+        rows.forEach(row=>{
+          const taskName=row[hm.task];if(!taskName||!String(taskName).trim())return;
+          const newId=genId();const oldId=row[hm.id]||'';if(oldId)idMap[String(oldId).trim()]=newId;
+          imported.push({id:newId,name:String(taskName).trim(),team:normalizeTeam(row[hm.team]||''),assignee:String(row[hm.assignee]||'').trim(),priority:normalizePriority(row[hm.priority]||'Medium'),status:normalizeStatus(row[hm.status]||'To Do'),start:normalizeDate(row[hm.start]||''),end:normalizeDate(row[hm.end]||''),pct:normalizePct(row[hm.pct]),deps:[],notes:String(row[hm.notes]||'').trim(),_phase:String(row[hm.phase]||'Production').trim(),_depsRaw:String(row[hm.deps]||'').trim()});
+        });
+        imported.forEach(t=>{if(t._depsRaw){t.deps=t._depsRaw.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>idMap[s]||null).filter(Boolean)}delete t._depsRaw});
+        const groups={};imported.forEach(t=>{const p=t._phase;if(!groups[p])groups[p]=[];groups[p].push(t);delete t._phase});
+        const newTasks=Object.entries(groups).map(([phase,children])=>({id:genId(),name:phase,type:'epic',phase,expanded:true,children}));
+        if(!confirm(`Import ${imported.length} tasks from Excel?\nSe thay the toan bo tasks hien tai.`))return;
+        initNextId(newTasks);autoSchedule(newTasks);setTasks(newTasks);
+        const np={};Object.keys(groups).forEach(p=>{if(!phaseColors[p])np[p]=PALETTE[Object.keys(groups).indexOf(p)%PALETTE.length]});
+        if(Object.keys(np).length>0)setPhaseColors(prev=>({...prev,...np}));
+        showToast(`Imported ${imported.length} tasks from Excel!`);
+      }catch(err){console.error(err);showToast('Error reading Excel: '+err.message)}
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function importData(){
+    const input=document.createElement('input');input.type='file';input.accept='.json,.xlsx,.xls';
+    input.onchange=e=>{
+      const file=e.target.files[0];if(!file)return;
+      const ext=file.name.split('.').pop().toLowerCase();
+      if(ext==='json'){
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          try{
+            const data=JSON.parse(ev.target.result);
+            if(Array.isArray(data)){initNextId(data);autoSchedule(data);setTasks(data)}
+            else{if(data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}if(data.members)setMembers(data.members);if(data.teamColors)setTeamColors(data.teamColors);if(data.phaseColors)setPhaseColors(data.phaseColors)}
+            showToast('Loaded from JSON!');
+          }catch(err){showToast('Error: invalid JSON file')}
+        };
+        reader.readAsText(file);
+      }else if(ext==='xlsx'||ext==='xls'){importExcelFile(file)}
+      else{showToast('Unsupported file type. Use .json or .xlsx')}
+    };
+    input.click();
+  }
+
+  const selectedTask=selectedId?findTask(tasks,selectedId):null;
+
+  useEffect(()=>{
+    if(selectedId&&selectedTask&&selectedTask.type!=='epic'){
+      const ep=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===selectedId));
+      setEditBuffer({...selectedTask,phase:ep?ep.phase:''});
+    } else { setEditBuffer(null); }
+  },[selectedId]);
+
+  return(
+    <div className="app">
+      {/* Header */}
+      <div className="header">
+        <h1><span>Build Plan</span></h1>
+        {projects.length>0&&(
+          <select value={currentProjectId||''} onChange={e=>switchProject(parseInt(e.target.value))}
+            style={{background:'var(--surface2)',color:'var(--text)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px',fontSize:13,fontWeight:600,cursor:'pointer',maxWidth:220}}>
+            {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        )}
+        <div className="header-actions">
+          <div className="view-tabs">
+            <div className={`view-tab ${view==='gantt'?'active':''}`} onClick={()=>setView('gantt')}>Gantt</div>
+            <div className={`view-tab ${view==='board'?'active':''}`} onClick={()=>setView('board')}>Board</div>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setShowAdmin(true)}>Admin</button>
+          <button className="btn btn-ghost btn-sm" onClick={importData}>Import</button>
+          <button className="btn btn-ghost btn-sm" onClick={saveData}>Export</button>
+          <button className="btn btn-ghost btn-sm" onClick={exportExcel}>Excel</button>
+          <button className="btn btn-ghost btn-sm" onClick={exportJira}>Jira CSV</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setShowPhases(true)}>Phases</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>setShowAdd(true)}>+ Add Task</button>
+          {AUTH_TOKEN&&<button className="btn btn-ghost btn-sm" onClick={()=>{AUTH_TOKEN=null;localStorage.removeItem('ptb_token');localStorage.removeItem('ptb_username');setLoggedIn(false)}}>Logout</button>}
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="toolbar">
+        <div className="filter-group">
+          <label>Phase:</label>
+          <select value={filterPhase} onChange={e=>setFilterPhase(e.target.value)}>
+            <option>All</option>
+            {Object.keys(PHASE_COLORS).map(p=><option key={p}>{p}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>Team:</label>
+          <select value={filterTeam} onChange={e=>setFilterTeam(e.target.value)}>
+            <option>All</option>
+            {TEAMS.map(t=><option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>Status:</label>
+          <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}>
+            <option>All</option>
+            {STATUSES.map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <input className="search-box" type="text" placeholder="Search task, member..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <label style={{fontSize:11,display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'var(--text2)'}}>
+          <input type="checkbox" checked={showCritical} onChange={e=>setShowCritical(e.target.checked)}/>
+          Critical Path
+        </label>
+        <div className="stats">
+          <div className="stat"><span className="dot" style={{background:'var(--text2)'}}></span>{stats.total} total</div>
+          <div className="stat"><span className="dot" style={{background:'var(--primary)'}}></span>{stats.progress} progress</div>
+          <div className="stat"><span className="dot" style={{background:'var(--green)'}}></span>{stats.done} done</div>
+          <div className="stat"><span className="dot" style={{background:'var(--red)'}}></span>{stats.blocked} blocked</div>
+        </div>
+      </div>
+
+      {view==='gantt'?(
+      <div className="main">
+        {/* Task Panel */}
+        <div className="task-panel">
+          <div className="task-panel-header">
+            <h2>Tasks ({stats.total})</h2>
+          </div>
+          <div style={{display:'flex',alignItems:'center',padding:'0 8px',height:24,borderBottom:'1px solid var(--border)',background:'var(--surface)',fontSize:10,fontWeight:700,color:'var(--text2)',flexShrink:0}}>
+            <div style={{width:24}}></div>
+            <div style={{width:38,textAlign:'center'}}>ID</div>
+            <div style={{flex:1,paddingLeft:6}}>Task Name</div>
+            <div style={{width:60,textAlign:'center'}}>Assignee</div>
+            <div style={{width:44,textAlign:'center'}}>Start</div>
+            <div style={{width:28,textAlign:'center'}}>Dur</div>
+            <div style={{width:44,textAlign:'center'}}>End</div>
+            <div style={{width:20,textAlign:'center'}}></div>
+            <div style={{width:28,textAlign:'right'}}>%</div>
+          </div>
+          <div className="task-list" ref={taskListRef} onScroll={syncScroll}>
+            {flat.map(t=>{
+              const isEpic=t.type==='epic';
+              const isCritical=criticalIds.has(t.id);
+              return(
+                <div key={t.id} className={`task-row ${isEpic?'epic':''} ${selectedId===t.id?'selected':''} ${isCritical?'critical':''}`}
+                  onClick={()=>{setSelectedId(t.id);if(!isEpic)setShowDetail(true)}}>
+                  {isEpic?(
+                    <>
+                      <div className="expand-btn" onClick={e=>{e.stopPropagation();toggleExpand(t.id)}}>
+                        {t.expanded?'▼':'▶'}
+                      </div>
+                      <div className="task-name" style={{color:PHASE_COLORS[t.phase]}}>{t.name}</div>
+                      <span style={{fontSize:10,color:'var(--text2)'}}>{t.children?t.children.length:0} tasks</span>
+                    </>
+                  ):(
+                    <>
+                      <div className="indent" style={{width:24}}></div>
+                      <span style={{fontSize:9,color:'var(--text2)',width:38,textAlign:'center',flexShrink:0,fontVariantNumeric:'tabular-nums'}}>T{String(t.id).padStart(3,'0')}</span>
+                      <div className="priority-dot" style={{background:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)'}}></div>
+                      <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
+                      <div className="task-name">{t.name}</div>
+                      <span style={{fontSize:9,color:'var(--cyan)',width:60,textAlign:'center',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.assignee||''}</span>
+                      <span className="task-date">{t.start?t.start.slice(0,5):''}</span>
+                      <span style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?workingDays(d(t.start),d(t.end)):0}d</span>
+                      <span className="task-date">{t.end?t.end.slice(0,5):''}</span>
+                      <span className={`status-badge status-${t.status==='To Do'?'todo':t.status==='In Progress'?'progress':t.status==='Done'?'done':'blocked'}`}>
+                        {t.status==='To Do'?'○':t.status==='In Progress'?'◐':t.status==='Done'?'●':'✕'}
+                      </span>
+                      <span className="pct">{t.pct}%</span>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Gantt Panel */}
+        <div className="gantt-panel">
+          <div className="gantt-header">
+            {weeks.map(w=>(
+              <div key={w.num} className="gantt-week" style={{width:WEEK_WIDTH}}>
+                <div className="week-num">W{w.num}</div>
+                <div>{w.dateLabel}</div>
+              </div>
+            ))}
+          </div>
+          <div className="gantt-body" ref={ganttRef} onScroll={syncScroll}>
+            {flat.map(t=>{
+              const bar=getBarStyle(t);
+              const isCritical=criticalIds.has(t.id);
+              return(
+                <div key={t.id} className={`gantt-row ${isCritical?'critical':''}`}>
+                  {weeks.map(w=>{
+                    const isToday=today>=w.start&&today<=w.end;
+                    return <div key={w.num} className={`gantt-cell ${isToday?'today':''}`} style={{width:WEEK_WIDTH}}></div>
+                  })}
+                  {bar&&(
+                    <div className="gantt-bar"
+                      style={{left:bar.left,width:bar.width,background:bar.bg,opacity:bar.opacity||1,height:bar.height||22,top:bar.top||5,boxShadow:isCritical?'0 0 0 2px var(--red)':'none'}}
+                      onClick={()=>{setSelectedId(t.id);if(t.type!=='epic')setShowDetail(true)}}
+                      title={`${t.name}\n${t.start||''} -> ${t.end||''}`}>
+                      {t.type!=='epic'&&<div className="gantt-bar-progress" style={{width:`${t.pct||0}%`}}></div>}
+                      {t.type!=='epic'&&<span className="bar-label">{t.name}</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      ):(
+      /* Board View */
+      <div style={{flex:1,display:'flex',gap:12,padding:12,overflow:'auto'}}>
+        {STATUSES.map(status=>{
+          const statusTasks=allFlat.filter(t=>t.type!=='epic'&&t.status===status);
+          const filtered=statusTasks.filter(t=>{
+            const matchTeam=filterTeam==='All'||t.team===filterTeam;
+            const q=search.toLowerCase();const matchSearch=!search||t.name.toLowerCase().includes(q)||(t.assignee&&t.assignee.toLowerCase().includes(q));
+            return matchTeam&&matchSearch;
+          });
+          return(
+            <div key={status} style={{flex:1,minWidth:220,background:'var(--surface)',borderRadius:8,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+              <div style={{padding:'10px 12px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontWeight:700,fontSize:13}}>{status}</span>
+                <span style={{fontSize:11,color:'var(--text2)',background:'var(--surface2)',padding:'2px 8px',borderRadius:10}}>{filtered.length}</span>
+              </div>
+              <div style={{flex:1,overflow:'auto',padding:8,display:'flex',flexDirection:'column',gap:6}}>
+                {filtered.map(t=>(
+                  <div key={t.id} style={{background:'var(--surface2)',borderRadius:6,padding:10,cursor:'pointer',borderLeft:`3px solid ${TEAM_COLORS[t.team]||'#666'}`}}
+                    onClick={()=>{setSelectedId(t.id);setShowDetail(true)}}>
+                    <div style={{fontSize:12,fontWeight:600,marginBottom:4}}>{t.name}</div>
+                    <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+                      <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
+                      <span style={{fontSize:10,color:'var(--text2)'}}>{t.assignee}</span>
+                      <span style={{fontSize:10,color:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)',marginLeft:'auto',fontWeight:600}}>{t.priority}</span>
+                    </div>
+                    {t.pct>0&&<div style={{marginTop:6,height:3,background:'var(--border)',borderRadius:2}}><div style={{height:'100%',width:`${t.pct}%`,background:'var(--primary)',borderRadius:2}}></div></div>}
+                  </div>
+                ))}
+              </div>
+            </div>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function GanttBar({ task, teamColors, isCritical, onClick, totalDays, startOffset }) {
-  const s = parseDate(task.start), e = parseDate(task.end);
-  if (!s || !e) return null;
-  const left = diffDays(PROJECT_START, s);
-  const width = diffDays(s, e) + 1;
-  const pxPerDay = 180 / 7;
-  return (
-    <div
-      className={`gantt-bar ${isCritical ? 'critical' : ''}`}
-      style={{
-        left: left * pxPerDay + 'px',
-        width: Math.max(width * pxPerDay, 20) + 'px',
-        background: teamColors[task.team] || '#555'
-      }}
-      onClick={e => { e.stopPropagation(); onClick(task.id); }}
-    >
-      <div className="gantt-bar-progress" style={{ width: (task.pct || 0) + '%' }} />
-      <span className="gantt-bar-label">{task.name}</span>
-    </div>
-  );
-}
-
-function GanttPanel({ tasks, teamColors, criticalIds, selectedId, onSelect, scrollRef }) {
-  const flat = flattenTasks(tasks);
-  const weeks = [];
-  const now = new Date();
-  const currentWeek = weekOfDate(now);
-  for (let i = 0; i < NUM_WEEKS; i++) {
-    const wStart = addDays(PROJECT_START, i * 7);
-    const wEnd = addDays(wStart, 6);
-    weeks.push({
-      label: `W${i + 1}`,
-      sub: `${formatDate(wStart).slice(0, 5)} - ${formatDate(wEnd).slice(0, 5)}`,
-      isCurrent: i === currentWeek
-    });
-  }
-  return (
-    <div className="gantt-panel" ref={scrollRef} onScroll={e => {
-      if (scrollRef._syncTarget) scrollRef._syncTarget.scrollTop = e.target.scrollTop;
-    }}>
-      <div className="gantt-header">
-        {weeks.map((w, i) => (
-          <div key={i} className={`gantt-week ${w.isCurrent ? 'current' : ''}`}>
-            <div>{w.label}</div>
-            <div style={{ fontSize: '10px' }}>{w.sub}</div>
-          </div>
-        ))}
-      </div>
-      <div className="gantt-body">
-        {flat.map(t => (
-          <div key={t.id} className={`gantt-row ${t.isEpic ? 'epic' : ''}`}>
-            <div className="gantt-row-bg">
-              {weeks.map((w, i) => (
-                <div key={i} className={`gantt-row-bg-week ${w.isCurrent ? 'current' : ''}`} />
-              ))}
-            </div>
-            {!t.isEpic && (
-              <GanttBar
-                task={t} teamColors={teamColors}
-                isCritical={criticalIds.has(t.id)}
-                onClick={onSelect}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DatePicker({ value, onChange, label }) {
-  const [text, setText] = React.useState(value || '');
-  const valid = !text || isValidDate(text);
-  React.useEffect(() => { setText(value || ''); }, [value]);
-
-  const handleText = (v) => {
-    setText(v);
-    if (isValidDate(v)) onChange(v);
-  };
-  const handleNative = (e) => {
-    const d = e.target.value;
-    if (d) {
-      const [y, m, dd] = d.split('-');
-      const formatted = `${dd}/${m}/${y}`;
-      setText(formatted);
-      onChange(formatted);
-    }
-  };
-  const toNative = () => {
-    const dt = parseDate(text);
-    if (!dt) return '';
-    const y = dt.getFullYear();
-    const m = String(dt.getMonth() + 1).padStart(2, '0');
-    const d = String(dt.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-      <input
-        value={text} onChange={e => handleText(e.target.value)}
-        placeholder="DD/MM/YYYY"
-        style={{ flex: 1, borderColor: valid ? '' : 'var(--red)' }}
-      />
-      <input type="date" value={toNative()} onChange={handleNative}
-        style={{ width: 32, padding: 4, cursor: 'pointer' }} />
-    </div>
-  );
-}
-
-function DepsSelector({ value, onChange, allTasks, currentTaskId }) {
-  const [warning, setWarning] = React.useState('');
-  const available = [];
-  allTasks.forEach(epic => {
-    (epic.children || []).forEach(t => {
-      if (t.id !== currentTaskId) available.push(t);
-    });
-  });
-
-  const toggle = (id) => {
-    const current = value || [];
-    if (current.includes(id)) {
-      onChange(current.filter(d => d !== id));
-      setWarning('');
-    } else {
-      const newDeps = [...current, id];
-      if (detectCircularDeps(currentTaskId, newDeps, allTasks)) {
-        setWarning('Phat hien vong lap dependency!');
-        return;
-      }
-      onChange(newDeps);
-      setWarning('');
-    }
-  };
-
-  return (
-    <div>
-      <div className="deps-selector">
-        {available.map(t => (
-          <span key={t.id}
-            className={`dep-item ${(value || []).includes(t.id) ? 'selected' : ''}`}
-            onClick={() => toggle(t.id)}
-          >
-            {t.id}. {t.name}
-          </span>
-        ))}
-      </div>
-      {warning && <div className="dep-warning">{warning}</div>}
-    </div>
-  );
-}
-
-function DetailPanel({ task, isOpen, onClose, onUpdate, onDelete, members, teamColors, allTasks }) {
-  const [form, setForm] = React.useState({});
-  React.useEffect(() => { if (task) setForm({ ...task }); }, [task]);
-  if (!isOpen || !task) return null;
-
-  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-  const teamMembers = members.filter(m => m.team === form.team);
-  const startDt = parseDate(form.start);
-  const endDt = parseDate(form.end);
-  const duration = startDt && endDt ? getWorkingDaysBetween(startDt, endDt) : 0;
-
-  return (
-    <div className="detail-overlay">
-      <div className="detail-header">
-        <h3>Chi tiet Task #{form.id}</h3>
-        <button className="btn btn-icon" onClick={onClose}>✕</button>
-      </div>
-      <div className="detail-body">
-        <div className="detail-field">
-          <label>Ten task</label>
-          <input value={form.name || ''} onChange={e => set('name', e.target.value)} />
-        </div>
-        <div className="detail-field">
-          <label>Team</label>
-          <select value={form.team || ''} onChange={e => set('team', e.target.value)}>
-            <option value="">-- Chon team --</option>
-            {Object.keys(teamColors).map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div className="detail-field">
-          <label>Assignee</label>
-          <select value={form.assignee || ''} onChange={e => set('assignee', e.target.value)}>
-            <option value="">-- Chon assignee --</option>
-            {teamMembers.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
-          </select>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-          <div className="detail-field" style={{ flex: 1 }}>
-            <label>Priority</label>
-            <select value={form.priority || ''} onChange={e => set('priority', e.target.value)}>
-              {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-          <div className="detail-field" style={{ flex: 1 }}>
-            <label>Status</label>
-            <select value={form.status || ''} onChange={e => set('status', e.target.value)}>
-              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="detail-field">
-          <label>Tien do ({form.pct || 0}%)</label>
-          <div className="range-row">
-            <input type="range" min="0" max="100" value={form.pct || 0}
-              onChange={e => set('pct', parseInt(e.target.value))} />
-            <span style={{ width: 40, textAlign: 'right' }}>{form.pct || 0}%</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-          <div className="detail-field" style={{ flex: 1 }}>
-            <label>Ngay bat dau</label>
-            <DatePicker value={form.start} onChange={v => set('start', v)} />
-          </div>
-          <div className="detail-field" style={{ flex: 1 }}>
-            <label>Ngay ket thuc</label>
-            <DatePicker value={form.end} onChange={v => set('end', v)} />
-          </div>
-        </div>
-        <div className="detail-field">
-          <label>Duration: {duration} ngay lam viec</label>
-        </div>
-        <div className="detail-field">
-          <label>Dependencies</label>
-          <DepsSelector value={form.deps} onChange={v => set('deps', v)}
-            allTasks={allTasks} currentTaskId={form.id} />
-        </div>
-        <div className="detail-field">
-          <label>Ghi chu</label>
-          <textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
-        </div>
-      </div>
-      <div className="detail-footer">
-        <button className="btn btn-danger btn-sm" onClick={() => onDelete(form.id)}>Xoa task</button>
-        <button className="btn btn-primary" onClick={() => onUpdate(form)}>Luu thay doi</button>
-      </div>
-    </div>
-  );
-}
-
-function AdminPanel({ isOpen, onClose, members, teams, phases, teamColors, phaseColors, onUpdateMembers, onUpdateTeams, onUpdatePhases }) {
-  const [tab, setTab] = React.useState('members');
-  const [newMemberName, setNewMemberName] = React.useState('');
-  const [newMemberTeam, setNewMemberTeam] = React.useState('');
-  const [newTeamName, setNewTeamName] = React.useState('');
-  const [newTeamColor, setNewTeamColor] = React.useState('#3498db');
-  const [newPhaseName, setNewPhaseName] = React.useState('');
-  const [newPhaseColor, setNewPhaseColor] = React.useState('#27ae60');
-  const [confirmAction, setConfirmAction] = React.useState(null);
-
-  if (!isOpen) return null;
-  const teamList = Object.keys(teamColors);
-
-  return (
-    <div className="admin-modal" onClick={onClose}>
-      <div className="admin-content" onClick={e => e.stopPropagation()}>
-        <div className="admin-header">
-          <h3>Quan ly</h3>
-          <button className="btn btn-icon" onClick={onClose}>✕</button>
-        </div>
-        <div className="admin-tabs">
-          <button className={`admin-tab ${tab === 'members' ? 'active' : ''}`} onClick={() => setTab('members')}>Thanh vien</button>
-          <button className={`admin-tab ${tab === 'teams' ? 'active' : ''}`} onClick={() => setTab('teams')}>Team</button>
-          <button className={`admin-tab ${tab === 'phases' ? 'active' : ''}`} onClick={() => setTab('phases')}>Phase</button>
-        </div>
-        <div className="admin-body">
-          {tab === 'members' && (
-            <>
-              <table className="admin-table">
-                <thead><tr><th>Ten</th><th>Team</th><th></th></tr></thead>
-                <tbody>
-                  {members.map((m, i) => (
-                    <tr key={i}>
-                      <td><input value={m.name} onChange={e => {
-                        const updated = [...members]; updated[i] = { ...m, name: e.target.value }; onUpdateMembers(updated);
-                      }} /></td>
-                      <td><select value={m.team} onChange={e => {
-                        const updated = [...members]; updated[i] = { ...m, team: e.target.value }; onUpdateMembers(updated);
-                      }}>
-                        {teamList.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select></td>
-                      <td><button className="btn btn-sm btn-danger" onClick={() => {
-                        const updated = members.filter((_, j) => j !== i); onUpdateMembers(updated);
-                      }}>Xoa</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="admin-add-form">
-                <input placeholder="Ten" value={newMemberName} onChange={e => setNewMemberName(e.target.value)} />
-                <select value={newMemberTeam} onChange={e => setNewMemberTeam(e.target.value)}>
-                  <option value="">Team</option>
-                  {teamList.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <button className="btn btn-primary btn-sm" onClick={() => {
-                  if (!newMemberName || !newMemberTeam) return;
-                  onUpdateMembers([...members, { name: newMemberName, team: newMemberTeam }]);
-                  setNewMemberName(''); setNewMemberTeam('');
-                }}>Them</button>
-              </div>
-            </>
-          )}
-          {tab === 'teams' && (
-            <>
-              <table className="admin-table">
-                <thead><tr><th>Team</th><th>Mau</th><th></th></tr></thead>
-                <tbody>
-                  {teamList.map(t => (
-                    <tr key={t}>
-                      <td>{t}</td>
-                      <td><input type="color" className="color-picker" value={teamColors[t]}
-                        onChange={e => { const updated = { ...teamColors, [t]: e.target.value }; onUpdateTeams(updated); }} /></td>
-                      <td><button className="btn btn-sm btn-danger" onClick={() => {
-                        if (members.some(m => m.team === t)) { alert('Team con thanh vien, hay chuyen ho truoc!'); return; }
-                        const updated = { ...teamColors }; delete updated[t]; onUpdateTeams(updated);
-                      }}>Xoa</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="admin-add-form">
-                <input placeholder="Team name" value={newTeamName} onChange={e => setNewTeamName(e.target.value)} />
-                <input type="color" className="color-picker" value={newTeamColor} onChange={e => setNewTeamColor(e.target.value)} />
-                <button className="btn btn-primary btn-sm" onClick={() => {
-                  if (!newTeamName) return;
-                  onUpdateTeams({ ...teamColors, [newTeamName]: newTeamColor });
-                  setNewTeamName(''); setNewTeamColor('#3498db');
-                }}>Them</button>
-              </div>
-            </>
-          )}
-          {tab === 'phases' && (
-            <>
-              <table className="admin-table">
-                <thead><tr><th>Phase</th><th>Mau</th><th></th></tr></thead>
-                <tbody>
-                  {Object.keys(phaseColors).map(p => (
-                    <tr key={p}>
-                      <td>{p}</td>
-                      <td><input type="color" className="color-picker" value={phaseColors[p]}
-                        onChange={e => { const updated = { ...phaseColors, [p]: e.target.value }; onUpdatePhases(updated, { type: 'updateColor', phase: p }); }} /></td>
-                      <td><button className="btn btn-sm btn-danger" onClick={() => {
-                        setConfirmAction({ phase: p });
-                      }}>Xoa</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="admin-add-form">
-                <input placeholder="Phase name" value={newPhaseName} onChange={e => setNewPhaseName(e.target.value)} />
-                <input type="color" className="color-picker" value={newPhaseColor} onChange={e => setNewPhaseColor(e.target.value)} />
-                <button className="btn btn-primary btn-sm" onClick={() => {
-                  if (!newPhaseName) return;
-                  onUpdatePhases({ ...phaseColors, [newPhaseName]: newPhaseColor }, { type: 'add', phase: newPhaseName });
-                  setNewPhaseName(''); setNewPhaseColor('#27ae60');
-                }}>Them</button>
-              </div>
-              {confirmAction && (
-                <ConfirmDialog
-                  title="Xoa Phase"
-                  message={`Se xoa Epic "${confirmAction.phase}" va tat ca task con. Ban chac chan?`}
-                  onConfirm={() => {
-                    const updated = { ...phaseColors }; delete updated[confirmAction.phase];
-                    onUpdatePhases(updated, { type: 'delete', phase: confirmAction.phase });
-                    setConfirmAction(null);
-                  }}
-                  onCancel={() => setConfirmAction(null)}
-                />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FilterBar({ filters, onChange, phases, teams, stats }) {
-  return (
-    <div className="filter-bar">
-      <select value={filters.phase} onChange={e => onChange({ ...filters, phase: e.target.value })}>
-        <option value="">Tat ca Phase</option>
-        {Object.keys(phases).map(p => <option key={p} value={p}>{p}</option>)}
-      </select>
-      <select value={filters.team} onChange={e => onChange({ ...filters, team: e.target.value })}>
-        <option value="">Tat ca Team</option>
-        {Object.keys(teams).map(t => <option key={t} value={t}>{t}</option>)}
-      </select>
-      <select value={filters.status} onChange={e => onChange({ ...filters, status: e.target.value })}>
-        <option value="">Tat ca Status</option>
-        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
-      <input type="text" placeholder="Tim kiem task, member..."
-        value={filters.search} onChange={e => onChange({ ...filters, search: e.target.value })} />
-      <div className="stats">
-        <span>Tong: {stats.total}</span>
-        <span><span className="stat-dot" style={{ background: 'var(--primary)' }} />{stats.inProgress}</span>
-        <span><span className="stat-dot" style={{ background: 'var(--green)' }} />{stats.done}</span>
-        <span><span className="stat-dot" style={{ background: 'var(--red)' }} />{stats.blocked}</span>
-      </div>
-    </div>
-  );
-}
-
-function BoardCard({ task, teamColors, onClick }) {
-  const priorityColor = task.priority === 'High' ? 'var(--red)' : task.priority === 'Medium' ? 'var(--yellow)' : 'var(--green)';
-  return (
-    <div className="board-card" onClick={() => onClick(task.id)}>
-      <div className="card-name">{task.name}</div>
-      <div className="card-meta">
-        {task.team && <span className="team-badge" style={{ background: teamColors[task.team] || '#555' }}>{task.team}</span>}
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text2)' }}>{task.assignee}</span>
-        <span className="priority-dot" style={{ background: priorityColor }} />
-      </div>
-      <div className="card-progress">
-        <div className="card-progress-fill" style={{ width: (task.pct || 0) + '%' }} />
-      </div>
-    </div>
-  );
-}
-
-function BoardView({ tasks, teamColors, onSelect }) {
-  const flat = [];
-  tasks.forEach(epic => {
-    (epic.children || []).forEach(t => flat.push(t));
-  });
-  const columns = STATUSES.map(status => ({
-    status,
-    tasks: flat.filter(t => t.status === status)
-  }));
-  return (
-    <div className="board">
-      {columns.map(col => (
-        <div key={col.status} className="board-column">
-          <div className="board-column-header">
-            <span>{col.status}</span>
-            <span className="count-badge">{col.tasks.length}</span>
-          </div>
-          <div className="board-column-body">
-            {col.tasks.length === 0 && (
-              <div style={{ color: 'var(--text2)', fontSize: 'var(--font-size-xs)', textAlign: 'center', padding: '20px' }}>
-                Khong co task
-              </div>
-            )}
-            {col.tasks.map(t => (
-              <BoardCard key={t.id} task={t} teamColors={teamColors} onClick={onSelect} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ConfirmDialog({ title, message, onConfirm, onCancel }) {
-  return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h3>{title}</h3>
-        <p>{message}</p>
-        <div className="modal-actions">
-          <button className="btn" onClick={onCancel}>Huy</button>
-          <button className="btn btn-danger" onClick={onConfirm}>Xac nhan</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Toast({ message, type, onClose }) {
-  React.useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-  return <div className={`toast toast-${type || 'info'}`}>{message}</div>;
-}
-
-/* ═══════════════════════════════════════ */
-/* MODULE 7: APP CONTAINER (state + glue)  */
-/* ═══════════════════════════════════════ */
-
-function App() {
-  const [token, setToken] = React.useState(() => localStorage.getItem('ptb-token') || null);
-  const [username, setUsername] = React.useState(() => localStorage.getItem('ptb-username') || '');
-  const [tasks, setTasks] = React.useState([]);
-  const [members, setMembers] = React.useState([]);
-  const [teamColors, setTeamColors] = React.useState({});
-  const [phaseColors, setPhaseColors] = React.useState({});
-  const [version, setVersion] = React.useState(1);
-  const [selectedTaskId, setSelectedTaskId] = React.useState(null);
-  const [view, setView] = React.useState('gantt');
-  const [showDetail, setShowDetail] = React.useState(false);
-  const [showAdmin, setShowAdmin] = React.useState(false);
-  const [showConflict, setShowConflict] = React.useState(false);
-  const [confirm, setConfirm] = React.useState(null);
-  const [toast, setToast] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showDataMenu, setShowDataMenu] = React.useState(false);
-  const [filters, setFilters] = React.useState({ phase: '', team: '', status: '', search: '' });
-
-  const taskPanelRef = React.useRef(null);
-  const ganttPanelRef = React.useRef(null);
-  const jsonInputRef = React.useRef(null);
-  const excelInputRef = React.useRef(null);
-
-  // Scroll sync
-  React.useEffect(() => {
-    if (taskPanelRef.current && ganttPanelRef.current) {
-      taskPanelRef.current._syncTarget = ganttPanelRef.current;
-      ganttPanelRef.current._syncTarget = taskPanelRef.current;
-    }
-  });
-
-  const loadData = React.useCallback(async (tkn) => {
-    setIsLoading(true);
-    try {
-      const data = await apiLoad(tkn);
-      setTasks(data.tasks || []);
-      setMembers(data.members || INIT_MEMBERS);
-      setTeamColors(data.teamColors || INIT_TEAM_COLORS);
-      setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
-      setVersion(data.version || 1);
-      initNextId(data.tasks || []);
-    } catch (e) {
-      // Fallback to localStorage then INITIAL_TASKS
-      const cached = lsLoad();
-      if (cached) {
-        setTasks(cached.tasks || []);
-        setMembers(cached.members || INIT_MEMBERS);
-        setTeamColors(cached.teamColors || INIT_TEAM_COLORS);
-        setPhaseColors(cached.phaseColors || INIT_PHASE_COLORS);
-        setVersion(cached.version || 1);
-        initNextId(cached.tasks || []);
-      } else {
-        const data = deepClone(INITIAL_TASKS);
-        setTasks(data.tasks || []);
-        setMembers(data.members || INIT_MEMBERS);
-        setTeamColors(data.teamColors || INIT_TEAM_COLORS);
-        setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
-        setVersion(data.version || 1);
-        initNextId(data.tasks || []);
-      }
-    }
-    setIsLoading(false);
-  }, []);
-
-  // On mount: load data if token exists
-  React.useEffect(() => {
-    if (token) {
-      loadData(token);
-    } else {
-      const data = deepClone(INITIAL_TASKS);
-      setTasks(data.tasks || []);
-      setMembers(data.members || INIT_MEMBERS);
-      setTeamColors(data.teamColors || INIT_TEAM_COLORS);
-      setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
-      initNextId(data.tasks || []);
-    }
-  }, []);
-
-  const handleLogin = (tkn, user) => {
-    setToken(tkn);
-    setUsername(user);
-    localStorage.setItem('ptb-token', tkn);
-    localStorage.setItem('ptb-username', user);
-    loadData(tkn);
-  };
-
-  const handleLogout = () => {
-    setToken(null);
-    setUsername('');
-    localStorage.removeItem('ptb-token');
-    localStorage.removeItem('ptb-username');
-    localStorage.removeItem('ptb-data');
-    const data = deepClone(INITIAL_TASKS);
-    setTasks(data.tasks || []);
-    setMembers(data.members || INIT_MEMBERS);
-    setTeamColors(data.teamColors || INIT_TEAM_COLORS);
-    setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
-    setVersion(1);
-  };
-
-  // Auto-save
-  const autoSaveData = React.useMemo(() => ({
-    tasks, members, teamColors, phaseColors, version
-  }), [tasks, members, teamColors, phaseColors, version]);
-  useAutoSave(autoSaveData, token, version);
-
-  // Version poll
-  useVersionPoll(token, version, (info) => {
-    setShowConflict(true);
-  });
-
-  // Keyboard shortcuts
-  React.useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') {
-        if (showDetail) { setShowDetail(false); setSelectedTaskId(null); }
-        else if (showAdmin) setShowAdmin(false);
-        else if (confirm) setConfirm(null);
-        else if (showDataMenu) setShowDataMenu(false);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        if (token) {
-          lsSave({ tasks, members, teamColors, phaseColors, version });
-          apiSave({ tasks, members, teamColors, phaseColors, version }, token)
-            .then(() => showToastMsg('Da luu', 'success'))
-            .catch(() => showToastMsg('Loi luu du lieu', 'error'));
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [showDetail, showAdmin, confirm, showDataMenu, token, tasks, members, teamColors, phaseColors, version]);
-
-  // Online/offline detection
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
-  React.useEffect(() => {
-    const on = () => setIsOnline(true);
-    const off = () => setIsOnline(false);
-    window.addEventListener('online', on);
-    window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, []);
-
-  const update = React.useCallback((fn) => {
-    setTasks(prev => {
-      const cloned = deepClone(prev);
-      fn(cloned);
-      return autoSchedule(cloned);
-    });
-  }, []);
-
-  const criticalIds = React.useMemo(() => calculateCriticalPath(tasks), [tasks]);
-
-  const selectedTask = React.useMemo(() => {
-    for (const epic of tasks) {
-      if (epic.id === selectedTaskId) return epic;
-      for (const t of (epic.children || [])) {
-        if (t.id === selectedTaskId) return t;
-      }
-    }
-    return null;
-  }, [tasks, selectedTaskId]);
-
-  const handleSelect = (id) => {
-    setSelectedTaskId(id);
-    const task = tasks.find(e => e.id === id) || null;
-    if (task && task.isEpic) {
-      setShowDetail(false);
-    } else {
-      setShowDetail(true);
-    }
-  };
-
-  const handleToggle = (epicId) => {
-    update(ts => {
-      const epic = ts.find(e => e.id === epicId);
-      if (epic) epic.expanded = !epic.expanded;
-    });
-  };
-
-  const handleAddTask = (epicId) => {
-    update(ts => {
-      const epic = ts.find(e => e.id === epicId);
-      if (!epic) return;
-      const newTask = {
-        id: genId(),
-        name: 'New Task',
-        team: '',
-        assignee: '',
-        priority: 'Medium',
-        status: 'To Do',
-        start: formatDate(new Date()),
-        end: formatDate(addWorkingDays(new Date(), 3)),
-        pct: 0,
-        deps: [],
-        notes: ''
-      };
-      if (!epic.children) epic.children = [];
-      epic.children.push(newTask);
-    });
-    showToastMsg('Da them task moi', 'success');
-  };
-
-  const handleUpdate = (updatedTask) => {
-    update(ts => {
-      for (const epic of ts) {
-        const idx = (epic.children || []).findIndex(t => t.id === updatedTask.id);
-        if (idx !== -1) {
-          epic.children[idx] = { ...updatedTask };
-          break;
-        }
-      }
-    });
-    showToastMsg('Da luu thay doi', 'success');
-  };
-
-  const handleDelete = (taskId) => {
-    setConfirm({
-      title: 'Xoa task',
-      message: 'Ban co chac chan muon xoa task nay?',
-      onConfirm: () => {
-        update(ts => {
-          for (const epic of ts) {
-            const idx = (epic.children || []).findIndex(t => t.id === taskId);
-            if (idx !== -1) {
-              epic.children.splice(idx, 1);
-              ts.forEach(ep => {
-                (ep.children || []).forEach(t => {
-                  if (t.deps) t.deps = t.deps.filter(d => d !== taskId);
-                });
-              });
-              break;
-            }
-          }
-        });
-        setShowDetail(false);
-        setSelectedTaskId(null);
-        setConfirm(null);
-        showToastMsg('Da xoa task', 'success');
-      }
-    });
-  };
-
-  const handleUpdateMembers = (newMembers) => {
-    setMembers(newMembers);
-  };
-
-  const handleUpdateTeams = (newTeamColors) => {
-    setTeamColors(newTeamColors);
-  };
-
-  const handleUpdatePhases = (newPhaseColors, action) => {
-    setPhaseColors(newPhaseColors);
-    if (action && action.type === 'add') {
-      update(ts => {
-        ts.push({
-          id: genId(), name: action.phase, isEpic: true,
-          phase: action.phase, expanded: true, children: []
-        });
-      });
-    } else if (action && action.type === 'delete') {
-      update(ts => {
-        const idx = ts.findIndex(e => e.name === action.phase || e.phase === action.phase);
-        if (idx !== -1) ts.splice(idx, 1);
-      });
-    }
-  };
-
-  const showToastMsg = (message, type) => {
-    setToast({ message, type });
-  };
-
-  // Filtered tasks for Board view
-  const filteredTasks = React.useMemo(() => {
-    const flat = [];
-    tasks.forEach(epic => {
-      (epic.children || []).forEach(t => flat.push({ ...t, _phase: epic.name }));
-    });
-    return flat.filter(t => {
-      if (filters.phase && t._phase !== filters.phase) return false;
-      if (filters.team && t.team !== filters.team) return false;
-      if (filters.status && t.status !== filters.status) return false;
-      if (filters.search) {
-        const s = filters.search.toLowerCase();
-        if (!(t.name || '').toLowerCase().includes(s) && !(t.assignee || '').toLowerCase().includes(s)) return false;
-      }
-      return true;
-    });
-  }, [tasks, filters]);
-
-  const stats = React.useMemo(() => ({
-    total: filteredTasks.length,
-    inProgress: filteredTasks.filter(t => t.status === 'In Progress').length,
-    done: filteredTasks.filter(t => t.status === 'Done').length,
-    blocked: filteredTasks.filter(t => t.status === 'Blocked').length,
-  }), [filteredTasks]);
-
-  // Build filtered tasks tree for Board view
-  const filteredTasksTree = React.useMemo(() => {
-    const filteredIds = new Set(filteredTasks.map(t => t.id));
-    return tasks.map(epic => ({
-      ...epic,
-      children: (epic.children || []).filter(t => filteredIds.has(t.id))
-    })).filter(epic => epic.children && epic.children.length > 0 || !filters.phase && !filters.team && !filters.status && !filters.search);
-  }, [tasks, filteredTasks, filters]);
-
-  if (!token) return <LoginScreen onLogin={handleLogin} />;
-
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text)' }}>
-        Dang tai du lieu...
-      </div>
-    );
-  }
-
-  return (
-    <div className="app">
-      {!isOnline && (
-        <div style={{ background: 'var(--red)', color: '#fff', padding: '4px var(--spacing-md)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>
-          Mat ket noi mang - Du lieu chi luu local
-        </div>
       )}
-      <div className="header">
-        <span className="header-title">Poker Texas Build Plan</span>
-        <div className="header-actions">
-          <div className="view-tabs">
-            <button className={`view-tab ${view === 'gantt' ? 'active' : ''}`}
-              onClick={() => setView('gantt')}>Gantt</button>
-            <button className={`view-tab ${view === 'board' ? 'active' : ''}`}
-              onClick={() => setView('board')}>Board</button>
-          </div>
-          <div style={{ position: 'relative' }}>
-            <button className="btn btn-sm" onClick={() => setShowDataMenu(!showDataMenu)}>Du lieu ▾</button>
-            {showDataMenu && (
-              <div style={{
-                position: 'absolute', top: '100%', right: 0, background: 'var(--surface)',
-                border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-                minWidth: 180, zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-              }}>
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
-                  onClick={() => { exportJSON({ tasks, members, teamColors, phaseColors }); setShowDataMenu(false); }}>Export JSON</button>
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
-                  onClick={() => { exportExcel({ tasks, members, teamColors, phaseColors }, teamColors); setShowDataMenu(false); }}>Export Excel</button>
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
-                  onClick={() => { exportJiraCSV({ tasks }); setShowDataMenu(false); }}>Export Jira CSV</button>
-                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
-                  onClick={() => { jsonInputRef.current?.click(); setShowDataMenu(false); }}>Import JSON</button>
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0 }}
-                  onClick={() => { excelInputRef.current?.click(); setShowDataMenu(false); }}>Import Excel</button>
-                <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
-                <button className="btn btn-sm" style={{ width: '100%', textAlign: 'left', borderRadius: 0, color: 'var(--red)' }}
-                  onClick={() => {
-                    setShowDataMenu(false);
-                    setConfirm({
-                      title: 'Reset du lieu',
-                      message: 'Khoi phuc du lieu mac dinh? Tat ca thay doi se mat.',
-                      onConfirm: () => {
-                        const data = deepClone(INITIAL_TASKS);
-                        setTasks(autoSchedule(data.tasks || []));
-                        setMembers(data.members || INIT_MEMBERS);
-                        setTeamColors(data.teamColors || INIT_TEAM_COLORS);
-                        setPhaseColors(data.phaseColors || INIT_PHASE_COLORS);
-                        initNextId(data.tasks || []);
-                        setConfirm(null);
-                        showToastMsg('Da reset du lieu', 'success');
-                      }
-                    });
-                  }}>Reset mac dinh</button>
-              </div>
-            )}
-          </div>
-          <button className="btn btn-sm" onClick={() => setShowAdmin(true)}>Quan ly</button>
-          <span className="header-user">{username}</span>
-          <button className="btn btn-sm" onClick={handleLogout}>Dang xuat</button>
-        </div>
-      </div>
-      <FilterBar filters={filters} onChange={setFilters}
-        phases={phaseColors} teams={teamColors} stats={stats} />
-      <div className="main">
-        {view === 'gantt' && (
+
+      {/* Detail Panel */}
+      <div className={`detail-overlay ${showDetail&&editBuffer?'open':''}`}>
+        {editBuffer&&(()=>{
+          const eb=editBuffer;
+          const dur=eb.start&&eb.end?workingDays(d(eb.start),d(eb.end)):0;
+          const setB=(field,val)=>setEditBuffer(prev=>({...prev,[field]:val}));
+          return(
           <>
-            <TaskPanel
-              tasks={tasks} selectedId={selectedTaskId}
-              onSelect={handleSelect} onToggle={handleToggle}
-              onAddTask={handleAddTask} teamColors={teamColors}
-              phaseColors={phaseColors} scrollRef={taskPanelRef}
-            />
-            <GanttPanel
-              tasks={tasks} teamColors={teamColors}
-              criticalIds={criticalIds} selectedId={selectedTaskId}
-              onSelect={handleSelect} scrollRef={ganttPanelRef}
-            />
+            <button className="close-btn" onClick={()=>setShowDetail(false)}>✕</button>
+            <h3>{eb.name}</h3>
+            <div className="field">
+              <label>Task Name</label>
+              <input value={eb.name} onChange={e=>setB('name',e.target.value)}/>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <div className="field"><label>Phase</label>
+                <select value={eb.phase} onChange={e=>setB('phase',e.target.value)}>
+                  {Object.keys(PHASE_COLORS).map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="field"><label>Team</label>
+                <select value={eb.team} onChange={e=>setB('team',e.target.value)}>
+                  {TEAMS.map(t=><option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="field"><label>Assignee</label>
+                <select value={eb.assignee} onChange={e=>setB('assignee',e.target.value)}>
+                  {ALL_MEMBERS.map(m=><option key={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="field"><label>Priority</label>
+                <select value={eb.priority} onChange={e=>setB('priority',e.target.value)}>
+                  {PRIORITIES.map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="field"><label>Status</label>
+                <select value={eb.status} onChange={e=>{setB('status',e.target.value);if(e.target.value==='Done')setB('pct',100)}}>
+                  {STATUSES.map(s=><option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="field"><label>Duration (working days)</label>
+                <input type="number" min="0" value={dur} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);if(eb.start){const newEnd=addWorkingDays(d(eb.start),days);setB('end',fmt(newEnd))}}}/>
+              </div>
+              <div className="field"><label>Start Date</label>
+                <DatePicker value={eb.start} onChange={v=>setB('start',v)}
+                  onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+              </div>
+              <div className="field"><label>End Date</label>
+                <DatePicker value={eb.end} onChange={v=>setB('end',v)}
+                  onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+              </div>
+            </div>
+            <div className="field">
+              <label>Progress: {eb.pct}%</label>
+              <input type="range" min="0" max="100" step="10" value={eb.pct}
+                onChange={e=>setB('pct',+e.target.value)}
+                style={{width:'100%',accentColor:'var(--primary)'}}/>
+            </div>
+            <DepsSelector deps={eb.deps||[]} onChange={ids=>setB('deps',ids)} allTasks={allFlat} currentTaskId={eb.id}
+              onDepsAutoDate={ids=>{
+                if(ids.length===0)return;
+                let maxEnd=null;
+                ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+                if(maxEnd){
+                  const curDur=workingDays(d(eb.start),d(eb.end));
+                  const ns=skipWeekend(addDays(maxEnd,1)).date;
+                  setEditBuffer(prev=>({...prev,start:fmt(ns),end:fmt(addWorkingDays(ns,curDur))}));
+                }
+              }}/>
+            <div className="field">
+              <label>Notes</label>
+              <textarea value={eb.notes||''} onChange={e=>setB('notes',e.target.value)}/>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginTop:14}}>
+              <button className={`btn-update ${updating?'saving':''}`} onClick={handleUpdate}>
+                {updating?<span className="saving-dots"><span>.</span><span>.</span><span>.</span></span>:'Update'}
+              </button>
+              <button className="delete-link" onClick={()=>{
+                if(window.confirm(`Xac nhan xoa task "${eb.name}"?\nHanh dong nay khong the hoan tac!`))deleteTask(eb.id);
+              }}>Delete Task</button>
+            </div>
           </>
-        )}
-        {view === 'board' && (
-          <BoardView tasks={filteredTasksTree} teamColors={teamColors} onSelect={handleSelect} />
-        )}
+          );
+        })()}
       </div>
-      {showDetail && selectedTask && !selectedTask.isEpic && (
-        <DetailPanel
-          task={selectedTask} isOpen={showDetail}
-          onClose={() => { setShowDetail(false); setSelectedTaskId(null); }}
-          onUpdate={handleUpdate} onDelete={handleDelete}
-          members={members} teamColors={teamColors} allTasks={tasks}
-        />
-      )}
-      {showAdmin && (
-        <AdminPanel
-          isOpen={showAdmin} onClose={() => setShowAdmin(false)}
-          members={members} teams={Object.keys(teamColors)}
-          phases={Object.keys(phaseColors)}
-          teamColors={teamColors} phaseColors={phaseColors}
-          onUpdateMembers={handleUpdateMembers}
-          onUpdateTeams={handleUpdateTeams}
-          onUpdatePhases={handleUpdatePhases}
-        />
-      )}
-      {showConflict && (
-        <ConfirmDialog
-          title="Du lieu da thay doi"
-          message="Du lieu da thay doi boi nguoi khac. Ban co muon tai lai?"
-          onConfirm={() => { setShowConflict(false); loadData(token); }}
-          onCancel={() => setShowConflict(false)}
-        />
-      )}
-      {confirm && (
-        <ConfirmDialog
-          title={confirm.title} message={confirm.message}
-          onConfirm={confirm.onConfirm}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <input ref={jsonInputRef} type="file" accept=".json" style={{ display: 'none' }}
-        onChange={e => {
-          const file = e.target.files[0];
-          if (!file) return;
-          importJSON(file, (data, err) => {
-            if (err) { showToastMsg(err, 'error'); return; }
-            update(ts => {
-              ts.length = 0;
-              data.tasks.forEach(t => ts.push(t));
-            });
-            setMembers(data.members);
-            setTeamColors(data.teamColors);
-            setPhaseColors(data.phaseColors);
-            initNextId(data.tasks);
-            showToastMsg('Import JSON thanh cong', 'success');
-          });
-          e.target.value = '';
-        }} />
-      <input ref={excelInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }}
-        onChange={e => {
-          const file = e.target.files[0];
-          if (!file) return;
-          importExcel(file, (data, err) => {
-            if (err) { showToastMsg(err, 'error'); return; }
-            update(ts => {
-              ts.length = 0;
-              data.tasks.forEach(t => ts.push(t));
-            });
-            if (data.members) setMembers(data.members);
-            initNextId(data.tasks);
-            showToastMsg('Import Excel thanh cong: ' + data.tasks.reduce((s, e) => s + e.children.length, 0) + ' tasks', 'success');
-          });
-          e.target.value = '';
-        }} />
+
+      {/* Add Task Modal */}
+      {showAdd&&<AddTaskModal tasks={tasks} teams={TEAMS} members={members} phaseColors={PHASE_COLORS} teamColors={TEAM_COLORS} onAdd={addTask} onClose={()=>setShowAdd(false)} showToast={showToast}/>}
+
+      {/* Phase Modal */}
+      {showPhases&&<PhaseModal phaseColors={phaseColors} setPhaseColors={setPhaseColors} tasks={tasks} update={update} showToast={showToast} onClose={()=>setShowPhases(false)}/>}
+
+      {/* Admin Modal */}
+      {showAdmin&&<AdminModal members={members} setMembers={setMembers} teamColors={teamColors} setTeamColors={setTeamColors} tasks={tasks} update={update} showToast={showToast} onClose={()=>setShowAdmin(false)} projects={projects} setProjects={setProjects} currentProjectId={currentProjectId} switchProject={switchProject}/>}
+
+      {/* Toast */}
+      {toast&&<div className="toast">{toast}</div>}
     </div>
   );
 }
 
-/* ═══════════════════════════════════════ */
-/* MODULE 8: BOOTSTRAP                     */
-/* ═══════════════════════════════════════ */
-
-const INITIAL_TASKS = {
-  tasks: [
-    {
-      id: 1, name: 'Pre-production', isEpic: true, phase: 'Pre-production', expanded: true,
-      children: [
-        {id:10,name:'Game Design Document (GDD)',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Tai lieu thiet ke game tong the'},
-        {id:11,name:'Resource & Timeline Planning',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Lap ke hoach nguon luc'},
-        {id:12,name:'UI/UX Wireframe - Lobby',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe lobby'},
-        {id:13,name:'UI/UX Wireframe - Gameplay',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe gameplay'},
-        {id:14,name:'Art Style Guide',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'05/03/2026',end:'10/03/2026',pct:0,deps:[10],notes:'Art direction'},
-        {id:15,name:'Technical Architecture',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Kien truc ky thuat'},
-        {id:16,name:'Prototype - Core Gameplay',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'09/03/2026',end:'16/03/2026',pct:0,deps:[15],notes:'Prototype logic'},
-        {id:17,name:'QA Test Plan',team:'QC',assignee:'NhanNT3',priority:'Medium',status:'To Do',start:'09/03/2026',end:'13/03/2026',pct:0,deps:[10],notes:'Ke hoach test'}
-      ]
-    },
-    {
-      id: 2, name: 'Production', isEpic: true, phase: 'Production', expanded: true,
-      children: [
-        {id:20,name:'Card Design (52 la bai)',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'52 la bai + mat sau'},
-        {id:21,name:'Table & Background Art',team:'Art',assignee:'TuND4',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[14],notes:'Ban choi, background'},
-        {id:22,name:'Character/Avatar Design',team:'Art',assignee:'NgocLA',priority:'Medium',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'Avatar, dealer'},
-        {id:23,name:'Chip & Token Assets',team:'Art',assignee:'TuND4',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[21],notes:'Chip, token, icon'},
-        {id:24,name:'Design Ban choi',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[12],notes:'Design ban poker'},
-        {id:25,name:'UI Design - Lobby & Menu',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[12],notes:'UI lobby, menu'},
-        {id:26,name:'UI Design - Gameplay Screen',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[13],notes:'UI gameplay'},
-        {id:27,name:'UI Design - Shop & Profile',team:'Design',assignee:'BinhNT',priority:'Medium',status:'To Do',start:'23/03/2026',end:'30/03/2026',pct:0,deps:[25],notes:'UI shop, profile'},
-        {id:28,name:'UI Animation Specs',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[25,26],notes:'Animation specs'},
-        {id:30,name:'Core Engine - Card Logic',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15,16],notes:'Card engine'},
-        {id:31,name:'Betting System',team:'Dev',assignee:'HuongBP',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15],notes:'Betting, pot'},
-        {id:32,name:'Multiplayer/Networking',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'20/03/2026',end:'03/04/2026',pct:0,deps:[15],notes:'Multiplayer, rooms'},
-        {id:33,name:'UI Implementation - Lobby',team:'Dev',assignee:'CongNT7',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[25],notes:'Code UI lobby'},
-        {id:34,name:'UI Implementation - Gameplay',team:'Dev',assignee:'PhucNN',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[26],notes:'Code UI gameplay'},
-        {id:35,name:'Backend API & Database',team:'Dev',assignee:'SonBNT',priority:'High',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[15],notes:'API, DB'},
-        {id:36,name:'AI Bot Logic',team:'Dev',assignee:'CongNN',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[30],notes:'AI bot'},
-        {id:37,name:'Shop & In-app Purchase',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[31,35],notes:'Shop, IAP'},
-        {id:40,name:'Sound Effects (SFX)',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[],notes:'SFX'},
-        {id:41,name:'Background Music',team:'Multimedia',assignee:'HungVM2',priority:'Low',status:'To Do',start:'01/04/2026',end:'07/04/2026',pct:0,deps:[40],notes:'BGM'},
-        {id:42,name:'Card Animation & VFX',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[20,40],notes:'Animation, VFX'},
-        {id:45,name:'Sprint Review & Tracking',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'18/03/2026',end:'14/04/2026',pct:0,deps:[],notes:'Weekly review'},
-        {id:46,name:'Build & Deployment Setup',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[15],notes:'CI/CD'}
-      ]
-    },
-    {
-      id: 3, name: 'Testing & QA', isEpic: true, phase: 'Testing & QA', expanded: true,
-      children: [
-        {id:50,name:'Functional Testing',team:'QC',assignee:'NhanNT3',priority:'High',status:'To Do',start:'15/04/2026',end:'21/04/2026',pct:0,deps:[17],notes:'Test core gameplay'},
-        {id:51,name:'Integration Testing',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'15/04/2026',end:'20/04/2026',pct:0,deps:[32,35],notes:'Integration test'},
-        {id:52,name:'Performance Testing',team:'Dev',assignee:'SonBNT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'22/04/2026',pct:0,deps:[51],notes:'Load test'},
-        {id:53,name:'Bug Fixing Sprint',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50,51],notes:'Fix bugs'},
-        {id:54,name:'UI/UX Polish',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish UI'},
-        {id:55,name:'Art Asset Polish',team:'Art',assignee:'HoaGTT',priority:'Low',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish art'},
-        {id:56,name:'Final Build & Release',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'26/04/2026',end:'28/04/2026',pct:0,deps:[53],notes:'Final build'},
-        {id:57,name:'Release Sign-off',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'28/04/2026',end:'28/04/2026',pct:0,deps:[56],notes:'Sign-off'}
-      ]
-    }
-  ],
-  members: [
-    {name:'ToanNM',team:'PM'},
-    {name:'LocPT',team:'Design'},{name:'QuynhNH',team:'Design'},{name:'BinhNT',team:'Design'},
-    {name:'HoaGTT',team:'Art'},{name:'TuND4',team:'Art'},{name:'NgocLA',team:'Art'},
-    {name:'CongNN',team:'Dev'},{name:'HuongBP',team:'Dev'},{name:'DienDQ',team:'Dev'},
-    {name:'CongNT7',team:'Dev'},{name:'PhucNN',team:'Dev'},{name:'SonBNT',team:'Dev'},
-    {name:'NhanNT3',team:'QC'},
-    {name:'HungVM2',team:'Multimedia'},
-    {name:'NienND',team:'OP'}
-  ],
-  teamColors: {
-    'PM':'#34495e','Design':'#e67e22','Art':'#9b59b6','Dev':'#2980b9',
-    'Client':'#16a085','Server':'#8e44ad','QC':'#c0392b','Multimedia':'#1abc9c','OP':'#7f8c8d'
-  },
-  phaseColors: {
-    'Pre-production':'#3498db','Production':'#27ae60','Testing & QA':'#e74c3c'
-  },
-  version: 1,
-  savedAt: '2026-03-07T00:00:00.000Z'
-};
-
-initNextId(INITIAL_TASKS.tasks);
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>

@@ -46,6 +46,8 @@
 ## Active Technologies
 - JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN), (001-project-management)
 - PostgreSQL 16 - JSONB column trong bang `projects` (001-project-management)
+- JavaScript (Node.js 18+), React 18 via CDN + Babel standalone + Express.js, pg (node-postgres), bcryptjs, jsonwebtoken, ExcelJS (CDN) (001-multi-project)
+- PostgreSQL 16 on VPS (76.13.213.204), DB: `poker_texas`, JSONB blob in `projects.data` (001-multi-project)
 
 ## Recent Changes
 - 001-project-management: Added JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN),
