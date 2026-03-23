@@ -13,7 +13,7 @@
 - **Auth**: JWT (30d expiry), bcryptjs for password hashing
 
 ## VPS Access
-- SSH: `ssh -i ~/.ssh/id_ed25519 root@76.13.213.204`
+- SSH: `ssh -i ~/.ssh/id_ed25519 toannm.phil@76.13.213.204`
 - App path: `/opt/poker-plan/` (server.js, seed.js, .env, public/index.html)
 - Process manager: PM2, app name: `poker-plan`
 - Deploy: `scp index.html` to VPS then `pm2 restart poker-plan`
@@ -48,6 +48,15 @@
 - PostgreSQL 16 - JSONB column trong bang `projects` (001-project-management)
 - JavaScript (Node.js 18+), React 18 via CDN + Babel standalone + Express.js, pg (node-postgres), bcryptjs, jsonwebtoken, ExcelJS (CDN) (001-multi-project)
 - PostgreSQL 16 on VPS (76.13.213.204), DB: `poker_texas`, JSONB blob in `projects.data` (001-multi-project)
+- JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN), Express.js, pg (node-postgres) (001-multi-project)
+- PostgreSQL 16, JSONB blob trong `projects.data` (001-multi-project)
+- JavaScript (ES2020+), Node.js 18+ + React 18 (CDN) + Babel standalone, Express.js, pg (node-postgres), bcryptjs, jsonwebtoken (001-multi-project)
+- PostgreSQL 16 — JSONB blob in `projects.data` column (001-multi-project)
+- JavaScript (ES2020+), React 18 via CDN + Babel standalone + ExcelJS 4.4.0 (CDN), SheetJS/xlsx 0.18.5 (CDN) (001-multi-project)
+- PostgreSQL 16 JSONB blob (001-multi-project)
+- JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN), Express.js, pg (node-postgres), bcryptjs, jsonwebtoken (001-multi-project)
+- JavaScript (ES2020+), React 18 via CDN + Babel standalone + React 18 (CDN), Babel standalone (CDN), ExcelJS (CDN), SheetJS/xlsx (CDN) (001-multi-project)
+- PostgreSQL 16 — JSONB blob (không thay đổi) (001-multi-project)
 
 ## Recent Changes
 - 001-project-management: Added JavaScript (ES2020+), Node.js 18+ + React 18 (CDN), Babel standalone (CDN),

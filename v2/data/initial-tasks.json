@@ -1,57 +1,89 @@
 {
   "tasks": [
     {
-      "id": 1, "name": "Pre-production", "isEpic": true, "phase": "Pre-production", "expanded": true,
+      "id": 1, "name": "Pre-production", "expanded": true,
       "children": [
-        {"id":10,"name":"Game Design Document (GDD)","team":"PM","assignee":"ToanNM","priority":"High","status":"To Do","start":"03/03/2026","end":"06/03/2026","pct":0,"deps":[],"notes":"Tai lieu thiet ke game tong the"},
-        {"id":11,"name":"Resource & Timeline Planning","team":"OP","assignee":"NienND","priority":"High","status":"To Do","start":"03/03/2026","end":"06/03/2026","pct":0,"deps":[],"notes":"Lap ke hoach nguon luc"},
-        {"id":12,"name":"UI/UX Wireframe - Lobby","team":"Design","assignee":"LocPT","priority":"High","status":"To Do","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[10],"notes":"Wireframe lobby"},
-        {"id":13,"name":"UI/UX Wireframe - Gameplay","team":"Design","assignee":"QuynhNH","priority":"High","status":"To Do","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[10],"notes":"Wireframe gameplay"},
-        {"id":14,"name":"Art Style Guide","team":"Art","assignee":"HoaGTT","priority":"High","status":"To Do","start":"05/03/2026","end":"10/03/2026","pct":0,"deps":[10],"notes":"Art direction"},
-        {"id":15,"name":"Technical Architecture","team":"Dev","assignee":"CongNN","priority":"High","status":"To Do","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[10],"notes":"Kien truc ky thuat"},
-        {"id":16,"name":"Prototype - Core Gameplay","team":"Dev","assignee":"HuongBP","priority":"Medium","status":"To Do","start":"09/03/2026","end":"16/03/2026","pct":0,"deps":[15],"notes":"Prototype logic"},
-        {"id":17,"name":"QA Test Plan","team":"QC","assignee":"NhanNT3","priority":"Medium","status":"To Do","start":"09/03/2026","end":"13/03/2026","pct":0,"deps":[10],"notes":"Ke hoach test"}
+        {"id":10,"name":"Game Design Document (GDD)","team":"PM","assignee":"ToanNM","priority":"High","status":"Not Started","start":"03/03/2026","end":"06/03/2026","pct":0,"deps":[],"notes":"Tai lieu thiet ke game tong the","children":[]},
+        {"id":11,"name":"Resource & Timeline Planning","team":"OP","assignee":"NienND","priority":"High","status":"Not Started","start":"03/03/2026","end":"06/03/2026","pct":0,"deps":[],"notes":"Lap ke hoach nguon luc","children":[]},
+        {"id":12,"name":"UI/UX Wireframe - Lobby","team":"Design","assignee":"LocPT","priority":"High","status":"Not Started","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[{"id":10,"type":"FS","lag":0}],"notes":"Wireframe lobby","children":[]},
+        {"id":13,"name":"UI/UX Wireframe - Gameplay","team":"Design","assignee":"QuynhNH","priority":"High","status":"Not Started","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[{"id":10,"type":"FS","lag":0}],"notes":"Wireframe gameplay","children":[]},
+        {"id":14,"name":"Art Style Guide","team":"Art","assignee":"HoaGTT","priority":"High","status":"Not Started","start":"05/03/2026","end":"10/03/2026","pct":0,"deps":[{"id":10,"type":"FS","lag":0}],"notes":"Art direction","children":[]},
+        {"id":15,"name":"Technical Architecture","team":"Dev","assignee":"CongNN","priority":"High","status":"Not Started","start":"04/03/2026","end":"09/03/2026","pct":0,"deps":[{"id":10,"type":"FS","lag":0}],"notes":"Kien truc ky thuat","children":[]},
+        {"id":16,"name":"Prototype - Core Gameplay","team":"Dev","assignee":"HuongBP","priority":"Normal","status":"Not Started","start":"09/03/2026","end":"16/03/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0}],"notes":"Prototype logic","children":[]},
+        {"id":17,"name":"QA Test Plan","team":"QC","assignee":"NhanNT3","priority":"Normal","status":"Not Started","start":"09/03/2026","end":"13/03/2026","pct":0,"deps":[{"id":10,"type":"FS","lag":0}],"notes":"Ke hoach test","children":[]}
       ]
     },
     {
-      "id": 2, "name": "Production", "isEpic": true, "phase": "Production", "expanded": true,
+      "id": 2, "name": "Production", "expanded": true,
       "children": [
-        {"id":20,"name":"Card Design (52 la bai)","team":"Art","assignee":"HoaGTT","priority":"High","status":"To Do","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[14],"notes":"52 la bai + mat sau"},
-        {"id":21,"name":"Table & Background Art","team":"Art","assignee":"TuND4","priority":"High","status":"To Do","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[14],"notes":"Ban choi, background"},
-        {"id":22,"name":"Character/Avatar Design","team":"Art","assignee":"NgocLA","priority":"Medium","status":"To Do","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[14],"notes":"Avatar, dealer"},
-        {"id":23,"name":"Chip & Token Assets","team":"Art","assignee":"TuND4","priority":"Medium","status":"To Do","start":"26/03/2026","end":"31/03/2026","pct":0,"deps":[21],"notes":"Chip, token, icon"},
-        {"id":24,"name":"Design Ban choi","team":"Design","assignee":"QuynhNH","priority":"High","status":"To Do","start":"18/03/2026","end":"24/03/2026","pct":0,"deps":[12],"notes":"Design ban poker"},
-        {"id":25,"name":"UI Design - Lobby & Menu","team":"Design","assignee":"LocPT","priority":"High","status":"To Do","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[12],"notes":"UI lobby, menu"},
-        {"id":26,"name":"UI Design - Gameplay Screen","team":"Design","assignee":"QuynhNH","priority":"High","status":"To Do","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[13],"notes":"UI gameplay"},
-        {"id":27,"name":"UI Design - Shop & Profile","team":"Design","assignee":"BinhNT","priority":"Medium","status":"To Do","start":"23/03/2026","end":"30/03/2026","pct":0,"deps":[25],"notes":"UI shop, profile"},
-        {"id":28,"name":"UI Animation Specs","team":"Design","assignee":"LocPT","priority":"Medium","status":"To Do","start":"26/03/2026","end":"31/03/2026","pct":0,"deps":[25,26],"notes":"Animation specs"},
-        {"id":30,"name":"Core Engine - Card Logic","team":"Dev","assignee":"CongNN","priority":"High","status":"To Do","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[15,16],"notes":"Card engine"},
-        {"id":31,"name":"Betting System","team":"Dev","assignee":"HuongBP","priority":"High","status":"To Do","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[15],"notes":"Betting, pot"},
-        {"id":32,"name":"Multiplayer/Networking","team":"Dev","assignee":"DienDQ","priority":"High","status":"To Do","start":"20/03/2026","end":"03/04/2026","pct":0,"deps":[15],"notes":"Multiplayer, rooms"},
-        {"id":33,"name":"UI Implementation - Lobby","team":"Dev","assignee":"CongNT7","priority":"High","status":"To Do","start":"26/03/2026","end":"03/04/2026","pct":0,"deps":[25],"notes":"Code UI lobby"},
-        {"id":34,"name":"UI Implementation - Gameplay","team":"Dev","assignee":"PhucNN","priority":"High","status":"To Do","start":"26/03/2026","end":"03/04/2026","pct":0,"deps":[26],"notes":"Code UI gameplay"},
-        {"id":35,"name":"Backend API & Database","team":"Dev","assignee":"SonBNT","priority":"High","status":"To Do","start":"18/03/2026","end":"31/03/2026","pct":0,"deps":[15],"notes":"API, DB"},
-        {"id":36,"name":"AI Bot Logic","team":"Dev","assignee":"CongNN","priority":"Medium","status":"To Do","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[30],"notes":"AI bot"},
-        {"id":37,"name":"Shop & In-app Purchase","team":"Dev","assignee":"HuongBP","priority":"Medium","status":"To Do","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[31,35],"notes":"Shop, IAP"},
-        {"id":40,"name":"Sound Effects (SFX)","team":"Multimedia","assignee":"HungVM2","priority":"Medium","status":"To Do","start":"18/03/2026","end":"31/03/2026","pct":0,"deps":[],"notes":"SFX"},
-        {"id":41,"name":"Background Music","team":"Multimedia","assignee":"HungVM2","priority":"Low","status":"To Do","start":"01/04/2026","end":"07/04/2026","pct":0,"deps":[40],"notes":"BGM"},
-        {"id":42,"name":"Card Animation & VFX","team":"Multimedia","assignee":"HungVM2","priority":"Medium","status":"To Do","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[20,40],"notes":"Animation, VFX"},
-        {"id":45,"name":"Sprint Review & Tracking","team":"PM","assignee":"ToanNM","priority":"High","status":"To Do","start":"18/03/2026","end":"14/04/2026","pct":0,"deps":[],"notes":"Weekly review"},
-        {"id":46,"name":"Build & Deployment Setup","team":"OP","assignee":"NienND","priority":"High","status":"To Do","start":"18/03/2026","end":"24/03/2026","pct":0,"deps":[15],"notes":"CI/CD"}
+        {"id":20,"name":"Card Design (52 la bai)","team":"Art","assignee":"HoaGTT","priority":"High","status":"Not Started","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[{"id":14,"type":"FS","lag":0}],"notes":"52 la bai + mat sau","children":[]},
+        {"id":21,"name":"Table & Background Art","team":"Art","assignee":"TuND4","priority":"High","status":"Not Started","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[{"id":14,"type":"FS","lag":0}],"notes":"Ban choi, background","children":[]},
+        {"id":22,"name":"Character/Avatar Design","team":"Art","assignee":"NgocLA","priority":"Normal","status":"Not Started","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[{"id":14,"type":"FS","lag":0}],"notes":"Avatar, dealer","children":[]},
+        {"id":23,"name":"Chip & Token Assets","team":"Art","assignee":"TuND4","priority":"Normal","status":"Not Started","start":"26/03/2026","end":"31/03/2026","pct":0,"deps":[{"id":21,"type":"FS","lag":0}],"notes":"Chip, token, icon","children":[]},
+        {"id":24,"name":"Design Ban choi","team":"Design","assignee":"QuynhNH","priority":"High","status":"Not Started","start":"18/03/2026","end":"24/03/2026","pct":0,"deps":[{"id":12,"type":"FS","lag":0}],"notes":"Design ban poker","children":[]},
+        {"id":25,"name":"UI Design - Lobby & Menu","team":"Design","assignee":"LocPT","priority":"High","status":"Not Started","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[{"id":12,"type":"FS","lag":0}],"notes":"UI lobby, menu","children":[]},
+        {"id":26,"name":"UI Design - Gameplay Screen","team":"Design","assignee":"QuynhNH","priority":"High","status":"Not Started","start":"18/03/2026","end":"25/03/2026","pct":0,"deps":[{"id":13,"type":"FS","lag":0}],"notes":"UI gameplay","children":[]},
+        {"id":27,"name":"UI Design - Shop & Profile","team":"Design","assignee":"BinhNT","priority":"Normal","status":"Not Started","start":"23/03/2026","end":"30/03/2026","pct":0,"deps":[{"id":25,"type":"FS","lag":0}],"notes":"UI shop, profile","children":[]},
+        {"id":28,"name":"UI Animation Specs","team":"Design","assignee":"LocPT","priority":"Normal","status":"Not Started","start":"26/03/2026","end":"31/03/2026","pct":0,"deps":[{"id":25,"type":"FS","lag":0},{"id":26,"type":"FS","lag":0}],"notes":"Animation specs","children":[]},
+        {"id":30,"name":"Core Engine - Card Logic","team":"Dev","assignee":"CongNN","priority":"High","status":"Not Started","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0},{"id":16,"type":"FS","lag":0}],"notes":"Card engine","children":[]},
+        {"id":31,"name":"Betting System","team":"Dev","assignee":"HuongBP","priority":"High","status":"Not Started","start":"18/03/2026","end":"27/03/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0}],"notes":"Betting, pot","children":[]},
+        {"id":32,"name":"Multiplayer/Networking","team":"Dev","assignee":"DienDQ","priority":"High","status":"Not Started","start":"20/03/2026","end":"03/04/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0}],"notes":"Multiplayer, rooms","children":[]},
+        {"id":100,"name":"UI Implementation","expanded":true,"children":[
+          {"id":33,"name":"UI Implementation - Lobby","team":"Dev","assignee":"CongNT7","priority":"High","status":"Not Started","start":"26/03/2026","end":"03/04/2026","pct":0,"deps":[{"id":25,"type":"FS","lag":0}],"notes":"Code UI lobby","children":[]},
+          {"id":34,"name":"UI Implementation - Gameplay","team":"Dev","assignee":"PhucNN","priority":"High","status":"Not Started","start":"26/03/2026","end":"03/04/2026","pct":0,"deps":[{"id":26,"type":"FS","lag":0}],"notes":"Code UI gameplay","children":[]},
+          {"id":101,"name":"UI Polish & Animation","team":"Dev","assignee":"PhucNN","priority":"Normal","status":"Not Started","start":"04/04/2026","end":"09/04/2026","pct":0,"deps":[{"id":33,"type":"FS","lag":0},{"id":34,"type":"FS","lag":0}],"notes":"Polish UI va animation","children":[]}
+        ]},
+        {"id":35,"name":"Backend API & Database","team":"Dev","assignee":"SonBNT","priority":"High","status":"Not Started","start":"18/03/2026","end":"31/03/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0}],"notes":"API, DB","children":[]},
+        {"id":36,"name":"AI Bot Logic","team":"Dev","assignee":"CongNN","priority":"Normal","status":"Not Started","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[{"id":30,"type":"FS","lag":0}],"notes":"AI bot","children":[]},
+        {"id":37,"name":"Shop & In-app Purchase","team":"Dev","assignee":"HuongBP","priority":"Normal","status":"Not Started","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[{"id":31,"type":"FS","lag":0},{"id":35,"type":"FS","lag":0}],"notes":"Shop, IAP","children":[]},
+        {"id":40,"name":"Sound Effects (SFX)","team":"Multimedia","assignee":"HungVM2","priority":"Normal","status":"Not Started","start":"18/03/2026","end":"31/03/2026","pct":0,"deps":[],"notes":"SFX","children":[]},
+        {"id":41,"name":"Background Music","team":"Multimedia","assignee":"HungVM2","priority":"Low","status":"Not Started","start":"01/04/2026","end":"07/04/2026","pct":0,"deps":[{"id":40,"type":"FS","lag":0}],"notes":"BGM","children":[]},
+        {"id":42,"name":"Card Animation & VFX","team":"Multimedia","assignee":"HungVM2","priority":"Normal","status":"Not Started","start":"30/03/2026","end":"07/04/2026","pct":0,"deps":[{"id":20,"type":"FS","lag":0},{"id":40,"type":"FS","lag":0}],"notes":"Animation, VFX","children":[]},
+        {"id":45,"name":"Sprint Review & Tracking","team":"PM","assignee":"ToanNM","priority":"High","status":"Not Started","start":"18/03/2026","end":"14/04/2026","pct":0,"deps":[],"notes":"Weekly review","children":[]},
+        {"id":46,"name":"Build & Deployment Setup","team":"OP","assignee":"NienND","priority":"High","status":"Not Started","start":"18/03/2026","end":"24/03/2026","pct":0,"deps":[{"id":15,"type":"FS","lag":0}],"notes":"CI/CD","children":[]}
       ]
     },
     {
-      "id": 3, "name": "Testing & QA", "isEpic": true, "phase": "Testing & QA", "expanded": true,
+      "id": 3, "name": "Testing & QA", "expanded": true,
       "children": [
-        {"id":50,"name":"Functional Testing","team":"QC","assignee":"NhanNT3","priority":"High","status":"To Do","start":"15/04/2026","end":"21/04/2026","pct":0,"deps":[17],"notes":"Test core gameplay"},
-        {"id":51,"name":"Integration Testing","team":"Dev","assignee":"DienDQ","priority":"High","status":"To Do","start":"15/04/2026","end":"20/04/2026","pct":0,"deps":[32,35],"notes":"Integration test"},
-        {"id":52,"name":"Performance Testing","team":"Dev","assignee":"SonBNT","priority":"Medium","status":"To Do","start":"20/04/2026","end":"22/04/2026","pct":0,"deps":[51],"notes":"Load test"},
-        {"id":53,"name":"Bug Fixing Sprint","team":"Dev","assignee":"CongNN","priority":"High","status":"To Do","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[50,51],"notes":"Fix bugs"},
-        {"id":54,"name":"UI/UX Polish","team":"Design","assignee":"LocPT","priority":"Medium","status":"To Do","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[50],"notes":"Polish UI"},
-        {"id":55,"name":"Art Asset Polish","team":"Art","assignee":"HoaGTT","priority":"Low","status":"To Do","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[50],"notes":"Polish art"},
-        {"id":56,"name":"Final Build & Release","team":"OP","assignee":"NienND","priority":"High","status":"To Do","start":"26/04/2026","end":"28/04/2026","pct":0,"deps":[53],"notes":"Final build"},
-        {"id":57,"name":"Release Sign-off","team":"PM","assignee":"ToanNM","priority":"High","status":"To Do","start":"28/04/2026","end":"28/04/2026","pct":0,"deps":[56],"notes":"Sign-off"}
+        {"id":50,"name":"Functional Testing","team":"QC","assignee":"NhanNT3","priority":"High","status":"Not Started","start":"15/04/2026","end":"21/04/2026","pct":0,"deps":[{"id":17,"type":"FS","lag":0}],"notes":"Test core gameplay","children":[]},
+        {"id":51,"name":"Integration Testing","team":"Dev","assignee":"DienDQ","priority":"High","status":"Not Started","start":"15/04/2026","end":"20/04/2026","pct":0,"deps":[{"id":32,"type":"FS","lag":0},{"id":35,"type":"FS","lag":0}],"notes":"Integration test","children":[]},
+        {"id":52,"name":"Performance Testing","team":"Dev","assignee":"SonBNT","priority":"Normal","status":"Not Started","start":"20/04/2026","end":"22/04/2026","pct":0,"deps":[{"id":51,"type":"FS","lag":0}],"notes":"Load test","children":[]},
+        {"id":53,"name":"Bug Fixing Sprint","team":"Dev","assignee":"CongNN","priority":"High","status":"Not Started","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[{"id":50,"type":"FS","lag":0},{"id":51,"type":"FS","lag":0}],"notes":"Fix bugs","children":[]},
+        {"id":54,"name":"UI/UX Polish","team":"Design","assignee":"LocPT","priority":"Normal","status":"Not Started","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[{"id":50,"type":"FS","lag":0}],"notes":"Polish UI","children":[]},
+        {"id":55,"name":"Art Asset Polish","team":"Art","assignee":"HoaGTT","priority":"Low","status":"Not Started","start":"20/04/2026","end":"27/04/2026","pct":0,"deps":[{"id":50,"type":"FS","lag":0}],"notes":"Polish art","children":[]},
+        {"id":56,"name":"Final Build & Release","team":"OP","assignee":"NienND","priority":"High","status":"Not Started","start":"26/04/2026","end":"28/04/2026","pct":0,"deps":[{"id":53,"type":"FS","lag":0}],"notes":"Final build","children":[]},
+        {"id":57,"name":"Release Sign-off","team":"PM","assignee":"ToanNM","priority":"High","status":"Not Started","start":"28/04/2026","end":"28/04/2026","pct":0,"deps":[{"id":56,"type":"FS","lag":0}],"notes":"Sign-off","children":[]}
       ]
+    }
+  ],
+  "meetings": [
+    {
+      "id": 1,
+      "title": "Kickoff Meeting - Poker Texas Build",
+      "date": "03/03/2026",
+      "content": "Du an Poker Texas chinh thuc bat dau.\n\n@ToanNM trinh bay timeline tong the va phan cong nhiem vu.\n@CongNN review kien truc ky thuat, de xuat dung WebSocket cho multiplayer.\n@LocPT va @QuynhNH bat dau wireframe tu tuan sau.\n\nQuyet dinh:\n- Sprint 1 tap trung Pre-production (2 tuan)\n- Daily standup 9h30 hang ngay\n- @NienND setup CI/CD trong tuan dau",
+      "attendees": ["ToanNM", "CongNN", "LocPT", "QuynhNH", "NienND", "HoaGTT"],
+      "createdBy": "admin",
+      "createdAt": "2026-03-03T09:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Sprint 1 Review",
+      "date": "06/03/2026",
+      "content": "Review ket qua sprint 1:\n\n@CongNN hoan thanh Technical Architecture doc.\n@HoaGTT da co Art Style Guide ban dau, can feedback tu team Design.\n@NhanNT3 hoan thanh QA Test Plan.\n\nAction items:\n- @HuongBP bat dau prototype core gameplay tu 09/03\n- @DienDQ nghien cuu multiplayer framework\n- @ToanNM update timeline dua tren progress hien tai",
+      "attendees": ["ToanNM", "CongNN", "HuongBP", "HoaGTT", "NhanNT3", "DienDQ"],
+      "createdBy": "admin",
+      "createdAt": "2026-03-06T15:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "title": "Daily Standup - 10/03",
+      "date": "10/03/2026",
+      "content": "@CongNN: Dang lam card engine, du kien xong 15/03.\n@HuongBP: Betting system 40% done, can clarify rule all-in.\n@LocPT: Wireframe lobby v2 da gui review.\n\nBlocker:\n- @PhucNN can design gameplay screen xong moi bat dau UI implementation\n- @SonBNT cho API spec tu @CongNN",
+      "attendees": ["CongNN", "HuongBP", "LocPT", "PhucNN", "SonBNT"],
+      "createdBy": "admin",
+      "createdAt": "2026-03-10T09:30:00.000Z"
     }
   ],
   "members": [
@@ -66,9 +98,6 @@
   "teamColors": {
     "PM":"#34495e","Design":"#e67e22","Art":"#9b59b6","Dev":"#2980b9",
     "Client":"#16a085","Server":"#8e44ad","QC":"#c0392b","Multimedia":"#1abc9c","OP":"#7f8c8d"
-  },
-  "phaseColors": {
-    "Pre-production":"#3498db","Production":"#27ae60","Testing & QA":"#e74c3c"
   },
   "version": 1,
   "savedAt": "2026-03-07T00:00:00.000Z"

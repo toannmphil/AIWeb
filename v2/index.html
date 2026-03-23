@@ -41,7 +41,7 @@ select:focus,input:focus{border-color:var(--primary)}
 .task-row{display:flex;align-items:center;padding:0 8px;height:32px;border-bottom:1px solid rgba(71,85,105,.3);cursor:pointer;transition:background .1s;font-size:12px}
 .task-row:hover{background:rgba(59,130,246,.08)}
 .task-row.selected{background:rgba(59,130,246,.15)}
-.task-row.epic{background:rgba(59,130,246,.05);font-weight:700}
+.task-row.parent{background:rgba(59,130,246,.05);font-weight:700}
 .task-row .expand-btn{width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:10px;flex-shrink:0;border-radius:3px;transition:all .15s}
 .task-row .expand-btn:hover{background:var(--surface2)}
 .task-row .indent{flex-shrink:0}
@@ -80,11 +80,11 @@ select:focus,input:focus{border-color:var(--primary)}
 .team-Art{background:#9b59b6}.team-Dev{background:#2980b9}.team-Design{background:#e67e22}
 .team-Multimedia{background:#1abc9c}.team-PM{background:#34495e}.team-OP{background:#7f8c8d}.team-QC{background:#c0392b}
 .team-Client{background:#16a085}.team-Server{background:#8e44ad}
-.pri-High{background:var(--red)}.pri-Medium{background:var(--yellow)}.pri-Low{background:var(--green)}
-.status-todo{background:var(--surface2);color:var(--text2)}
+.pri-High{background:var(--red)}.pri-Normal{background:var(--yellow)}.pri-Low{background:var(--green)}
+.status-notstarted{background:var(--surface2);color:var(--text2)}
 .status-progress{background:rgba(59,130,246,.2);color:var(--primary)}
-.status-done{background:rgba(34,197,94,.2);color:var(--green)}
-.status-blocked{background:rgba(239,68,68,.2);color:var(--red)}
+.status-completed{background:rgba(34,197,94,.2);color:var(--green)}
+.status-onhold{background:rgba(239,68,68,.2);color:var(--red)}
 .critical .gantt-bar{box-shadow:0 0 0 2px var(--red)}
 .resize-handle{position:absolute;top:0;right:-3px;width:8px;height:100%;cursor:col-resize;z-index:10}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
@@ -117,6 +117,12 @@ select:focus,input:focus{border-color:var(--primary)}
 @keyframes dotPulse{0%,80%,100%{opacity:.3}40%{opacity:1}}
 .saving-dots span{animation:dotPulse 1.4s infinite;font-size:16px;line-height:1}.saving-dots span:nth-child(2){animation-delay:.2s}.saving-dots span:nth-child(3){animation-delay:.4s}
 .delete-link{background:none;border:none;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;opacity:.5;padding:4px 0}.delete-link:hover{color:var(--red);opacity:1}
+.mention{background:#1e3a5f;color:#60a5fa;border-radius:3px;padding:0 4px;font-weight:600;display:inline;white-space:nowrap}
+.mention-container{position:relative}
+.mention-dropdown{position:absolute;left:0;bottom:100%;margin-bottom:4px;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.3);max-height:200px;overflow-y:auto;z-index:1000;min-width:180px}
+.mention-dropdown-item{padding:8px 12px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px}
+.mention-dropdown-item:hover,.mention-dropdown-item.active{background:var(--surface2)}
+.mention-dropdown-item .team-label{font-size:10px;color:var(--text2);margin-left:auto}
 input[type=date]{width:28px;min-width:28px;padding:0;border:none;background:transparent;cursor:pointer;opacity:.6}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 input[type=date]::-webkit-datetime-edit{display:none}
@@ -124,6 +130,50 @@ input[type=date]::-webkit-datetime-edit{display:none}
 .view-tab{padding:5px 12px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s}
 .view-tab.active{background:var(--primary);color:#fff}
 .view-tab:hover:not(.active){background:var(--surface2)}
+/* ── Responsive: Tablet/Mobile (≤768px) ── */
+@media (max-width:768px){
+.mobile-hidden{display:none!important}
+body{overflow:auto;height:auto;min-height:100vh}
+.app{height:auto;min-height:100vh}
+.btn{padding:8px 12px}
+.btn-sm{padding:6px 10px;font-size:12px}
+.modal{width:calc(100vw - 16px);max-width:100%;margin:8px}
+.modal.wide{width:calc(100vw - 16px)}
+.toast{left:16px;right:16px;bottom:16px;text-align:center}
+.header{flex-wrap:wrap;padding:8px 12px;gap:8px}
+.header h1{font-size:14px}
+.header-actions{flex-wrap:wrap;gap:4px;width:100%;justify-content:flex-start}
+.view-tab{padding:6px 10px;font-size:12px}
+.toolbar{flex-wrap:wrap;padding:6px 12px;gap:6px}
+.stats{display:none}
+.search-box{width:100%;order:10}
+.main{flex-direction:column}
+.task-panel{width:100%;min-width:unset;border-right:none;flex:1}
+.gantt-panel{display:none}
+.task-row{height:40px;padding:0 6px;font-size:12px}
+.board-view{padding:8px;gap:8px;-webkit-overflow-scrolling:touch}
+.board-column{min-width:160px!important}
+.detail-overlay{width:100%;left:0}
+.detail-overlay .close-btn{font-size:24px;top:10px;right:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.detail-overlay .field input,.detail-overlay .field select,.detail-overlay .field textarea,
+.modal .field input,.modal .field select,.modal .field textarea{padding:10px 12px;font-size:14px}
+.confirm-dialog{width:calc(100vw - 32px);max-width:100%}
+.admin-table{display:block;overflow-x:auto}
+.meeting-card{flex-wrap:wrap}
+.attendee-chip{padding:6px 10px!important;font-size:12px!important}
+.task-list,.gantt-body,.detail-overlay{-webkit-overflow-scrolling:touch}
+select{-webkit-appearance:none;appearance:none}
+}
+/* ── Responsive: Phone (≤480px) ── */
+@media (max-width:480px){
+.phone-hidden{display:none!important}
+.header h1{font-size:12px}
+.btn-export,.btn-jira,.btn-import{display:none}
+.col-wbs,.col-start,.col-dur,.col-end{display:none!important}
+.task-row .task-date{display:none}
+.board-column{min-width:140px!important}
+.login-form{width:calc(100vw - 32px)!important;padding:24px!important}
+}
 </style>
 </head>
 <body>
@@ -134,19 +184,21 @@ input[type=date]::-webkit-datetime-edit{display:none}
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
+const BUILD_VERSION = 'v2.0.2';
+const BUILD_TIME = '2026-03-15 16:00';
 const PROJECT_START = new Date(2026, 2, 3);
 const NUM_WEEKS = 9;
 const DAY_MS = 86400000;
 const INIT_TEAMS = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
 const TEAM_SORT_ORDER = ['PM','Design','Art','Dev','Client','Server','QC','Multimedia','OP'];
-const PRIORITIES = ['High','Medium','Low'];
-const STATUSES = ['To Do','In Progress','Done','Blocked'];
+const PRIORITIES = ['High','Normal','Low'];
+const STATUSES = ['Not Started','In Progress','Completed','On Hold'];
 const INIT_TEAM_COLORS = {PM:'#34495e',Design:'#e67e22',Art:'#9b59b6',Dev:'#2980b9',Client:'#16a085',Server:'#8e44ad',QC:'#c0392b',Multimedia:'#1abc9c',OP:'#7f8c8d'};
-const INIT_PHASE_COLORS = {'Pre-production':'#3498db',Production:'#27ae60','Testing & QA':'#e74c3c'};
 const INIT_MEMBERS = {PM:['ToanNM'],Design:['LocPT','QuynhNH','BinhNT'],Art:['HoaGTT','TuND4','NgocLA'],Dev:['CongNN','HuongBP','DienDQ','CongNT7','PhucNN','SonBNT'],Client:[],Server:[],QC:['NhanNT3'],Multimedia:['HungVM2'],OP:['NienND']};
+const DEP_TYPES = ['FS','SS','FF','SF'];
 const PALETTE = ['#9b59b6','#2980b9','#e67e22','#1abc9c','#34495e','#7f8c8d','#c0392b','#e74c3c','#f39c12','#16a085','#8e44ad','#d35400','#2c3e50','#27ae60'];
 
-function d(s){const p=s.split('/');return new Date(+p[2],+p[1]-1,+p[0])}
+function d(s){if(!s)return new Date(0);const p=s.split('/');return new Date(+p[2],+p[1]-1,+p[0])}
 function fmt(dt){if(!dt)return'';return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`}
 function addDays(dt,n){return new Date(dt.getTime()+n*DAY_MS)}
 function diffDays(a,b){return Math.round((b-a)/DAY_MS)}
@@ -164,92 +216,150 @@ function isValidDate(s){if(!s)return false;const p=s.match(/^(\d{2})\/(\d{2})\/(
 let nextId = 100;
 function initNextId(tasks){
   let max=99;
-  tasks.forEach(t=>{if(t.id>max)max=t.id;if(t.children)t.children.forEach(c=>{if(c.id>max)max=c.id})});
+  function scan(arr){(arr||[]).forEach(t=>{if(t.id>max)max=t.id;if(t.children)scan(t.children)})}
+  scan(tasks);
   nextId=max+1;
 }
 function genId(){return nextId++}
 
 const INITIAL_TASKS = [
-  {id:1,name:'Pre-production',type:'epic',phase:'Pre-production',expanded:true,children:[
-    {id:10,name:'Game Design Document (GDD)',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Tai lieu thiet ke game tong the'},
-    {id:11,name:'Resource & Timeline Planning',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Lap ke hoach nguon luc'},
-    {id:12,name:'UI/UX Wireframe - Lobby',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe lobby'},
-    {id:13,name:'UI/UX Wireframe - Gameplay',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Wireframe gameplay'},
-    {id:14,name:'Art Style Guide',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'05/03/2026',end:'10/03/2026',pct:0,deps:[10],notes:'Art direction'},
-    {id:15,name:'Technical Architecture',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[10],notes:'Kien truc ky thuat'},
-    {id:16,name:'Prototype - Core Gameplay',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'09/03/2026',end:'16/03/2026',pct:0,deps:[15],notes:'Prototype logic'},
-    {id:17,name:'QA Test Plan',team:'QC',assignee:'NhanNT3',priority:'Medium',status:'To Do',start:'09/03/2026',end:'13/03/2026',pct:0,deps:[10],notes:'Ke hoach test'},
+  {id:1,name:'Pre-production',expanded:true,children:[
+    {id:10,name:'Game Design Document (GDD)',team:'PM',assignee:'ToanNM',priority:'High',status:'Not Started',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Tài liệu thiết kế game tổng thể',children:[]},
+    {id:11,name:'Resource & Timeline Planning',team:'OP',assignee:'NienND',priority:'High',status:'Not Started',start:'03/03/2026',end:'06/03/2026',pct:0,deps:[],notes:'Lập kế hoạch nguồn lực',children:[]},
+    {id:12,name:'UI/UX Wireframe - Lobby',team:'Design',assignee:'LocPT',priority:'High',status:'Not Started',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[{id:10,type:'FS',lag:0}],notes:'Wireframe lobby',children:[]},
+    {id:13,name:'UI/UX Wireframe - Gameplay',team:'Design',assignee:'QuynhNH',priority:'High',status:'Not Started',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[{id:10,type:'FS',lag:0}],notes:'Wireframe gameplay',children:[]},
+    {id:14,name:'Art Style Guide',team:'Art',assignee:'HoaGTT',priority:'High',status:'Not Started',start:'05/03/2026',end:'10/03/2026',pct:0,deps:[{id:10,type:'FS',lag:0}],notes:'Art direction',children:[]},
+    {id:15,name:'Technical Architecture',team:'Dev',assignee:'CongNN',priority:'High',status:'Not Started',start:'04/03/2026',end:'09/03/2026',pct:0,deps:[{id:10,type:'FS',lag:0}],notes:'Kien truc ky thuat',children:[]},
+    {id:16,name:'Prototype - Core Gameplay',team:'Dev',assignee:'HuongBP',priority:'Normal',status:'Not Started',start:'09/03/2026',end:'16/03/2026',pct:0,deps:[{id:15,type:'FS',lag:0}],notes:'Prototype logic',children:[]},
+    {id:17,name:'QA Test Plan',team:'QC',assignee:'NhanNT3',priority:'Normal',status:'Not Started',start:'09/03/2026',end:'13/03/2026',pct:0,deps:[{id:10,type:'FS',lag:0}],notes:'Kế hoạch test',children:[]},
   ]},
-  {id:2,name:'Production',type:'epic',phase:'Production',expanded:true,children:[
-    {id:20,name:'Card Design (52 la bai)',team:'Art',assignee:'HoaGTT',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'52 la bai + mat sau'},
-    {id:21,name:'Table & Background Art',team:'Art',assignee:'TuND4',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[14],notes:'Ban choi, background'},
-    {id:22,name:'Character/Avatar Design',team:'Art',assignee:'NgocLA',priority:'Medium',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[14],notes:'Avatar, dealer'},
-    {id:23,name:'Chip & Token Assets',team:'Art',assignee:'TuND4',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[21],notes:'Chip, token, icon'},
-    {id:24,name:'Design Ban choi',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[12],notes:'Design ban poker'},
-    {id:25,name:'UI Design - Lobby & Menu',team:'Design',assignee:'LocPT',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[12],notes:'UI lobby, menu'},
-    {id:26,name:'UI Design - Gameplay Screen',team:'Design',assignee:'QuynhNH',priority:'High',status:'To Do',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[13],notes:'UI gameplay'},
-    {id:27,name:'UI Design - Shop & Profile',team:'Design',assignee:'BinhNT',priority:'Medium',status:'To Do',start:'23/03/2026',end:'30/03/2026',pct:0,deps:[25],notes:'UI shop, profile'},
-    {id:28,name:'UI Animation Specs',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[25,26],notes:'Animation specs'},
-    {id:30,name:'Core Engine - Card Logic',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15,16],notes:'Card engine'},
-    {id:31,name:'Betting System',team:'Dev',assignee:'HuongBP',priority:'High',status:'To Do',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[15],notes:'Betting, pot'},
-    {id:32,name:'Multiplayer/Networking',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'20/03/2026',end:'03/04/2026',pct:0,deps:[15],notes:'Multiplayer, rooms'},
-    {id:33,name:'UI Implementation - Lobby',team:'Dev',assignee:'CongNT7',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[25],notes:'Code UI lobby'},
-    {id:34,name:'UI Implementation - Gameplay',team:'Dev',assignee:'PhucNN',priority:'High',status:'To Do',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[26],notes:'Code UI gameplay'},
-    {id:35,name:'Backend API & Database',team:'Dev',assignee:'SonBNT',priority:'High',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[15],notes:'API, DB'},
-    {id:36,name:'AI Bot Logic',team:'Dev',assignee:'CongNN',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[30],notes:'AI bot'},
-    {id:37,name:'Shop & In-app Purchase',team:'Dev',assignee:'HuongBP',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[31,35],notes:'Shop, IAP'},
-    {id:40,name:'Sound Effects (SFX)',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[],notes:'SFX'},
-    {id:41,name:'Background Music',team:'Multimedia',assignee:'HungVM2',priority:'Low',status:'To Do',start:'01/04/2026',end:'07/04/2026',pct:0,deps:[40],notes:'BGM'},
-    {id:42,name:'Card Animation & VFX',team:'Multimedia',assignee:'HungVM2',priority:'Medium',status:'To Do',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[20,40],notes:'Animation, VFX'},
-    {id:45,name:'Sprint Review & Tracking',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'18/03/2026',end:'14/04/2026',pct:0,deps:[],notes:'Weekly review'},
-    {id:46,name:'Build & Deployment Setup',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[15],notes:'CI/CD'},
+  {id:2,name:'Production',expanded:true,children:[
+    {id:20,name:'Card Design (52 la bai)',team:'Art',assignee:'HoaGTT',priority:'High',status:'Not Started',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[{id:14,type:'FS',lag:0}],notes:'52 la bai + mat sau',children:[]},
+    {id:21,name:'Table & Background Art',team:'Art',assignee:'TuND4',priority:'High',status:'Not Started',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[{id:14,type:'FS',lag:0}],notes:'Bàn chơi, background',children:[]},
+    {id:22,name:'Character/Avatar Design',team:'Art',assignee:'NgocLA',priority:'Normal',status:'Not Started',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[{id:14,type:'FS',lag:0}],notes:'Avatar, dealer',children:[]},
+    {id:23,name:'Chip & Token Assets',team:'Art',assignee:'TuND4',priority:'Normal',status:'Not Started',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[{id:21,type:'FS',lag:0}],notes:'Chip, token, icon',children:[]},
+    {id:24,name:'Design Ban choi',team:'Design',assignee:'QuynhNH',priority:'High',status:'Not Started',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[{id:12,type:'FS',lag:0}],notes:'Design bàn poker',children:[]},
+    {id:25,name:'UI Design - Lobby & Menu',team:'Design',assignee:'LocPT',priority:'High',status:'Not Started',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[{id:12,type:'FS',lag:0}],notes:'UI lobby, menu',children:[]},
+    {id:26,name:'UI Design - Gameplay Screen',team:'Design',assignee:'QuynhNH',priority:'High',status:'Not Started',start:'18/03/2026',end:'25/03/2026',pct:0,deps:[{id:13,type:'FS',lag:0}],notes:'UI gameplay',children:[]},
+    {id:27,name:'UI Design - Shop & Profile',team:'Design',assignee:'BinhNT',priority:'Normal',status:'Not Started',start:'23/03/2026',end:'30/03/2026',pct:0,deps:[{id:25,type:'FS',lag:0}],notes:'UI shop, profile',children:[]},
+    {id:28,name:'UI Animation Specs',team:'Design',assignee:'LocPT',priority:'Normal',status:'Not Started',start:'26/03/2026',end:'31/03/2026',pct:0,deps:[{id:25,type:'FS',lag:0},{id:26,type:'FS',lag:0}],notes:'Animation specs',children:[]},
+    {id:30,name:'Core Engine - Card Logic',team:'Dev',assignee:'CongNN',priority:'High',status:'Not Started',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[{id:15,type:'FS',lag:0},{id:16,type:'FS',lag:0}],notes:'Card engine',children:[]},
+    {id:31,name:'Betting System',team:'Dev',assignee:'HuongBP',priority:'High',status:'Not Started',start:'18/03/2026',end:'27/03/2026',pct:0,deps:[{id:15,type:'FS',lag:0}],notes:'Betting, pot',children:[]},
+    {id:32,name:'Multiplayer/Networking',team:'Dev',assignee:'DienDQ',priority:'High',status:'Not Started',start:'20/03/2026',end:'03/04/2026',pct:0,deps:[{id:15,type:'FS',lag:0}],notes:'Multiplayer, rooms',children:[]},
+    {id:100,name:'UI Implementation',expanded:true,children:[
+      {id:33,name:'UI Implementation - Lobby',team:'Dev',assignee:'CongNT7',priority:'High',status:'Not Started',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[{id:25,type:'FS',lag:0}],notes:'Code UI lobby',children:[]},
+      {id:34,name:'UI Implementation - Gameplay',team:'Dev',assignee:'PhucNN',priority:'High',status:'Not Started',start:'26/03/2026',end:'03/04/2026',pct:0,deps:[{id:26,type:'FS',lag:0}],notes:'Code UI gameplay',children:[]},
+      {id:101,name:'UI Polish & Animation',team:'Dev',assignee:'PhucNN',priority:'Normal',status:'Not Started',start:'04/04/2026',end:'09/04/2026',pct:0,deps:[{id:33,type:'FS',lag:0},{id:34,type:'FS',lag:0}],notes:'Polish UI và animation',children:[]},
+    ]},
+    {id:35,name:'Backend API & Database',team:'Dev',assignee:'SonBNT',priority:'High',status:'Not Started',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[{id:15,type:'FS',lag:0}],notes:'API, DB',children:[]},
+    {id:36,name:'AI Bot Logic',team:'Dev',assignee:'CongNN',priority:'Normal',status:'Not Started',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[{id:30,type:'FS',lag:0}],notes:'AI bot',children:[]},
+    {id:37,name:'Shop & In-app Purchase',team:'Dev',assignee:'HuongBP',priority:'Normal',status:'Not Started',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[{id:31,type:'FS',lag:0},{id:35,type:'FS',lag:0}],notes:'Shop, IAP',children:[]},
+    {id:40,name:'Sound Effects (SFX)',team:'Multimedia',assignee:'HungVM2',priority:'Normal',status:'Not Started',start:'18/03/2026',end:'31/03/2026',pct:0,deps:[],notes:'SFX',children:[]},
+    {id:41,name:'Background Music',team:'Multimedia',assignee:'HungVM2',priority:'Low',status:'Not Started',start:'01/04/2026',end:'07/04/2026',pct:0,deps:[{id:40,type:'FS',lag:0}],notes:'BGM',children:[]},
+    {id:42,name:'Card Animation & VFX',team:'Multimedia',assignee:'HungVM2',priority:'Normal',status:'Not Started',start:'30/03/2026',end:'07/04/2026',pct:0,deps:[{id:20,type:'FS',lag:0},{id:40,type:'FS',lag:0}],notes:'Animation, VFX',children:[]},
+    {id:45,name:'Sprint Review & Tracking',team:'PM',assignee:'ToanNM',priority:'High',status:'Not Started',start:'18/03/2026',end:'14/04/2026',pct:0,deps:[],notes:'Weekly review',children:[]},
+    {id:46,name:'Build & Deployment Setup',team:'OP',assignee:'NienND',priority:'High',status:'Not Started',start:'18/03/2026',end:'24/03/2026',pct:0,deps:[{id:15,type:'FS',lag:0}],notes:'CI/CD',children:[]},
   ]},
-  {id:3,name:'Testing & QA',type:'epic',phase:'Testing & QA',expanded:true,children:[
-    {id:50,name:'Functional Testing',team:'QC',assignee:'NhanNT3',priority:'High',status:'To Do',start:'15/04/2026',end:'21/04/2026',pct:0,deps:[17],notes:'Test core gameplay'},
-    {id:51,name:'Integration Testing',team:'Dev',assignee:'DienDQ',priority:'High',status:'To Do',start:'15/04/2026',end:'20/04/2026',pct:0,deps:[32,35],notes:'Integration test'},
-    {id:52,name:'Performance Testing',team:'Dev',assignee:'SonBNT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'22/04/2026',pct:0,deps:[51],notes:'Load test'},
-    {id:53,name:'Bug Fixing Sprint',team:'Dev',assignee:'CongNN',priority:'High',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50,51],notes:'Fix bugs'},
-    {id:54,name:'UI/UX Polish',team:'Design',assignee:'LocPT',priority:'Medium',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish UI'},
-    {id:55,name:'Art Asset Polish',team:'Art',assignee:'HoaGTT',priority:'Low',status:'To Do',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[50],notes:'Polish art'},
-    {id:56,name:'Final Build & Release',team:'OP',assignee:'NienND',priority:'High',status:'To Do',start:'26/04/2026',end:'28/04/2026',pct:0,deps:[53],notes:'Final build'},
-    {id:57,name:'Release Sign-off',team:'PM',assignee:'ToanNM',priority:'High',status:'To Do',start:'28/04/2026',end:'28/04/2026',pct:0,deps:[56],notes:'Sign-off'},
+  {id:3,name:'Testing & QA',expanded:true,children:[
+    {id:50,name:'Functional Testing',team:'QC',assignee:'NhanNT3',priority:'High',status:'Not Started',start:'15/04/2026',end:'21/04/2026',pct:0,deps:[{id:17,type:'FS',lag:0}],notes:'Test core gameplay',children:[]},
+    {id:51,name:'Integration Testing',team:'Dev',assignee:'DienDQ',priority:'High',status:'Not Started',start:'15/04/2026',end:'20/04/2026',pct:0,deps:[{id:32,type:'FS',lag:0},{id:35,type:'FS',lag:0}],notes:'Integration test',children:[]},
+    {id:52,name:'Performance Testing',team:'Dev',assignee:'SonBNT',priority:'Normal',status:'Not Started',start:'20/04/2026',end:'22/04/2026',pct:0,deps:[{id:51,type:'FS',lag:0}],notes:'Load test',children:[]},
+    {id:53,name:'Bug Fixing Sprint',team:'Dev',assignee:'CongNN',priority:'High',status:'Not Started',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[{id:50,type:'FS',lag:0},{id:51,type:'FS',lag:0}],notes:'Fix bugs',children:[]},
+    {id:54,name:'UI/UX Polish',team:'Design',assignee:'LocPT',priority:'Normal',status:'Not Started',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[{id:50,type:'FS',lag:0}],notes:'Polish UI',children:[]},
+    {id:55,name:'Art Asset Polish',team:'Art',assignee:'HoaGTT',priority:'Low',status:'Not Started',start:'20/04/2026',end:'27/04/2026',pct:0,deps:[{id:50,type:'FS',lag:0}],notes:'Polish art',children:[]},
+    {id:56,name:'Final Build & Release',team:'OP',assignee:'NienND',priority:'High',status:'Not Started',start:'26/04/2026',end:'28/04/2026',pct:0,deps:[{id:53,type:'FS',lag:0}],notes:'Final build',children:[]},
+    {id:57,name:'Release Sign-off',team:'PM',assignee:'ToanNM',priority:'High',status:'Not Started',start:'28/04/2026',end:'28/04/2026',pct:0,deps:[{id:56,type:'FS',lag:0}],notes:'Sign-off',children:[]},
   ]}
 ];
 
+function isParent(task){return task.children&&task.children.length>0}
+
 function flattenTasks(tasks){
   const result=[];
-  tasks.forEach(t=>{
-    result.push(t);
-    if(t.children && t.expanded){
-      const sorted=[...t.children].sort((a,b)=>{
-        const teamA=TEAM_SORT_ORDER.indexOf(a.team),teamB=TEAM_SORT_ORDER.indexOf(b.team);
-        const tA=teamA===-1?999:teamA,tB=teamB===-1?999:teamB;
-        if(tA!==tB)return tA-tB;
-        if((a.assignee||'')<(b.assignee||''))return -1;
-        if((a.assignee||'')>(b.assignee||''))return 1;
-        return d(a.start)-d(b.start);
-      });
-      sorted.forEach(c=>result.push(c));
-    }
-  });
+  function flatten(arr,level,parentWbs){
+    arr.forEach((t,i)=>{
+      t._wbs=parentWbs?(parentWbs+'.'+(i+1)):String(i+1);
+      t._level=level;
+      result.push(t);
+      if(isParent(t)&&t.expanded){
+        flatten(t.children,level+1,t._wbs);
+      }
+    });
+  }
+  flatten(tasks,0,'');
   return result;
 }
 
 function getAllTasks(tasks){
   const result=[];
-  tasks.forEach(t=>{
-    result.push(t);
-    if(t.children)t.children.forEach(c=>result.push(c));
-  });
+  function scan(arr){(arr||[]).forEach(t=>{result.push(t);if(t.children)scan(t.children)})}
+  scan(tasks);
+  return result;
+}
+
+function flattenAllTasks(tasks){
+  const result=[];
+  function flatten(arr,level,parentWbs){
+    arr.forEach((t,i)=>{
+      const wbs=parentWbs?(parentWbs+'.'+(i+1)):String(i+1);
+      result.push({...t,_wbs:wbs,_level:level});
+      if(t.children&&t.children.length>0){flatten(t.children,level+1,wbs)}
+    });
+  }
+  flatten(tasks,0,'');
   return result;
 }
 
 function findTask(tasks,id){
   for(const t of tasks){
     if(t.id===id)return t;
-    if(t.children){const c=t.children.find(x=>x.id===id);if(c)return c;}
+    if(t.children){const found=findTask(t.children,id);if(found)return found;}
   }
   return null;
+}
+
+function findTaskWithParent(tasks,id,parent){
+  for(let i=0;i<tasks.length;i++){
+    if(tasks[i].id===id)return{task:tasks[i],parent,siblings:tasks,index:i};
+    if(tasks[i].children){const found=findTaskWithParent(tasks[i].children,id,tasks[i]);if(found)return found;}
+  }
+  return null;
+}
+
+function computeParentFields(task){
+  if(!isParent(task))return;
+  task.children.forEach(c=>{if(isParent(c))computeParentFields(c)});
+  let minS=null,maxE=null,totalWeightedPct=0,totalDuration=0;
+  function collectLeaves(children){
+    children.forEach(c=>{
+      if(isParent(c)){collectLeaves(c.children);return}
+      if(!c.start||!c.end)return;
+      const s=d(c.start),e=d(c.end);
+      if(s&&!isNaN(s)&&(!minS||s<minS))minS=s;
+      if(e&&!isNaN(e)&&(!maxE||e>maxE))maxE=e;
+      const dur=workingDays(s,e)||1;
+      totalWeightedPct+=(c.pct||0)*dur;
+      totalDuration+=dur;
+    });
+  }
+  collectLeaves(task.children);
+  if(minS)task.start=fmt(minS);
+  if(maxE)task.end=fmt(maxE);
+  task.pct=totalDuration>0?Math.round(totalWeightedPct/totalDuration):0;
+}
+
+function getDepEndDate(dep,depTask){
+  if(!depTask)return null;
+  const type=(dep.type||'FS').toUpperCase();
+  const lag=dep.lag||0;
+  const depStart=d(depTask.start),depEnd=d(depTask.end);
+  let base=null;
+  if(type==='FS')base=depEnd;
+  else if(type==='SS')base=addDays(depStart,-1);
+  else if(type==='FF')base=depEnd;
+  else if(type==='SF')base=addDays(depStart,-1);
+  if(base)base=addDays(base,lag);
+  return base;
 }
 
 function autoSchedule(tasks){
@@ -260,12 +370,13 @@ function autoSchedule(tasks){
     if(visited.has(t.id)||!t.deps||t.deps.length===0)return;
     visited.add(t.id);
     let maxEnd=null;
-    t.deps.forEach(depId=>{
-      const dep=map.get(depId);
-      if(dep){
-        resolve(dep);
-        const depEnd=d(dep.end);
-        if(!maxEnd||depEnd>maxEnd)maxEnd=depEnd;
+    t.deps.forEach(dep=>{
+      const depId=typeof dep==='number'?dep:dep.id;
+      const depTask=map.get(depId);
+      if(depTask){
+        resolve(depTask);
+        const depEnd=typeof dep==='object'?getDepEndDate(dep,depTask):d(depTask.end);
+        if(depEnd&&(!maxEnd||depEnd>maxEnd))maxEnd=depEnd;
       }
     });
     if(maxEnd){
@@ -282,23 +393,19 @@ function autoSchedule(tasks){
       }
     }
   }
-  all.filter(t=>t.type!=='epic').forEach(t=>resolve(t));
-  tasks.forEach(ep=>{
-    if(ep.type==='epic'&&ep.children&&ep.children.length>0){
-      let minS=null,maxE=null;
-      ep.children.forEach(c=>{
-        const s=d(c.start),e=d(c.end);
-        if(!minS||s<minS)minS=s;
-        if(!maxE||e>maxE)maxE=e;
-      });
-      if(minS)ep.start=fmt(minS);
-      if(maxE)ep.end=fmt(maxE);
-    }
-  });
+  // Schedule leaf tasks only
+  all.filter(t=>!isParent(t)).forEach(t=>resolve(t));
+  // Compute parent fields bottom-up
+  function computeParents(arr){
+    (arr||[]).forEach(t=>{
+      if(isParent(t)){computeParents(t.children);computeParentFields(t)}
+    });
+  }
+  computeParents(tasks);
 }
 
 function computeCriticalPath(tasks){
-  const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+  const all=getAllTasks(tasks).filter(t=>!isParent(t));
   const map=new Map(all.map(t=>[t.id,t]));
   const ids=new Set();
   let latest=null;
@@ -308,9 +415,10 @@ function computeCriticalPath(tasks){
     ids.add(t.id);
     if(!t.deps)return;
     let maxDep=null;
-    t.deps.forEach(depId=>{
-      const dep=map.get(depId);
-      if(dep&&(!maxDep||d(dep.end)>d(maxDep.end)))maxDep=dep;
+    t.deps.forEach(dep=>{
+      const depId=typeof dep==='number'?dep:dep.id;
+      const depTask=map.get(depId);
+      if(depTask&&(!maxDep||d(depTask.end)>d(maxDep.end)))maxDep=depTask;
     });
     if(maxDep)trace(maxDep);
   }
@@ -364,10 +472,12 @@ async function apiSave(data,projectId){
       CURRENT_VERSION=res.version;
     }catch(e){
       if(e.message&&e.message.includes('conflict')){
-        if(confirm('Du lieu da duoc cap nhat boi nguoi khac. Tai lai du lieu moi nhat?')){
-          const fresh=await apiLoad(pid);
-          window.__reloadData?.(fresh);
-        }
+        try{
+          const verRes=await apiCall('GET',`/api/project/${pid}/version`);
+          CURRENT_VERSION=verRes.version;
+          const res2=await apiCall('PUT',`/api/project/${pid}`,{data,version:CURRENT_VERSION});
+          CURRENT_VERSION=res2.version;
+        }catch(e2){console.warn('Retry save failed',e2)}
       }else{console.warn('API save failed',e)}
     }
   },1000);
@@ -406,9 +516,9 @@ function LoginScreen({onLogin}){
   }
   return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)'}}>
-      <form onSubmit={handleSubmit} style={{background:'var(--surface)',padding:32,borderRadius:12,width:360,border:'1px solid var(--border)'}}>
+      <form className="login-form" onSubmit={handleSubmit} style={{background:'var(--surface)',padding:32,borderRadius:12,width:360,border:'1px solid var(--border)'}}>
         <h2 style={{marginBottom:8,textAlign:'center',fontSize:18}}>Poker Texas Build Plan</h2>
-        <p style={{textAlign:'center',color:'var(--text2)',fontSize:12,marginBottom:20}}>Dang nhap de tiep tuc</p>
+        <p style={{textAlign:'center',color:'var(--text2)',fontSize:12,marginBottom:20}}>Đăng nhập để tiếp tục</p>
         <div style={{marginBottom:12}}>
           <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:4}}>Username</label>
           <input value={username} onChange={e=>setUsername(e.target.value)} autoFocus
@@ -422,7 +532,7 @@ function LoginScreen({onLogin}){
         {error&&<div style={{color:'var(--red)',fontSize:12,marginBottom:12,textAlign:'center'}}>{error}</div>}
         <button type="submit" disabled={loading}
           style={{width:'100%',padding:'10px',background:'var(--primary)',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:600,cursor:'pointer'}}>
-          {loading?'Dang dang nhap...':'Dang nhap'}
+          {loading?'Đang đăng nhập...':'Đăng nhập'}
         </button>
       </form>
     </div>
@@ -471,83 +581,155 @@ function DatePicker({value,onChange,onWeekendSkip,label}){
   );
 }
 
-/* ── DepsSelector ── */
-function DepsSelector({deps,onChange,allTasks,currentTaskId,onDepsAutoDate}){
-  const available=allTasks.filter(t=>t.type!=='epic'&&t.id!==currentTaskId);
-  const validIds=new Set(available.map(t=>t.id));
-  const [text,setText]=useState('');
-  const [invalidIds,setInvalidIds]=useState([]);
+/* ── DepsSelector (WBS text input: e.g. "2.3, 1.1") ── */
+function DepsSelector({deps,onChange,allTasks,currentTaskId,onDepsAutoDate,rootTasks}){
+  const available=allTasks.filter(t=>t.id!==currentTaskId);
+  const allFlat=rootTasks?flattenAllTasks(rootTasks):[];
+  const wbsToId={};const idToWbs={};
+  allFlat.forEach(t=>{if(t._wbs){wbsToId[t._wbs]=t.id;idToWbs[t.id]=t._wbs}});
+
+  const depIds=(deps||[]).map(dep=>typeof dep==='number'?dep:dep.id);
+  const depsWbsStr=depIds.map(id=>idToWbs[id]||'?'+id).join(', ');
+  const [inputVal,setInputVal]=useState(depsWbsStr);
+  const prevDepsRef=useRef(depsWbsStr);
 
   useEffect(()=>{
-    setText(deps.length>0?deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '):'');
-  },[deps.join(',')]);
+    const newStr=depIds.map(id=>idToWbs[id]||'?'+id).join(', ');
+    if(newStr!==prevDepsRef.current){setInputVal(newStr);prevDepsRef.current=newStr}
+  },[deps,idToWbs]);
 
-  function parseDepsText(val){
-    const parts=val.split(/[,;\s]+/).filter(Boolean);
-    const ids=[];const bad=[];
-    parts.forEach(p=>{
-      const n=parseInt(p.replace(/^[tT]/,''),10);
-      if(!isNaN(n)&&validIds.has(n))ids.push(n);
-      else if(p.trim())bad.push(p.trim());
+  function applyInput(val){
+    const parts=val.split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    const newDeps=[];const invalid=[];
+    parts.forEach(wbs=>{
+      const id=wbsToId[wbs];
+      if(id!==undefined&&id!==currentTaskId){
+        const existing=(deps||[]).find(dep=>(typeof dep==='number'?dep:dep.id)===id);
+        newDeps.push(existing||{id,type:'FS',lag:0});
+      }else if(wbs){invalid.push(wbs)}
     });
-    setInvalidIds(bad);
-    return [...new Set(ids)];
+    onChange(newDeps);
+    if(onDepsAutoDate)onDepsAutoDate(newDeps);
+    return invalid;
   }
 
-  function handleTextChange(e){
-    const val=e.target.value;setText(val);
-    const ids=parseDepsText(val);
-    onChange(ids);
-    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  function removeDep(id){
+    const newDeps=deps.filter(dep=>(typeof dep==='number'?dep:dep.id)!==id);
+    onChange(newDeps);
+    const newStr=newDeps.map(dep=>{const did=typeof dep==='number'?dep:dep.id;return idToWbs[did]||'?'+did}).join(', ');
+    setInputVal(newStr);prevDepsRef.current=newStr;
+    if(onDepsAutoDate)onDepsAutoDate(newDeps);
   }
-
-  function handleTextBlur(){
-    if(deps.length>0)setText(deps.map(id=>'T'+String(id).padStart(3,'0')).join(', '));
-    else setText('');
-    setInvalidIds([]);
+  function updateDepType(id,type){
+    const newDeps=deps.map(dep=>{
+      const did=typeof dep==='number'?dep:dep.id;
+      if(did===id)return{id:did,type,lag:typeof dep==='object'?dep.lag||0:0};
+      return dep;
+    });
+    onChange(newDeps);
+    if(onDepsAutoDate)onDepsAutoDate(newDeps);
   }
-
-  function handleSelectChange(e){
-    const vals=[...e.target.selectedOptions].map(o=>o.value);
-    if(vals.includes('root')){onChange([]);if(onDepsAutoDate)onDepsAutoDate([]);return}
-    const ids=vals.map(Number);
-    onChange(ids);
-    if(ids.length>0&&onDepsAutoDate)onDepsAutoDate(ids);
+  function updateDepLag(id,lag){
+    const newDeps=deps.map(dep=>{
+      const did=typeof dep==='number'?dep:dep.id;
+      if(did===id)return{id:did,type:typeof dep==='object'?dep.type||'FS':'FS',lag};
+      return dep;
+    });
+    onChange(newDeps);
+    if(onDepsAutoDate)onDepsAutoDate(newDeps);
   }
 
   return(
     <div className="field">
-      <label>Dependencies</label>
-      <input value={text} onChange={handleTextChange} onBlur={handleTextBlur}
-        placeholder="Nhap T010, T015... hoac 10, 15..."
-        style={{marginBottom:4,width:'100%',padding:'4px 8px',background:'var(--surface2)',color:'var(--text)',border:`1px solid ${invalidIds.length>0?'var(--red)':'var(--border)'}`,borderRadius:4,fontSize:12}}/>
-      {invalidIds.length>0&&<div style={{fontSize:10,color:'var(--red)',marginBottom:2}}>ID khong hop le: {invalidIds.join(', ')}</div>}
-      <select multiple value={deps.length===0?['root']:deps.map(String)} onChange={handleSelectChange} style={{height:100}}>
-        <option value="root">--- (Root - No dependency) ---</option>
-        {available.map(t=>(
-          <option key={t.id} value={t.id}>T{String(t.id).padStart(3,'0')} - {t.name}</option>
-        ))}
-      </select>
-      <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Nhap TaskID phia tren hoac Ctrl/Cmd + click de chon nhieu.</div>
+      <label>Dependencies (nhập WBS, vd: 2.3, 1.1)</label>
+      <input value={inputVal} onChange={e=>setInputVal(e.target.value)}
+        onBlur={()=>{const inv=applyInput(inputVal);if(inv.length>0){setInputVal(prev=>{const valid=depIds.map(id=>idToWbs[id]||'?'+id);return valid.join(', ')})}}}
+        onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();applyInput(inputVal)}}}
+        placeholder="vd: 1.1, 2.3, 3.2" style={{fontSize:11,fontFamily:'monospace'}}/>
+      {deps.length>0&&(
+        <div style={{marginTop:6}}>
+          {deps.map(dep=>{
+            const did=typeof dep==='number'?dep:dep.id;
+            const dtype=typeof dep==='object'?dep.type||'FS':'FS';
+            const dlag=typeof dep==='object'?dep.lag||0:0;
+            const depTask=available.find(t=>t.id===did);
+            const wbs=idToWbs[did]||'?';
+            return(
+              <div key={did} style={{display:'flex',gap:4,alignItems:'center',marginBottom:3,fontSize:11}}>
+                <span style={{minWidth:36,fontFamily:'monospace',color:'var(--cyan)',fontWeight:700}}>{wbs}</span>
+                <span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text2)'}}>{depTask?depTask.name:'?'}</span>
+                <select value={dtype} onChange={e=>updateDepType(did,e.target.value)} style={{width:50,fontSize:10,padding:'1px 2px'}}>
+                  {DEP_TYPES.map(t=><option key={t}>{t}</option>)}
+                </select>
+                <input type="number" value={dlag} onChange={e=>updateDepLag(did,parseInt(e.target.value)||0)} style={{width:40,fontSize:10,padding:'1px 2px',textAlign:'center'}} title="Lag (days)"/>
+                <button onClick={()=>removeDep(did)} style={{background:'none',border:'none',color:'var(--red)',cursor:'pointer',fontSize:12,padding:'0 2px'}}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>Nhập mã WBS cách nhau bởi dấu phẩy. Type: FS, SS, FF, SF. Lag: số ngày delay.</div>
     </div>
   );
 }
 
-/* ── AddTaskModal ── */
-function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,showToast}){
+/* ── ParentSelector (WBS input for parent task) ── */
+function ParentSelector({currentParentId,availableParents,rootTasks,onMove,currentTaskId}){
+  const allFlat=flattenAllTasks(rootTasks);
+  const wbsToId={};const idToWbs={};
+  allFlat.forEach(t=>{if(t._wbs){wbsToId[t._wbs]=t.id;idToWbs[t.id]=t._wbs}});
+  const currentWbs=currentParentId?idToWbs[currentParentId]||'':'';
+  const [inputVal,setInputVal]=useState(currentWbs);
+  const [error,setError]=useState('');
+  const availableIds=new Set(availableParents.map(t=>t.id));
+  const prevParentRef=useRef(currentParentId);
+
+  useEffect(()=>{
+    if(currentParentId!==prevParentRef.current){
+      setInputVal(currentParentId?idToWbs[currentParentId]||'':'');
+      prevParentRef.current=currentParentId;
+      setError('');
+    }
+  },[currentParentId,idToWbs]);
+
+  function applyInput(val){
+    const trimmed=val.trim();
+    if(!trimmed){onMove(null);setError('');return}
+    const id=wbsToId[trimmed];
+    if(id===undefined){setError('WBS "'+trimmed+'" không tồn tại');return}
+    if(id===currentTaskId){setError('Không thể chọn chính nó');return}
+    if(!availableIds.has(id)){setError('Không thể chọn task con của chính nó');return}
+    setError('');onMove(id);
+  }
+
+  const parentTask=currentParentId?allFlat.find(t=>t.id===currentParentId):null;
+
+  return(
+    <div className="field">
+      <label>Task cha (nhập WBS, vd: 2.1)</label>
+      <input value={inputVal} onChange={e=>{setInputVal(e.target.value);setError('')}}
+        onBlur={()=>applyInput(inputVal)}
+        onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();applyInput(inputVal)}}}
+        placeholder="Để trống = top level" style={{fontSize:11,fontFamily:'monospace'}}/>
+      {error&&<div style={{fontSize:10,color:'var(--red)',marginTop:2}}>{error}</div>}
+      {parentTask&&!error&&<div style={{fontSize:10,color:'var(--text2)',marginTop:2}}>{currentWbs} — {parentTask.name}</div>}
+    </div>
+  );
+}
+
+/* ── AddTaskModal (unified: no phase) ── */
+function AddTaskModal({tasks,teams,members,teamColors,onAdd,onClose,showToast,parentId}){
   const [name,setName]=useState('');
   const [team,setTeam]=useState(teams[0]||'Dev');
   const [assignee,setAssignee]=useState((members[teams[0]]||[''])[0]);
-  const [priority,setPriority]=useState('Medium');
-  const phases=Object.keys(phaseColors);
-  const [phase,setPhase]=useState(phases[1]||phases[0]||'Production');
+  const [priority,setPriority]=useState('Normal');
   const _today=skipWeekend(new Date()).date;
   const [start,setStart]=useState(fmt(_today));
   const [end,setEnd]=useState(fmt(addWorkingDays(_today,1)));
   const [duration,setDuration]=useState(1);
   const [notes,setNotes]=useState('');
   const [deps,setDeps]=useState([]);
-  const allFlat=getAllTasks(tasks).filter(t=>t.type!=='epic');
+  const allFlat=getAllTasks(tasks).filter(t=>!isParent(t));
 
   useEffect(()=>{
     if(members[team])setAssignee(members[team][0]||'');
@@ -559,11 +741,6 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
         <h3>Add New Task</h3>
         <div className="field"><label>Task Name *</label><input value={name} onChange={e=>setName(e.target.value)} autoFocus/></div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-          <div className="field"><label>Phase</label>
-            <select value={phase} onChange={e=>setPhase(e.target.value)}>
-              {phases.map(p=><option key={p}>{p}</option>)}
-            </select>
-          </div>
           <div className="field"><label>Team</label>
             <select value={team} onChange={e=>setTeam(e.target.value)}>
               {teams.map(t=><option key={t}>{t}</option>)}
@@ -583,21 +760,21 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
         <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8}}>
           <div className="field"><label>Start Date</label>
             <DatePicker value={start} onChange={s=>{setStart(s);if(duration>0){const en=addWorkingDays(d(s),duration);setEnd(fmt(en))}}}
-              onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+              onWeekendSkip={()=>showToast('Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
           </div>
           <div className="field"><label>Duration</label>
             <input type="number" min="0" value={duration} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);setDuration(days);if(start){const en=addWorkingDays(d(start),days);setEnd(fmt(en))}}} style={{width:70}}/>
           </div>
           <div className="field"><label>End Date</label>
             <DatePicker value={end} onChange={en=>{setEnd(en);if(start){setDuration(workingDays(d(start),d(en)))}}}
-              onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
+              onWeekendSkip={()=>showToast('Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
           </div>
         </div>
-        <DepsSelector deps={deps} onChange={setDeps} allTasks={allFlat} currentTaskId={null}
-          onDepsAutoDate={ids=>{
-            if(ids.length===0)return;
+        <DepsSelector deps={deps} onChange={setDeps} allTasks={allFlat} currentTaskId={null} rootTasks={tasks}
+          onDepsAutoDate={newDeps=>{
+            if(!newDeps||newDeps.length===0)return;
             let maxEnd=null;
-            ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+            newDeps.forEach(dep=>{const id=typeof dep==='number'?dep:dep.id;const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
             if(maxEnd){
               const ns=skipWeekend(addDays(maxEnd,1)).date;
               setStart(fmt(ns));setEnd(fmt(addWorkingDays(ns,duration)));
@@ -605,119 +782,10 @@ function AddTaskModal({tasks,teams,members,phaseColors,teamColors,onAdd,onClose,
           }}/>
         <div className="field"><label>Notes</label><textarea value={notes} onChange={e=>setNotes(e.target.value)}/></div>
         <div className="actions">
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,phase,start,end,notes,deps})}>Create Task</button>
+          <button className="btn btn-ghost" onClick={onClose}>Hủy</button>
+          <button className="btn btn-primary" disabled={!name} onClick={()=>onAdd({name,team,assignee,priority,start,end,notes,deps,parentId})}>Create Task</button>
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ── PhaseModal ── */
-function PhaseModal({phaseColors,setPhaseColors,tasks,update,showToast,onClose}){
-  const [newPhaseName,setNewPhaseName]=useState('');
-  const [newPhaseColor,setNewPhaseColor]=useState('#3498db');
-  const [editingPhase,setEditingPhase]=useState(null);
-  const [editPhaseName,setEditPhaseName]=useState('');
-  const [confirm,setConfirm]=useState(null);
-
-  function addPhase(){
-    if(!newPhaseName.trim())return;
-    const name=newPhaseName.trim();
-    if(phaseColors[name]){showToast('Phase da ton tai!');return}
-    setPhaseColors(prev=>({...prev,[name]:newPhaseColor}));
-    update(t=>{t.push({id:genId(),name:name,type:'epic',phase:name,expanded:true,children:[]})});
-    setNewPhaseName('');showToast(`Da them phase "${name}"`);
-  }
-
-  function savePhaseEdit(oldName){
-    if(!editPhaseName.trim()||editPhaseName.trim()===oldName){setEditingPhase(null);return}
-    const newName=editPhaseName.trim();
-    if(phaseColors[newName]){showToast('Ten phase da ton tai!');return}
-    setPhaseColors(prev=>{const next={};Object.entries(prev).forEach(([k,v])=>{next[k===oldName?newName:k]=v});return next});
-    update(t=>{t.forEach(ep=>{if(ep.phase===oldName){ep.phase=newName;ep.name=newName}})});
-    setEditingPhase(null);showToast(`Doi ten phase ${oldName} -> ${newName}`);
-  }
-
-  function deletePhase(phaseName){
-    const epic=tasks.find(ep=>ep.phase===phaseName);
-    const taskCount=epic&&epic.children?epic.children.length:0;
-    setConfirm({
-      title:`Xoa Phase "${phaseName}"?`,
-      message:`Hanh dong nay se xoa Phase va TAT CA ${taskCount} task(s) ben trong. Khong the hoan tac!`,
-      action:()=>{
-        setPhaseColors(prev=>{const next={...prev};delete next[phaseName];return next});
-        update(t=>{
-          const idx=t.findIndex(ep=>ep.phase===phaseName);
-          if(idx>=0){const removedIds=(t[idx].children||[]).map(c=>c.id);t.splice(idx,1);getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>!removedIds.includes(x))})}
-        });
-        setConfirm(null);showToast(`Da xoa phase "${phaseName}" va tat ca tasks`);
-      }
-    });
-  }
-
-  return(
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e=>e.stopPropagation()}>
-        <h3>Quan ly Phases</h3>
-        <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
-          <div className="field" style={{flex:1,margin:0}}>
-            <label>Ten Phase moi</label>
-            <input value={newPhaseName} onChange={e=>setNewPhaseName(e.target.value)} placeholder="VD: Post-launch" autoFocus onKeyDown={e=>e.key==='Enter'&&addPhase()}/>
-          </div>
-          <div className="field" style={{width:80,margin:0}}>
-            <label>Mau</label>
-            <input type="color" value={newPhaseColor} onChange={e=>setNewPhaseColor(e.target.value)} style={{height:30,padding:2}}/>
-          </div>
-          <button className="btn btn-primary btn-sm" onClick={addPhase} style={{height:30}}>+ Them</button>
-        </div>
-        <table className="admin-table">
-          <thead><tr><th>Phase</th><th>Tasks</th><th>Mau</th><th></th></tr></thead>
-          <tbody>
-          {Object.entries(phaseColors).map(([phase,color])=>{
-            const epic=tasks.find(ep=>ep.phase===phase);
-            const taskCount=epic&&epic.children?epic.children.length:0;
-            return(
-              <tr key={phase}>
-                <td style={{fontWeight:600}}>
-                  {editingPhase===phase?(
-                    <input value={editPhaseName} onChange={e=>setEditPhaseName(e.target.value)} autoFocus
-                      onKeyDown={e=>{if(e.key==='Enter')savePhaseEdit(phase);if(e.key==='Escape')setEditingPhase(null)}}
-                      onBlur={()=>savePhaseEdit(phase)}/>
-                  ):(
-                    <><span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',background:color,marginRight:6}}></span>{phase}</>
-                  )}
-                </td>
-                <td>{taskCount} tasks</td>
-                <td><input type="color" value={color} onChange={e=>setPhaseColors(prev=>({...prev,[phase]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
-                <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
-                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
-                    onClick={()=>{setEditingPhase(phase);setEditPhaseName(phase)}}>Sua</button>
-                  <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
-                    onClick={()=>deletePhase(phase)}>Xoa</button>
-                </td>
-              </tr>
-            );
-          })}
-          </tbody>
-        </table>
-        <div style={{marginTop:12,padding:8,background:'rgba(239,68,68,.1)',borderRadius:6,fontSize:11,color:'var(--red)'}}>
-          Xoa Phase se xoa TAT CA tasks trong Phase do. Hanh dong khong the hoan tac!
-        </div>
-        <div className="actions"><button className="btn btn-ghost" onClick={onClose}>Dong</button></div>
-      </div>
-      {confirm&&(
-        <div className="modal-overlay" style={{zIndex:250}} onClick={()=>setConfirm(null)}>
-          <div className="confirm-dialog" onClick={e=>e.stopPropagation()}>
-            <h4>{confirm.title}</h4>
-            <p>{confirm.message}</p>
-            <div className="actions">
-              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Huy</button>
-              <button className="btn btn-danger" onClick={confirm.action}>Xac nhan Xoa</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -760,7 +828,7 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
   function deleteMember(team,name){
     const taskCount=getAllTasks(tasks).filter(t=>t.assignee===name).length;
     if(taskCount>0){
-      setConfirm({title:`Xoa member "${name}"?`,message:`Member nay dang duoc assign cho ${taskCount} task(s). Cac task do se bo trong assignee.`,
+      setConfirm({title:`Xóa member "${name}"?`,message:`Member này đang được assign cho ${taskCount} task(s). Các task đó sẽ bỏ trống assignee.`,
         action:()=>{
           setMembers(prev=>{const next={...prev};next[team]=next[team].filter(m=>m!==name);return next});
           update(t=>{getAllTasks(t).forEach(task=>{if(task.assignee===name)task.assignee=''})});
@@ -785,7 +853,7 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
   function deleteTeam(teamName){
     const teamMembers=members[teamName]||[];
     const taskCount=getAllTasks(tasks).filter(t=>t.team===teamName).length;
-    setConfirm({title:`Xoa team "${teamName}"?`,message:`Team co ${teamMembers.length} member(s) va ${taskCount} task(s).`,
+    setConfirm({title:`Xóa team "${teamName}"?`,message:`Team có ${teamMembers.length} member(s) và ${taskCount} task(s).`,
       action:()=>{
         setMembers(prev=>{const next={...prev};delete next[teamName];return next});
         setTeamColors(prev=>{const next={...prev};delete next[teamName];return next});
@@ -798,18 +866,18 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
   return(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal wide" onClick={e=>e.stopPropagation()}>
-        <h3>Admin - Quan ly</h3>
+        <h3>Admin - Quản lý</h3>
         <div className="admin-tabs">
           <div className={`admin-tab ${tab==='members'?'active':''}`} onClick={()=>setTab('members')}>Members</div>
           <div className={`admin-tab ${tab==='teams'?'active':''}`} onClick={()=>setTab('teams')}>Teams</div>
-          <div className={`admin-tab ${tab==='projects'?'active':''}`} onClick={()=>setTab('projects')}>Du an</div>
+          <div className={`admin-tab ${tab==='projects'?'active':''}`} onClick={()=>setTab('projects')}>Dự án</div>
         </div>
 
         {tab==='members'&&(
           <div>
             <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
               <div className="field" style={{flex:1,margin:0}}>
-                <label>Ten Member</label>
+                <label>Tên Member</label>
                 <input value={newMemberName} onChange={e=>setNewMemberName(e.target.value)} placeholder="VD: NguyenVA" onKeyDown={e=>e.key==='Enter'&&addMember()}/>
               </div>
               <div className="field" style={{width:140,margin:0}}>
@@ -818,7 +886,7 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
                   {teams.map(t=><option key={t}>{t}</option>)}
                 </select>
               </div>
-              <button className="btn btn-primary btn-sm" onClick={addMember} style={{height:30}}>+ Them</button>
+              <button className="btn btn-primary btn-sm" onClick={addMember} style={{height:30}}>+ Thêm</button>
             </div>
             <div style={{maxHeight:350,overflow:'auto'}}>
               {teams.map(team=>(
@@ -848,14 +916,14 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
                         </td>
                         <td style={{width:'25%',textAlign:'right'}}>
                           <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
-                            onClick={()=>{setEditingMember(`${team}:${m}`);setEditName(m)}}>Sua</button>
+                            onClick={()=>{setEditingMember(`${team}:${m}`);setEditName(m)}}>Sửa</button>
                           <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
                             onClick={()=>deleteMember(team,m)}>X</button>
                         </td>
                       </tr>
                     ))}
                     {(!members[team]||members[team].length===0)&&(
-                      <tr><td colSpan={4} style={{color:'var(--text2)',fontStyle:'italic'}}>Chua co member</td></tr>
+                      <tr><td colSpan={4} style={{color:'var(--text2)',fontStyle:'italic'}}>Chưa có member</td></tr>
                     )}
                     </tbody>
                   </table>
@@ -869,14 +937,14 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
           <div>
             <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
               <div className="field" style={{flex:1,margin:0}}>
-                <label>Ten Team moi</label>
+                <label>Tên Team mới</label>
                 <input value={newTeamName} onChange={e=>setNewTeamName(e.target.value)} placeholder="VD: Marketing" onKeyDown={e=>e.key==='Enter'&&addTeam()}/>
               </div>
               <div className="field" style={{width:80,margin:0}}>
                 <label>Mau</label>
                 <input type="color" value={newTeamColor} onChange={e=>setNewTeamColor(e.target.value)} style={{height:30,padding:2}}/>
               </div>
-              <button className="btn btn-primary btn-sm" onClick={addTeam} style={{height:30}}>+ Them Team</button>
+              <button className="btn btn-primary btn-sm" onClick={addTeam} style={{height:30}}>+ Thêm Team</button>
             </div>
             <table className="admin-table">
               <thead><tr><th>Team</th><th>Members</th><th>Tasks</th><th>Mau</th><th></th></tr></thead>
@@ -892,7 +960,7 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
                     <td><input type="color" value={teamColors[team]||'#666'} onChange={e=>setTeamColors(prev=>({...prev,[team]:e.target.value}))} style={{width:40,height:22,padding:1,border:'none',cursor:'pointer'}}/></td>
                     <td style={{textAlign:'right'}}>
                       <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
-                        onClick={()=>deleteTeam(team)}>Xoa</button>
+                        onClick={()=>deleteTeam(team)}>Xóa</button>
                     </td>
                   </tr>
                 );
@@ -907,10 +975,10 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
         )}
 
         <div style={{marginTop:8,padding:8,background:'rgba(59,130,246,.08)',borderRadius:6,fontSize:11,color:'var(--text2)'}}>
-          Members va Team Colors duoc chia se giua tat ca du an. Tasks va Phase Colors la rieng cho tung du an.
+          Members và Team Colors được chia sẻ giữa tất cả dự án. Tasks là riêng cho từng dự án.
         </div>
 
-        <div className="actions"><button className="btn btn-ghost" onClick={onClose}>Dong</button></div>
+        <div className="actions"><button className="btn btn-ghost" onClick={onClose}>Đóng</button></div>
       </div>
 
       {confirm&&(
@@ -919,8 +987,8 @@ function AdminModal({members,setMembers,teamColors,setTeamColors,tasks,update,sh
             <h4>{confirm.title}</h4>
             <p>{confirm.message}</p>
             <div className="actions">
-              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Huy</button>
-              <button className="btn btn-danger" onClick={confirm.action}>Xac nhan Xoa</button>
+              <button className="btn btn-ghost" onClick={()=>setConfirm(null)}>Hủy</button>
+              <button className="btn btn-danger" onClick={confirm.action}>Xác nhận Xóa</button>
             </div>
           </div>
         </div>
@@ -941,8 +1009,8 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
       const res=await apiCall('POST','/api/projects',{name:newProjectName.trim()});
       setProjects(prev=>[...prev,res]);
       setNewProjectName('');
-      showToast(`Tao du an "${res.name}" thanh cong`);
-    }catch(e){showToast('Loi tao du an: '+e.message)}
+      showToast(`Tạo dự án "${res.name}" thành công`);
+    }catch(e){showToast('Lỗi tạo dự án: '+e.message)}
   }
 
   async function saveProjectEdit(id){
@@ -951,23 +1019,23 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
       const res=await apiCall('PUT',`/api/projects/${id}`,{name:editProjectName.trim()});
       setProjects(prev=>prev.map(p=>p.id===id?{...p,name:res.name}:p));
       setEditingProject(null);
-      showToast('Da cap nhat ten du an');
-    }catch(e){showToast('Loi sua du an: '+e.message)}
+      showToast('Đã cập nhật tên dự án');
+    }catch(e){showToast('Lỗi sửa dự án: '+e.message)}
   }
 
   async function setDefaultProject(id){
     try{
       await apiCall('PUT',`/api/projects/${id}`,{is_default:true});
       setProjects(prev=>prev.map(p=>({...p,is_default:p.id===id})));
-      showToast('Da dat du an mac dinh');
+      showToast('Đã đặt dự án mặc định');
     }catch(e){showToast('Loi: '+e.message)}
   }
 
   function deleteProject(id,name){
-    if(id===currentProjectId&&projects.length<=1){showToast('Khong the xoa du an duy nhat!');return}
+    if(id===currentProjectId&&projects.length<=1){showToast('Không thể xóa dự án duy nhất!');return}
     setConfirm({
-      title:`Xoa du an "${name}"?`,
-      message:'Tat ca tasks trong du an nay se bi xoa vinh vien. Hanh dong khong the hoan tac!',
+      title:`Xóa dự án "${name}"?`,
+      message:'Tất cả tasks trong dự án này sẽ bị xóa vĩnh viễn. Hành động không thể hoàn tác!',
       action:async()=>{
         try{
           await apiCall('DELETE',`/api/projects/${id}`);
@@ -978,8 +1046,8 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
             switchProject(next.id);
           }
           setConfirm(null);
-          showToast(`Da xoa du an "${name}"`);
-        }catch(e){showToast('Loi xoa du an: '+e.message);setConfirm(null)}
+          showToast(`Đã xóa dự án "${name}"`);
+        }catch(e){showToast('Lỗi xóa dự án: '+e.message);setConfirm(null)}
       }
     });
   }
@@ -988,13 +1056,13 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
     <div>
       <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'flex-end'}}>
         <div className="field" style={{flex:1,margin:0}}>
-          <label>Ten du an moi</label>
+          <label>Tên dự án mới</label>
           <input value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} placeholder="VD: Side Project" onKeyDown={e=>e.key==='Enter'&&addProject()}/>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={addProject} style={{height:30}}>+ Tao</button>
+        <button className="btn btn-primary btn-sm" onClick={addProject} style={{height:30}}>+ Tạo</button>
       </div>
       <table className="admin-table">
-        <thead><tr><th>Du an</th><th style={{width:70,textAlign:'center'}}>Mac dinh</th><th style={{width:120,textAlign:'right'}}></th></tr></thead>
+        <thead><tr><th>Dự án</th><th style={{width:70,textAlign:'center'}}>Mặc định</th><th style={{width:120,textAlign:'right'}}></th></tr></thead>
         <tbody>
         {projects.map(p=>(
           <tr key={p.id} style={{background:p.id===currentProjectId?'rgba(59,130,246,.1)':''}}>
@@ -1004,16 +1072,16 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
                   onKeyDown={e=>{if(e.key==='Enter')saveProjectEdit(p.id);if(e.key==='Escape')setEditingProject(null)}}
                   onBlur={()=>saveProjectEdit(p.id)}/>
               ):p.name}
-              {p.id===currentProjectId&&<span style={{fontSize:9,color:'var(--primary)',marginLeft:6}}>(dang xem)</span>}
+              {p.id===currentProjectId&&<span style={{fontSize:9,color:'var(--primary)',marginLeft:6}}>(đang xem)</span>}
             </td>
             <td style={{textAlign:'center'}}>
               <input type="radio" name="defaultProject" checked={p.is_default} onChange={()=>setDefaultProject(p.id)} style={{cursor:'pointer'}}/>
             </td>
             <td style={{textAlign:'right',whiteSpace:'nowrap'}}>
               <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex'}}
-                onClick={()=>{setEditingProject(p.id);setEditProjectName(p.name)}}>Sua</button>
+                onClick={()=>{setEditingProject(p.id);setEditProjectName(p.name)}}>Sửa</button>
               <button className="btn btn-ghost btn-sm" style={{padding:'2px 6px',display:'inline-flex',color:'var(--red)'}}
-                onClick={()=>deleteProject(p.id,p.name)}>Xoa</button>
+                onClick={()=>deleteProject(p.id,p.name)}>Xóa</button>
             </td>
           </tr>
         ))}
@@ -1026,7 +1094,7 @@ function ProjectsTab({projects,setProjects,currentProjectId,switchProject,showTo
 /* ── Import/Export helpers ── */
 function detectHeaders(headers){
   const find=keywords=>{for(const h of headers){const l=String(h).toLowerCase().trim();if(keywords.some(k=>l===k||l.includes(k)))return h}return null};
-  return{id:find(['id']),phase:find(['phase','epic']),task:find(['task','summary','task name','name']),team:find(['team','label']),assignee:find(['assignee','assigned']),priority:find(['priority','pri']),status:find(['status','state']),start:find(['start date','start','begin']),end:find(['end date','end','due date','due']),pct:find(['% complete','complete','progress','pct']),deps:find(['dependencies','deps','depends']),notes:find(['notes','description','comment'])};
+  return{id:find(['id']),wbs:find(['wbs']),phase:find(['phase','epic']),task:find(['task','summary','task name','name']),type:find(['type']),team:find(['team','label']),assignee:find(['assignee','assigned']),priority:find(['priority','pri']),status:find(['status','state']),start:find(['start date','start','begin']),end:find(['end date','end','due date','due']),pct:find(['% complete','complete','progress','pct']),deps:find(['dependencies','deps','depends']),notes:find(['notes','description','comment'])};
 }
 function normalizeDate(val){
   if(!val)return'';const str=String(val).trim();
@@ -1037,8 +1105,108 @@ function normalizeDate(val){
   return'';
 }
 function normalizePct(val){if(val===null||val===undefined||val==='')return 0;const num=typeof val==='number'?val:parseFloat(String(val).replace('%',''));if(isNaN(num))return 0;if(num>0&&num<=1)return Math.round(num*100);return Math.max(0,Math.min(100,Math.round(num)))}
-function normalizePriority(val){const s=String(val).toLowerCase().trim();if(s.includes('high')||s==='h')return'High';if(s.includes('low')||s==='l')return'Low';return'Medium'}
-function normalizeStatus(val){const s=String(val).toLowerCase().trim();if(s.includes('progress')||s.includes('doing'))return'In Progress';if(s.includes('done')||s.includes('complete'))return'Done';if(s.includes('block'))return'Blocked';return'To Do'}
+function normalizePriority(val){const s=String(val).toLowerCase().trim();if(s.includes('high')||s==='h')return'High';if(s.includes('low')||s==='l')return'Low';return'Normal'}
+function normalizeStatus(val){const s=String(val).toLowerCase().trim();if(s.includes('progress')||s.includes('doing'))return'In Progress';if(s.includes('done')||s.includes('complete'))return'Completed';if(s.includes('block')||s.includes('hold'))return'On Hold';return'Not Started'}
+
+/* ── T094: Render @mentions as highlighted spans ── */
+function renderMentions(text,membersList){
+  if(!text)return '';
+  const names=new Set(membersList.map(m=>m.name));
+  // Escape HTML
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const escaped=esc(text);
+  // Replace @MemberName with spans, then convert \n to <br/>
+  const html=escaped.replace(/@(\w+)/g,(match,name)=>{
+    if(names.has(name))return `<span class="mention">@${name}</span>`;
+    return match;
+  });
+  return html.replace(/\n/g,'<br/>');
+}
+
+/* ── T092-T093: MentionTextarea component ── */
+function MentionTextarea({value,onChange,members,placeholder,style}){
+  const [mentionQuery,setMentionQuery]=useState(null);
+  const [activeIdx,setActiveIdx]=useState(0);
+  const [mentionStart,setMentionStart]=useState(-1);
+  const textareaRef=useRef(null);
+
+  const filtered=useMemo(()=>{
+    if(mentionQuery===null||mentionQuery==='')return members||[];
+    const q=mentionQuery.toLowerCase();
+    return (members||[]).filter(m=>m.name.toLowerCase().startsWith(q));
+  },[mentionQuery,members]);
+
+  function handleInput(e){
+    const val=e.target.value;
+    onChange(val);
+    const pos=e.target.selectionStart;
+    // Scan backward from cursor to find @
+    let atPos=-1;
+    for(let i=pos-1;i>=0;i--){
+      if(val[i]==='@'){
+        // @ must be at start or preceded by whitespace/newline
+        if(i===0||/[\s\n]/.test(val[i-1])){atPos=i;break}
+        else break;
+      }
+      if(/[\s\n]/.test(val[i]))break;
+    }
+    if(atPos>=0){
+      const query=val.slice(atPos+1,pos);
+      setMentionQuery(query);
+      setMentionStart(atPos);
+      setActiveIdx(0);
+    }else{
+      setMentionQuery(null);
+      setMentionStart(-1);
+    }
+  }
+
+  function selectMember(member){
+    const ta=textareaRef.current;
+    if(!ta)return;
+    const val=value||'';
+    const pos=ta.selectionStart;
+    const before=val.slice(0,mentionStart);
+    const after=val.slice(pos);
+    const newVal=before+'@'+member.name+' '+after;
+    onChange(newVal);
+    setMentionQuery(null);
+    setMentionStart(-1);
+    // Set cursor after inserted mention
+    setTimeout(()=>{
+      const newPos=mentionStart+member.name.length+2;
+      ta.focus();
+      ta.setSelectionRange(newPos,newPos);
+    },0);
+  }
+
+  function handleKeyDown(e){
+    if(mentionQuery===null||filtered.length===0)return;
+    if(e.key==='ArrowDown'){e.preventDefault();setActiveIdx(i=>(i+1)%filtered.length)}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActiveIdx(i=>(i-1+filtered.length)%filtered.length)}
+    else if(e.key==='Enter'&&filtered.length>0){e.preventDefault();selectMember(filtered[activeIdx])}
+    else if(e.key==='Escape'){setMentionQuery(null);setMentionStart(-1)}
+  }
+
+  return(
+    <div className="mention-container">
+      {mentionQuery!==null&&filtered.length>0&&(
+        <div className="mention-dropdown">
+          {filtered.slice(0,8).map((m,i)=>(
+            <div key={m.name} className={`mention-dropdown-item ${i===activeIdx?'active':''}`}
+              onMouseDown={e=>{e.preventDefault();selectMember(m)}}
+              onMouseEnter={()=>setActiveIdx(i)}>
+              <span style={{fontWeight:600}}>{m.name}</span>
+              <span className="team-label">{m.team}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <textarea ref={textareaRef} value={value||''} onChange={handleInput} onKeyDown={handleKeyDown}
+        placeholder={placeholder} style={style}/>
+    </div>
+  );
+}
 
 /* ── App Component ── */
 function App(){
@@ -1052,7 +1220,8 @@ function App(){
   });
   const [members,setMembers]=useState(()=>{const s=lsLoad();return s&&s.members?s.members:JSON.parse(JSON.stringify(INIT_MEMBERS))});
   const [teamColors,setTeamColors]=useState(()=>{const s=lsLoad();return s&&s.teamColors?s.teamColors:{...INIT_TEAM_COLORS}});
-  const [phaseColors,setPhaseColors]=useState(()=>{const s=lsLoad();return s&&s.phaseColors?s.phaseColors:{...INIT_PHASE_COLORS}});
+
+  const [meetings,setMeetings]=useState([]);
 
   // Multi-project state
   const [projects,setProjects]=useState([]);
@@ -1062,21 +1231,24 @@ function App(){
 
   // Switch project
   const skipFirstSave=useRef(true);
+  const [switchingProject,setSwitchingProject]=useState(false);
   async function switchProject(projectId){
     if(projectId===currentProjectId)return;
+    setSwitchingProject(true);
     CURRENT_PROJECT_ID=projectId;
     CURRENT_VERSION=null;
     setCurrentProjectId(projectId);
     const proj=projects.find(p=>p.id===projectId);
     setCurrentProjectName(proj?proj.name:'');
     skipFirstSave.current=true;
+    setEditingMeeting(null);
     try{
       const data=await apiLoad(projectId);
       if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
       else{setTasks([])}
-      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
-      else setPhaseColors({...INIT_PHASE_COLORS});
-    }catch(e){console.warn('Switch project failed',e);setTasks([]);setPhaseColors({...INIT_PHASE_COLORS})}
+      setMeetings(data&&data.meetings?data.meetings:[]);
+    }catch(e){console.warn('Switch project failed',e);setTasks([]);setMeetings([])}
+    finally{setSwitchingProject(false)}
   }
 
   // On login: fetch projects list, shared settings, and default project data
@@ -1099,7 +1271,7 @@ function App(){
           setCurrentProjectName(defaultProj.name);
           const data=await apiLoad(defaultProj.id);
           if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
-          if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
+          setMeetings(data&&data.meetings?data.meetings:[]);
         }
         setProjectsLoaded(true);
       }catch(e){console.warn('Init load failed',e);setProjectsLoaded(true)}
@@ -1109,19 +1281,18 @@ function App(){
   useEffect(()=>{
     window.__reloadData=(data)=>{
       if(data&&data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}
-      if(data&&data.phaseColors)setPhaseColors(data.phaseColors);
     };
     window.__showLogin=()=>{setLoggedIn(false);AUTH_TOKEN=null};
   },[]);
 
-  // Auto-save project data (tasks, phaseColors) - per project
+  // Auto-save project data (tasks) - per project
   useEffect(()=>{
     if(!currentProjectId)return;
-    const payload={tasks,phaseColors,savedAt:new Date().toISOString()};
+    const payload={tasks,meetings,savedAt:new Date().toISOString()};
     lsSave(payload,currentProjectId);
     if(AUTH_TOKEN&&!skipFirstSave.current)apiSave(payload,currentProjectId);
     skipFirstSave.current=false;
-  },[tasks,phaseColors]);
+  },[tasks,meetings]);
 
   // Auto-save shared settings (members, teamColors)
   const skipFirstSettings=useRef(true);
@@ -1131,32 +1302,16 @@ function App(){
     apiSaveSettingsDebounced({members,teamColors});
   },[members,teamColors]);
 
-  // Poll for version changes every 30s
-  useEffect(()=>{
-    if(!AUTH_TOKEN||!currentProjectId)return;
-    const iv=setInterval(async()=>{
-      try{
-        const res=await apiCall('GET',`/api/project/${currentProjectId}/version`);
-        if(res.version&&CURRENT_VERSION&&res.version>CURRENT_VERSION){
-          showToast('Du lieu moi tu '+res.updated_by+'. Dang tai lai...');
-          const fresh=await apiLoad(currentProjectId);
-          window.__reloadData?.(fresh);
-        }
-      }catch(e){}
-    },30000);
-    return()=>clearInterval(iv);
-  },[loggedIn,currentProjectId]);
 
   if(!loggedIn)return <LoginScreen onLogin={(user)=>{setCurrentUser(user);localStorage.setItem('ptb_username',user);setLoggedIn(true)}}/>;
 
   const [selectedId,setSelectedId]=useState(null);
   const [filterTeam,setFilterTeam]=useState('All');
   const [filterStatus,setFilterStatus]=useState('All');
-  const [filterPhase,setFilterPhase]=useState('All');
   const [search,setSearch]=useState('');
   const [showDetail,setShowDetail]=useState(false);
   const [showAdd,setShowAdd]=useState(false);
-  const [showPhases,setShowPhases]=useState(false);
+  const [addParentId,setAddParentId]=useState(null);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showCritical,setShowCritical]=useState(false);
   const [toast,setToast]=useState('');
@@ -1168,10 +1323,49 @@ function App(){
 
   const TEAMS=useMemo(()=>Object.keys(members),[members]);
   const ALL_MEMBERS=useMemo(()=>Object.values(members).flat(),[members]);
-  const PHASE_COLORS=phaseColors;
   const TEAM_COLORS=teamColors;
 
   const showToast=(msg)=>{setToast(msg);setTimeout(()=>setToast(''),2500)};
+
+  // Meeting state
+  const [editingMeeting,setEditingMeeting]=useState(null); // null=closed, {}=new, {id,...}=edit
+  const MEMBERS_FLAT=useMemo(()=>{
+    const result=[];
+    Object.entries(members).forEach(([team,names])=>{
+      names.forEach(name=>result.push({name,team}));
+    });
+    return result;
+  },[members]);
+
+  // Meeting CRUD
+  async function createMeeting(data){
+    try{
+      const res=await apiCall('POST',`/api/project/${currentProjectId}/meetings`,data);
+      setMeetings(prev=>[res.meeting,...prev]);
+      CURRENT_VERSION=res.version;
+      showToast('Tạo biên bản thành công');
+      setEditingMeeting(null);
+    }catch(e){showToast('Loi: '+e.message)}
+  }
+  async function updateMeeting(meetingId,data){
+    try{
+      const res=await apiCall('PUT',`/api/project/${currentProjectId}/meetings/${meetingId}`,data);
+      setMeetings(prev=>prev.map(m=>m.id===meetingId?res.meeting:m));
+      CURRENT_VERSION=res.version;
+      showToast('Cập nhật biên bản thành công');
+      setEditingMeeting(null);
+    }catch(e){showToast('Loi: '+e.message)}
+  }
+  async function deleteMeeting(meetingId){
+    if(!confirm('Xóa biên bản họp này?'))return;
+    try{
+      const res=await apiCall('DELETE',`/api/project/${currentProjectId}/meetings/${meetingId}`);
+      setMeetings(prev=>prev.filter(m=>m.id!==meetingId));
+      CURRENT_VERSION=res.version;
+      showToast('Đã xóa biên bản');
+      setEditingMeeting(null);
+    }catch(e){showToast('Loi: '+e.message)}
+  }
 
   const update=(fn)=>{
     setTasks(prev=>{
@@ -1185,25 +1379,26 @@ function App(){
   const flat=useMemo(()=>{
     let rows=flattenTasks(tasks);
     return rows.filter(t=>{
-      if(t.type==='epic')return true;
+      if(isParent(t))return true;
       const matchTeam=filterTeam==='All'||t.team===filterTeam;
       const matchStatus=filterStatus==='All'||t.status===filterStatus;
       const q=search.toLowerCase();const matchSearch=!search||t.name.toLowerCase().includes(q)||(t.assignee&&t.assignee.toLowerCase().includes(q));
-      let phaseMatch=true;
-      if(filterPhase!=='All'){
-        const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
-        phaseMatch=parent&&parent.phase===filterPhase;
-      }
-      return matchTeam&&matchStatus&&phaseMatch&&matchSearch;
+      return matchTeam&&matchStatus&&matchSearch;
     });
-  },[tasks,filterTeam,filterStatus,filterPhase,search]);
+  },[tasks,filterTeam,filterStatus,search]);
 
   const allFlat=useMemo(()=>getAllTasks(tasks),[tasks]);
+  const allFlatWithLevel=useMemo(()=>{
+    // Flatten all tasks (ignore expanded state) to get _level for parent dropdown
+    const result=[];
+    function flatten(arr,level){arr.forEach(t=>{t._level=level;result.push(t);if(t.children)flatten(t.children,level+1)})}
+    flatten(tasks,0);return result;
+  },[tasks]);
   const criticalIds=useMemo(()=>showCritical?computeCriticalPath(tasks):new Set(),[tasks,showCritical]);
 
   const stats=useMemo(()=>{
-    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
-    return {total:all.length,todo:all.filter(t=>t.status==='To Do').length,progress:all.filter(t=>t.status==='In Progress').length,done:all.filter(t=>t.status==='Done').length,blocked:all.filter(t=>t.status==='Blocked').length};
+    const all=getAllTasks(tasks).filter(t=>!isParent(t));
+    return {total:all.length,notStarted:all.filter(t=>t.status==='Not Started').length,progress:all.filter(t=>t.status==='In Progress').length,completed:all.filter(t=>t.status==='Completed').length,onHold:all.filter(t=>t.status==='On Hold').length};
   },[tasks]);
 
   const weeks=useMemo(()=>{
@@ -1219,27 +1414,116 @@ function App(){
   const today=new Date();
 
   function getBarStyle(task){
-    if(task.type==='epic'){
-      const ch=task.children||[];if(ch.length===0)return null;
-      let minS=null,maxE=null;
-      ch.forEach(c=>{const s=d(c.start),e=d(c.end);if(!minS||s<minS)minS=s;if(!maxE||e>maxE)maxE=e});
-      if(!minS)return null;
-      const startOff=diffDays(PROJECT_START,minS);const dur=diffDays(minS,maxE)+1;
-      return{left:startOff/7*WEEK_WIDTH,width:dur/7*WEEK_WIDTH,bg:PHASE_COLORS[task.phase]||'#666',opacity:0.4,height:6,top:13};
+    if(isParent(task)){
+      if(!task.start||!task.end)return null;
+      const s=d(task.start),e=d(task.end);
+      if(!s||isNaN(s))return null;
+      const startOff=diffDays(PROJECT_START,s);const dur=diffDays(s,e)+1;
+      return{left:startOff/7*WEEK_WIDTH,width:Math.max(dur/7*WEEK_WIDTH,8),bg:'#475569',height:6,top:13,type:'parent',pct:task.pct||0};
     }
+    if(!task.start||!task.end)return null;
     const s=d(task.start),e=d(task.end);
+    if(!s||isNaN(s))return null;
     const startOff=diffDays(PROJECT_START,s);const dur=diffDays(s,e)+1;
-    return{left:startOff/7*WEEK_WIDTH,width:Math.max(dur/7*WEEK_WIDTH,8),bg:TEAM_COLORS[task.team]||'#666'};
+    return{left:startOff/7*WEEK_WIDTH,width:Math.max(dur/7*WEEK_WIDTH,8),bg:TEAM_COLORS[task.team]||'#666',type:'task'};
   }
 
-  function toggleExpand(epicId){update(t=>{const ep=t.find(x=>x.id===epicId);if(ep)ep.expanded=!ep.expanded})}
+  function toggleExpand(id){update(t=>{const item=findTask(t,id);if(item)item.expanded=!item.expanded})}
   function updateTask(id,field,value){update(t=>{const task=findTask(t,id);if(task)task[field]=value})}
   function deleteTask(id){
     update(t=>{
-      t.forEach(ep=>{if(ep.children)ep.children=ep.children.filter(c=>c.id!==id)});
-      getAllTasks(t).forEach(task=>{if(task.deps)task.deps=task.deps.filter(x=>x!==id)});
+      function removeById(arr){
+        return arr.filter(c=>{
+          if(c.id===id)return false;
+          if(c.children)c.children=removeById(c.children);
+          return true;
+        });
+      }
+      const result=removeById(t);t.length=0;result.forEach(r=>t.push(r));
+      // Clean up deps referencing deleted task(s)
+      const removedIds=new Set();
+      function collectIds(task){removedIds.add(task.id);if(task.children)task.children.forEach(collectIds)}
+      const deleted=findTask(INITIAL_TASKS,id);// won't work, use pre-delete
+      getAllTasks(t).forEach(task=>{
+        if(task.deps)task.deps=task.deps.filter(dep=>{const did=typeof dep==='number'?dep:dep.id;return did!==id});
+      });
     });
     setSelectedId(null);setShowDetail(false);showToast('Task deleted');
+  }
+
+  function indentTask(id){
+    update(t=>{
+      const info=findTaskWithParent(t,id,null);
+      if(!info)return;
+      const{siblings,index}=info;
+      if(index===0)return; // Can't indent first child
+      const prevSibling=siblings[index-1];
+      // Remove from current position
+      const task=siblings.splice(index,1)[0];
+      // Add as child of previous sibling
+      if(!prevSibling.children)prevSibling.children=[];
+      prevSibling.children.push(task);
+      if(prevSibling.expanded===undefined)prevSibling.expanded=true;
+    });
+    showToast('Task indented');
+  }
+
+  function outdentTask(id){
+    update(t=>{
+      const info=findTaskWithParent(t,id,null);
+      if(!info||!info.parent)return; // Can't outdent top-level
+      const{task,parent,siblings,index}=info;
+      // Find parent's position in grandparent
+      const grandInfo=findTaskWithParent(t,parent.id,null);
+      if(!grandInfo)return;
+      // Remove from parent
+      siblings.splice(index,1);
+      // Move siblings after this task to become children of the outdented task
+      const afterSiblings=siblings.splice(index);
+      if(afterSiblings.length>0){
+        if(!task.children)task.children=[];
+        task.children.push(...afterSiblings);
+        if(task.expanded===undefined)task.expanded=true;
+      }
+      // Insert after parent in grandparent's children
+      const parentIdx=grandInfo.siblings.indexOf(parent);
+      grandInfo.siblings.splice(parentIdx+1,0,task);
+    });
+    showToast('Task outdented');
+  }
+
+  function isDescendant(task,targetId){
+    if(!task.children)return false;
+    for(const c of task.children){
+      if(c.id===targetId)return true;
+      if(isDescendant(c,targetId))return true;
+    }
+    return false;
+  }
+
+  function moveTask(taskId,newParentId){
+    update(t=>{
+      const info=findTaskWithParent(t,taskId,null);
+      if(!info)return;
+      const currentParentId=info.parent?info.parent.id:null;
+      if(currentParentId===newParentId)return;
+      if(newParentId===taskId)return;
+      // Check circular: can't move into own descendant
+      if(newParentId!=null&&isDescendant(info.task,newParentId))return;
+      // Remove from current position
+      info.siblings.splice(info.index,1);
+      // Insert into new parent
+      if(newParentId==null){
+        t.push(info.task);
+      }else{
+        const target=findTask(t,newParentId);
+        if(!target)return;
+        if(!target.children)target.children=[];
+        target.children.push(info.task);
+        if(target.expanded===undefined)target.expanded=true;
+      }
+    });
+    showToast('Task moved');
   }
 
   function handleUpdate(){
@@ -1248,11 +1532,11 @@ function App(){
     const eb=editBuffer;
     update(t=>{
       const task=findTask(t,eb.id);if(!task)return;
-      Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Done'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||''});
-      const currentEpic=t.find(ep=>ep.children&&ep.children.some(c=>c.id===eb.id));
-      if(currentEpic&&currentEpic.phase!==eb.phase){
-        const newEpic=t.find(ep=>ep.phase===eb.phase);
-        if(newEpic){currentEpic.children=currentEpic.children.filter(c=>c.id!==eb.id);newEpic.children.push(task)}
+      if(isParent(task)){
+        // Parent task: only update name, notes, deps, expanded
+        Object.assign(task,{name:eb.name,deps:eb.deps||[],notes:eb.notes||''});
+      }else{
+        Object.assign(task,{name:eb.name,team:eb.team,assignee:eb.assignee,priority:eb.priority,status:eb.status,start:eb.start,end:eb.end,pct:eb.status==='Completed'?100:eb.pct,deps:eb.deps||[],notes:eb.notes||''});
       }
     });
     setTimeout(()=>{setUpdating(false);showToast('Updated!')},800);
@@ -1260,8 +1544,15 @@ function App(){
 
   function addTask(data){
     update(t=>{
-      const epic=t.find(ep=>ep.phase===data.phase);
-      if(epic){epic.children.push({id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'To Do',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||''})}
+      const newTask={id:genId(),name:data.name,team:data.team,assignee:data.assignee,priority:data.priority,status:'Not Started',start:data.start,end:data.end,pct:0,deps:data.deps||[],notes:data.notes||'',children:[]};
+      if(data.parentId){
+        const parent=findTask(t,data.parentId);
+        if(parent){
+          if(!parent.children)parent.children=[];
+          parent.children.push(newTask);
+          if(parent.expanded===undefined)parent.expanded=true;
+        }else{t.push(newTask)}
+      }else{t.push(newTask)}
     });
     setShowAdd(false);showToast('Task added');
   }
@@ -1274,47 +1565,67 @@ function App(){
   // Export Excel
   function exportExcel(){
     const hexToArgb=hex=>'FF'+hex.replace('#','');
-    const STATUS_COLORS={'To Do':{bg:'FFE8E8E8',fg:'FF666666'},'In Progress':{bg:'FFDBEAFE',fg:'FF2563EB'},'Done':{bg:'FFDCFCE7',fg:'FF16A34A'},'Blocked':{bg:'FFFEE2E2',fg:'FFDC2626'}};
-    const PRIORITY_COLORS={'High':{bg:'FFFEE2E2',fg:'FFDC2626'},'Medium':{bg:'FFFEF3C7',fg:'FFD97706'},'Low':{bg:'FFDCFCE7',fg:'FF16A34A'}};
+    const STATUS_COLORS={'Not Started':{bg:'FFE8E8E8',fg:'FF666666'},'In Progress':{bg:'FFDBEAFE',fg:'FF2563EB'},'Completed':{bg:'FFDCFCE7',fg:'FF16A34A'},'On Hold':{bg:'FFFEE2E2',fg:'FFDC2626'}};
+    const PRIORITY_COLORS={'High':{bg:'FFFEE2E2',fg:'FFDC2626'},'Normal':{bg:'FFFEF3C7',fg:'FFD97706'},'Low':{bg:'FFDCFCE7',fg:'FF16A34A'}};
     const thinBorder={style:'thin',color:{argb:'FFE2E8F0'}};
     const wb=new ExcelJS.Workbook();wb.creator='Poker Texas Build Plan';
     const ws=wb.addWorksheet('Task Assignment',{views:[{state:'frozen',ySplit:1}]});
-    ws.columns=[{header:'ID',key:'id',width:10},{header:'Phase',key:'phase',width:18},{header:'Task',key:'task',width:40},{header:'Team',key:'team',width:15},{header:'Assignee',key:'assignee',width:15},{header:'Priority',key:'priority',width:12},{header:'Status',key:'status',width:14},{header:'Start Date',key:'start',width:14},{header:'End Date',key:'end',width:14},{header:'% Complete',key:'pct',width:12},{header:'Dependencies',key:'deps',width:18},{header:'Notes',key:'notes',width:35}];
+    ws.columns=[{header:'WBS',key:'wbs',width:10},{header:'ID',key:'id',width:10},{header:'Task',key:'task',width:40},{header:'Type',key:'type',width:12},{header:'Team',key:'team',width:15},{header:'Assignee',key:'assignee',width:15},{header:'Priority',key:'priority',width:12},{header:'Status',key:'status',width:14},{header:'Start Date',key:'start',width:14},{header:'End Date',key:'end',width:14},{header:'% Complete',key:'pct',width:12},{header:'Dependencies',key:'deps',width:25},{header:'Notes',key:'notes',width:35}];
     const hdr=ws.getRow(1);hdr.font={bold:true,color:{argb:'FFFFFFFF'},size:11};hdr.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1e293b'}};hdr.alignment={vertical:'middle',horizontal:'center'};hdr.height=28;
-    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+    const all=flattenAllTasks(tasks);
     all.forEach((t,idx)=>{
-      const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
-      const row=ws.addRow({id:`T${String(t.id).padStart(3,'0')}`,phase:parent?parent.phase:'',task:t.name,team:t.team,assignee:t.assignee,priority:t.priority,status:t.status,start:t.start,end:t.end,pct:t.pct/100,deps:(t.deps||[]).map(x=>`T${String(x).padStart(3,'0')}`).join(', '),notes:t.notes||''});
+      const isP=isParent(t);
+      const depsStr=(t.deps||[]).map(dep=>{const did=typeof dep==='number'?dep:dep.id;const dtype=typeof dep==='object'?dep.type||'FS':'FS';const dlag=typeof dep==='object'&&dep.lag?`+${dep.lag}`:'';return`T${String(did).padStart(3,'0')}${dtype!=='FS'?dtype:''}${dlag}`}).join(', ');
+      const row=ws.addRow({wbs:t._wbs||'',id:`T${String(t.id).padStart(3,'0')}`,task:'  '.repeat(t._level||0)+t.name,type:isP?'Parent':'Task',team:isP?'':t.team,assignee:isP?'':t.assignee,priority:isP?'':t.priority,status:isP?'':t.status,start:t.start||'',end:t.end||'',pct:(t.pct||0)/100,deps:depsStr,notes:t.notes||''});
       const rowBg=idx%2===0?'FFFFFFFF':'FFF8FAFC';
-      row.eachCell((cell,col)=>{cell.border={bottom:thinBorder,left:thinBorder,right:thinBorder};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};cell.alignment={vertical:'middle',wrapText:col===12}});
-      if(parent&&PHASE_COLORS[parent.phase]){const c=row.getCell('phase');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(PHASE_COLORS[parent.phase])}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
-      if(TEAM_COLORS[t.team]){const c=row.getCell('team');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(TEAM_COLORS[t.team])}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
-      const pc=PRIORITY_COLORS[t.priority];if(pc){const c=row.getCell('priority');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc.bg}};c.font={color:{argb:pc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
-      const sc=STATUS_COLORS[t.status];if(sc){const c=row.getCell('status');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:sc.bg}};c.font={color:{argb:sc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      row.eachCell((cell,col)=>{cell.border={bottom:thinBorder,left:thinBorder,right:thinBorder};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rowBg}};cell.alignment={vertical:'middle',wrapText:col===13}});
+      if(isP){row.font={bold:true,size:10}}
+      if(!isP&&TEAM_COLORS[t.team]){const c=row.getCell('team');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:hexToArgb(TEAM_COLORS[t.team])}};c.font={color:{argb:'FFFFFFFF'},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}
+      if(!isP){const pc=PRIORITY_COLORS[t.priority];if(pc){const c=row.getCell('priority');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc.bg}};c.font={color:{argb:pc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}}
+      if(!isP){const sc=STATUS_COLORS[t.status];if(sc){const c=row.getCell('status');c.fill={type:'pattern',pattern:'solid',fgColor:{argb:sc.bg}};c.font={color:{argb:sc.fg},bold:true,size:10};c.alignment={horizontal:'center',vertical:'middle'}}}
       const pctCell=row.getCell('pct');pctCell.numFmt='0%';pctCell.alignment={horizontal:'center',vertical:'middle'};
     });
     wb.xlsx.writeBuffer().then(buf=>{const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Poker_Build_Plan.xlsx';link.click();URL.revokeObjectURL(link.href);showToast('Exported to Excel!')});
   }
 
   function exportJira(){
-    const all=getAllTasks(tasks).filter(t=>t.type!=='epic');
+    const all=flattenAllTasks(tasks);
     function csvF(v){if(v===null||v===undefined)return'""';const s=String(v);return'"'+s.replace(/"/g,'""')+'"'}
     function toIsoDate(dateStr){if(!dateStr)return'';const dt=d(dateStr);return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`}
-    const headers=['Summary','Issue Type','Priority','Epic Name','Epic Link','Assignee','Labels','Description','Due date','Original Estimate'];
+    function jiraType(t){
+      const depth=t._level||0;
+      const hasKids=t.children&&t.children.length>0;
+      if(depth===0&&hasKids)return'Epic';
+      if(depth===0&&!hasKids)return'Task';
+      if(depth===1)return'Story';
+      return'Sub-task';
+    }
+    function findParentId(t){
+      if(t._level===0)return'';
+      for(let i=all.indexOf(t)-1;i>=0;i--){
+        if(all[i]._level===t._level-1)return String(all[i].id);
+      }
+      return'';
+    }
+    const headers=['Issue Id','Issue Type','Summary','Parent','Priority','Assignee','Labels','Description','Due date','Original Estimate'];
     let csv=headers.join(',')+'\n';
-    tasks.filter(t=>t.type==='epic').forEach(ep=>{csv+=[csvF(ep.name),csvF('Epic'),csvF('Medium'),csvF(ep.name),csvF(''),csvF(''),csvF(''),csvF(ep.phase||''),csvF(''),csvF('')].join(',')+'\n'});
     all.forEach(t=>{
-      const parent=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===t.id));
-      const epicName=parent?parent.name:'';const dueDate=toIsoDate(t.end);
-      const wd=t.start&&t.end?workingDays(d(t.start),d(t.end)):0;const estimate=wd>0?String(wd*8*3600):'';
-      let desc=(t.notes||'');if(t.start)desc+=(desc?'\n':'')+'Start: '+t.start;if(t.deps&&t.deps.length>0)desc+='\nDeps: '+t.deps.map(x=>'T'+String(x).padStart(3,'0')).join(', ');
-      csv+=[csvF(t.name),csvF('Task'),csvF(t.priority),csvF(''),csvF(epicName),csvF(t.assignee||''),csvF(t.team),csvF(desc),csvF(dueDate),csvF(estimate)].join(',')+'\n';
+      const isP=t.children&&t.children.length>0;
+      const dueDate=isP?'':toIsoDate(t.end);
+      const wd=!isP&&t.start&&t.end?workingDays(d(t.start),d(t.end)):0;
+      const estimate=wd>0?String(wd*8*3600):'';
+      const depsStr=(t.deps||[]).map(dep=>{const did=typeof dep==='number'?dep:dep.id;return'T'+String(did).padStart(3,'0')}).join(', ');
+      let desc=isP?'':(t.notes||'');
+      if(!isP&&t.start)desc+=(desc?'\n':'')+'Start: '+t.start;
+      if(!isP&&depsStr)desc+='\nDeps: '+depsStr;
+      const pri=isP?'':(t.priority==='Normal'?'Medium':t.priority);
+      csv+=[csvF(t.id),csvF(jiraType(t)),csvF(t.name),csvF(findParentId(t)),csvF(pri),csvF(isP?'':t.assignee||''),csvF(isP?'':t.team||''),csvF(desc),csvF(dueDate),csvF(estimate)].join(',')+'\n';
     });
     const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Jira_Import_PTB.csv';link.click();URL.revokeObjectURL(link.href);showToast('Exported Jira CSV!');
   }
 
   function saveData(){
-    const project={tasks,members,teamColors,phaseColors,version:1,savedAt:new Date().toISOString()};
+    const project={tasks,members,teamColors,version:1,savedAt:new Date().toISOString()};
     const json=JSON.stringify(project,null,2);const blob=new Blob([json],{type:'application/json'});
     const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='poker_build_plan.json';link.click();showToast('Exported backup file!');
   }
@@ -1328,19 +1639,39 @@ function App(){
         const data=new Uint8Array(ev.target.result);const workbook=XLSX.read(data,{type:'array'});const sheet=workbook.Sheets[workbook.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
         if(rows.length===0){showToast('Excel file is empty');return}
         const hm=detectHeaders(Object.keys(rows[0]));if(!hm.task){showToast('Error: Could not find Task/Summary column');return}
-        const idMap={};const imported=[];
+        const idMap={};const imported=[];const typeCol=hm.type||null;const wbsCol=hm.wbs||null;
         rows.forEach(row=>{
           const taskName=row[hm.task];if(!taskName||!String(taskName).trim())return;
           const newId=genId();const oldId=row[hm.id]||'';if(oldId)idMap[String(oldId).trim()]=newId;
-          imported.push({id:newId,name:String(taskName).trim(),team:normalizeTeam(row[hm.team]||''),assignee:String(row[hm.assignee]||'').trim(),priority:normalizePriority(row[hm.priority]||'Medium'),status:normalizeStatus(row[hm.status]||'To Do'),start:normalizeDate(row[hm.start]||''),end:normalizeDate(row[hm.end]||''),pct:normalizePct(row[hm.pct]),deps:[],notes:String(row[hm.notes]||'').trim(),_phase:String(row[hm.phase]||'Production').trim(),_depsRaw:String(row[hm.deps]||'').trim()});
+          const rowType=typeCol?String(row[typeCol]||'').trim().toLowerCase():'';
+          const isP=rowType==='parent'||rowType==='summary';
+          const t={id:newId,name:String(taskName).trim(),team:isP?'':normalizeTeam(row[hm.team]||''),assignee:isP?'':String(row[hm.assignee]||'').trim(),priority:isP?'':normalizePriority(row[hm.priority]||'Normal'),status:isP?'':normalizeStatus(row[hm.status]||'Not Started'),start:normalizeDate(row[hm.start]||''),end:normalizeDate(row[hm.end]||''),pct:normalizePct(row[hm.pct]),deps:[],notes:String(row[hm.notes]||'').trim(),children:[],_depsRaw:String(row[hm.deps]||'').trim(),_wbsRaw:wbsCol?String(row[wbsCol]||'').trim():''};
+          if(isP){t.expanded=true}
+          imported.push(t);
         });
-        imported.forEach(t=>{if(t._depsRaw){t.deps=t._depsRaw.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>idMap[s]||null).filter(Boolean)}delete t._depsRaw});
-        const groups={};imported.forEach(t=>{const p=t._phase;if(!groups[p])groups[p]=[];groups[p].push(t);delete t._phase});
-        const newTasks=Object.entries(groups).map(([phase,children])=>({id:genId(),name:phase,type:'epic',phase,expanded:true,children}));
-        if(!confirm(`Import ${imported.length} tasks from Excel?\nSe thay the toan bo tasks hien tai.`))return;
-        initNextId(newTasks);autoSchedule(newTasks);setTasks(newTasks);
-        const np={};Object.keys(groups).forEach(p=>{if(!phaseColors[p])np[p]=PALETTE[Object.keys(groups).indexOf(p)%PALETTE.length]});
-        if(Object.keys(np).length>0)setPhaseColors(prev=>({...prev,...np}));
+        imported.forEach(t=>{
+          if(t._depsRaw){
+            t.deps=t._depsRaw.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>{
+              const mapped=idMap[s]||null;
+              return mapped?{id:mapped,type:'FS',lag:0}:null;
+            }).filter(Boolean);
+          }
+          delete t._depsRaw;
+        });
+        // Rebuild hierarchy using WBS codes if available
+        const wbsMap={};imported.forEach(t=>{if(t._wbsRaw)wbsMap[t._wbsRaw]=t});
+        imported.forEach(t=>{
+          if(t._wbsRaw&&t._wbsRaw.includes('.')){
+            const parts=t._wbsRaw.split('.');parts.pop();const parentWbs=parts.join('.');
+            const parent=wbsMap[parentWbs];
+            if(parent){parent.children.push(t);t._nested=true}
+          }
+          delete t._wbsRaw;
+        });
+        const topLevel=imported.filter(t=>!t._nested);topLevel.forEach(t=>delete t._nested);
+        imported.filter(t=>t._nested).forEach(t=>{delete t._nested});
+        if(!confirm(`Import ${imported.length} tasks from Excel?\nSẽ thay thế toàn bộ tasks hiện tại.`))return;
+        initNextId(topLevel);autoSchedule(topLevel);setTasks(topLevel);
         showToast(`Imported ${imported.length} tasks from Excel!`);
       }catch(err){console.error(err);showToast('Error reading Excel: '+err.message)}
     };
@@ -1358,7 +1689,7 @@ function App(){
           try{
             const data=JSON.parse(ev.target.result);
             if(Array.isArray(data)){initNextId(data);autoSchedule(data);setTasks(data)}
-            else{if(data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}if(data.members)setMembers(data.members);if(data.teamColors)setTeamColors(data.teamColors);if(data.phaseColors)setPhaseColors(data.phaseColors)}
+            else{if(data.tasks){initNextId(data.tasks);autoSchedule(data.tasks);setTasks(data.tasks)}if(data.members)setMembers(data.members);if(data.teamColors)setTeamColors(data.teamColors)}
             showToast('Loaded from JSON!');
           }catch(err){showToast('Error: invalid JSON file')}
         };
@@ -1372,9 +1703,8 @@ function App(){
   const selectedTask=selectedId?findTask(tasks,selectedId):null;
 
   useEffect(()=>{
-    if(selectedId&&selectedTask&&selectedTask.type!=='epic'){
-      const ep=tasks.find(ep=>ep.children&&ep.children.some(c=>c.id===selectedId));
-      setEditBuffer({...selectedTask,phase:ep?ep.phase:''});
+    if(selectedId&&selectedTask){
+      setEditBuffer({...selectedTask});
     } else { setEditBuffer(null); }
   },[selectedId]);
 
@@ -1383,37 +1713,32 @@ function App(){
       {/* Header */}
       <div className="header">
         <h1><span>Build Plan</span></h1>
-        {projects.length>0&&(
+        {projects.length>0?(
           <select value={currentProjectId||''} onChange={e=>switchProject(parseInt(e.target.value))}
             style={{background:'var(--surface2)',color:'var(--text)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px',fontSize:13,fontWeight:600,cursor:'pointer',maxWidth:220}}>
             {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+        ):projectsLoaded&&(
+          <button className="btn btn-primary btn-sm" onClick={()=>setShowAdmin(true)}>+ Tạo dự án mới</button>
         )}
         <div className="header-actions">
           <div className="view-tabs">
             <div className={`view-tab ${view==='gantt'?'active':''}`} onClick={()=>setView('gantt')}>Gantt</div>
             <div className={`view-tab ${view==='board'?'active':''}`} onClick={()=>setView('board')}>Board</div>
+            <div className={`view-tab ${view==='minutes'?'active':''}`} onClick={()=>setView('minutes')}>Minutes</div>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={()=>setShowAdmin(true)}>Admin</button>
-          <button className="btn btn-ghost btn-sm" onClick={importData}>Import</button>
-          <button className="btn btn-ghost btn-sm" onClick={saveData}>Export</button>
+          <button className="btn btn-ghost btn-sm btn-import" onClick={importData}>Import</button>
+          <button className="btn btn-ghost btn-sm btn-export" onClick={saveData}>Export</button>
           <button className="btn btn-ghost btn-sm" onClick={exportExcel}>Excel</button>
-          <button className="btn btn-ghost btn-sm" onClick={exportJira}>Jira CSV</button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setShowPhases(true)}>Phases</button>
-          <button className="btn btn-primary btn-sm" onClick={()=>setShowAdd(true)}>+ Add Task</button>
+          <button className="btn btn-ghost btn-sm btn-jira" onClick={exportJira}>Jira CSV</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>{setAddParentId(null);setShowAdd(true)}}>+ Task</button>
           {AUTH_TOKEN&&<button className="btn btn-ghost btn-sm" onClick={()=>{AUTH_TOKEN=null;localStorage.removeItem('ptb_token');localStorage.removeItem('ptb_username');setLoggedIn(false)}}>Logout</button>}
         </div>
       </div>
 
       {/* Toolbar */}
       <div className="toolbar">
-        <div className="filter-group">
-          <label>Phase:</label>
-          <select value={filterPhase} onChange={e=>setFilterPhase(e.target.value)}>
-            <option>All</option>
-            {Object.keys(PHASE_COLORS).map(p=><option key={p}>{p}</option>)}
-          </select>
-        </div>
         <div className="filter-group">
           <label>Team:</label>
           <select value={filterTeam} onChange={e=>setFilterTeam(e.target.value)}>
@@ -1436,12 +1761,126 @@ function App(){
         <div className="stats">
           <div className="stat"><span className="dot" style={{background:'var(--text2)'}}></span>{stats.total} total</div>
           <div className="stat"><span className="dot" style={{background:'var(--primary)'}}></span>{stats.progress} progress</div>
-          <div className="stat"><span className="dot" style={{background:'var(--green)'}}></span>{stats.done} done</div>
-          <div className="stat"><span className="dot" style={{background:'var(--red)'}}></span>{stats.blocked} blocked</div>
+          <div className="stat"><span className="dot" style={{background:'var(--green)'}}></span>{stats.completed} done</div>
+          <div className="stat"><span className="dot" style={{background:'var(--red)'}}></span>{stats.onHold} on hold</div>
         </div>
       </div>
 
-      {view==='gantt'?(
+      {switchingProject&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:150,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{background:'var(--surface)',padding:'20px 32px',borderRadius:8,fontSize:14,fontWeight:600,color:'var(--text)',border:'1px solid var(--border)'}}>Đang tải dự án...</div></div>}
+
+      {view==='minutes'?(
+      /* Minutes View */
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        <div style={{padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid var(--border)',background:'var(--surface)',flexShrink:0}}>
+          <h2 style={{fontSize:14,fontWeight:700}}>Biên bản họp ({meetings.length})</h2>
+          <button className="btn btn-primary btn-sm" onClick={()=>{
+            const today=new Date();const dd=String(today.getDate()).padStart(2,'0');const mm=String(today.getMonth()+1).padStart(2,'0');const yyyy=today.getFullYear();
+            setEditingMeeting({title:'',date:`${dd}/${mm}/${yyyy}`,content:'',attendees:[]});
+          }}>+ Meeting</button>
+        </div>
+        <div style={{flex:1,overflow:'auto',padding:12}}>
+          {meetings.length===0?(
+            <div style={{textAlign:'center',padding:'60px 20px',color:'var(--text2)'}}>
+              <div style={{fontSize:36,marginBottom:12}}>📋</div>
+              <div style={{fontSize:14,fontWeight:600,marginBottom:8}}>Chưa có biên bản họp nào</div>
+              <button className="btn btn-primary" onClick={()=>{
+                const today=new Date();const dd=String(today.getDate()).padStart(2,'0');const mm=String(today.getMonth()+1).padStart(2,'0');const yyyy=today.getFullYear();
+                setEditingMeeting({title:'',date:`${dd}/${mm}/${yyyy}`,content:'',attendees:[]});
+              }}>+ Tạo biên bản đầu tiên</button>
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {[...meetings].sort((a,b)=>{
+                const pa=a.date.split('/'),pb=b.date.split('/');
+                const na=parseInt(pa[2]+pa[1]+pa[0]),nb=parseInt(pb[2]+pb[1]+pb[0]);
+                return nb-na;
+              }).map(m=>(
+                <div key={m.id} className="meeting-card" onClick={()=>setEditingMeeting({...m})}
+                  style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,padding:'12px 16px',cursor:'pointer',transition:'all .15s',display:'flex',alignItems:'center',gap:12}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='var(--primary)'}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                  <div style={{fontSize:11,color:'var(--text2)',fontVariantNumeric:'tabular-nums',minWidth:75,fontWeight:600}}>{m.date}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:600}}>{m.title}</div>
+                    {m.content&&<div style={{fontSize:11,color:'var(--text2)',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} dangerouslySetInnerHTML={{__html:renderMentions((m.content.length>100?m.content.slice(0,100)+'...':m.content),MEMBERS_FLAT).replace(/<br\/>/g,' ')}}/>}
+                  </div>
+                  {m.attendees&&m.attendees.length>0&&(
+                    <div style={{fontSize:10,color:'var(--text2)',background:'var(--surface2)',padding:'2px 8px',borderRadius:10,flexShrink:0}}>
+                      {m.attendees.length} members
+                    </div>
+                  )}
+                  <div style={{fontSize:10,color:'var(--text2)',flexShrink:0}}>{m.createdBy||''}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Meeting Detail Panel */}
+        <div className={`detail-overlay ${editingMeeting?'open':''}`}>
+          {editingMeeting&&(()=>{
+            const isNew=!editingMeeting.id;
+            const em=editingMeeting;
+            const setEM=(field,val)=>setEditingMeeting(prev=>({...prev,[field]:val}));
+            const toggleAttendee=(name)=>{
+              setEditingMeeting(prev=>{
+                const att=prev.attendees||[];
+                return {...prev,attendees:att.includes(name)?att.filter(n=>n!==name):[...att,name]};
+              });
+            };
+            const handleSave=()=>{
+              if(!em.title||!em.title.trim()){showToast('Vui lòng nhập tiêu đề');return}
+              const payload={title:em.title.trim(),date:em.date,content:em.content||'',attendees:em.attendees||[]};
+              if(isNew)createMeeting(payload);
+              else updateMeeting(em.id,payload);
+            };
+            return(
+            <>
+              <button className="close-btn" onClick={()=>setEditingMeeting(null)}>✕</button>
+              <h3>{isNew?'Tạo biên bản mới':'Chỉnh sửa biên bản'}</h3>
+              <div className="field">
+                <label>Tieu de *</label>
+                <input value={em.title} onChange={e=>setEM('title',e.target.value)} placeholder="VD: Sprint Review - Week 10"/>
+              </div>
+              <div className="field">
+                <label>Ngày họp</label>
+                <input value={em.date} onChange={e=>setEM('date',e.target.value)} placeholder="DD/MM/YYYY"/>
+              </div>
+              <div className="field">
+                <label>Thành viên tham dự</label>
+                <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>
+                  {MEMBERS_FLAT.map(m=>{
+                    const sel=(em.attendees||[]).includes(m.name);
+                    return <span key={m.name} className="attendee-chip" onClick={()=>toggleAttendee(m.name)}
+                      style={{fontSize:11,padding:'3px 8px',borderRadius:12,cursor:'pointer',fontWeight:sel?600:400,
+                        background:sel?'var(--primary)':'var(--surface2)',color:sel?'#fff':'var(--text2)',
+                        border:`1px solid ${sel?'var(--primary)':'var(--border)'}`,transition:'all .15s'}}>
+                      {m.name}
+                      <span style={{fontSize:9,marginLeft:3,opacity:.7}}>{m.team}</span>
+                    </span>;
+                  })}
+                </div>
+                {MEMBERS_FLAT.length===0&&<input value={(em.attendees||[]).join(', ')} onChange={e=>setEM('attendees',e.target.value.split(',').map(s=>s.trim()).filter(Boolean))} placeholder="Nhập tên, cách bởi dấu phẩy"/>}
+              </div>
+              <div className="field">
+                <label>Noi dung</label>
+                <MentionTextarea value={em.content||''} onChange={v=>setEM('content',v)}
+                  members={MEMBERS_FLAT}
+                  placeholder="Nhập nội dung biên bản... dùng @ để tag thành viên"
+                  style={{height:200,resize:'vertical'}}/>
+              </div>
+              {!isNew&&em.createdBy&&<div style={{fontSize:10,color:'var(--text2)',marginBottom:8}}>Tạo bởi: {em.createdBy} - {em.createdAt?new Date(em.createdAt).toLocaleString('vi-VN'):''}</div>}
+              <div style={{display:'flex',gap:8,marginTop:12}}>
+                <button className="btn btn-primary" onClick={handleSave} disabled={!em.title||!em.title.trim()}>Lưu</button>
+                <button className="btn btn-ghost" onClick={()=>setEditingMeeting(null)}>Hủy</button>
+                {!isNew&&<button className="btn btn-danger" style={{marginLeft:'auto'}} onClick={()=>deleteMeeting(em.id)}>Xóa</button>}
+              </div>
+            </>
+            );
+          })()}
+        </div>
+      </div>
+      ):view==='gantt'?(
       <div className="main">
         {/* Task Panel */}
         <div className="task-panel">
@@ -1450,43 +1889,52 @@ function App(){
           </div>
           <div style={{display:'flex',alignItems:'center',padding:'0 8px',height:24,borderBottom:'1px solid var(--border)',background:'var(--surface)',fontSize:10,fontWeight:700,color:'var(--text2)',flexShrink:0}}>
             <div style={{width:24}}></div>
-            <div style={{width:38,textAlign:'center'}}>ID</div>
+            <div className="col-wbs" style={{width:48,textAlign:'center'}}>WBS</div>
             <div style={{flex:1,paddingLeft:6}}>Task Name</div>
             <div style={{width:60,textAlign:'center'}}>Assignee</div>
-            <div style={{width:44,textAlign:'center'}}>Start</div>
-            <div style={{width:28,textAlign:'center'}}>Dur</div>
-            <div style={{width:44,textAlign:'center'}}>End</div>
+            <div className="col-start" style={{width:44,textAlign:'center'}}>Start</div>
+            <div className="col-dur" style={{width:28,textAlign:'center'}}>Dur</div>
+            <div className="col-end" style={{width:44,textAlign:'center'}}>End</div>
             <div style={{width:20,textAlign:'center'}}></div>
             <div style={{width:28,textAlign:'right'}}>%</div>
           </div>
           <div className="task-list" ref={taskListRef} onScroll={syncScroll}>
             {flat.map(t=>{
-              const isEpic=t.type==='epic';
+              const isP=isParent(t);
               const isCritical=criticalIds.has(t.id);
+              const level=t._level||0;
+              const wbs=t._wbs||'';
               return(
-                <div key={t.id} className={`task-row ${isEpic?'epic':''} ${selectedId===t.id?'selected':''} ${isCritical?'critical':''}`}
-                  onClick={()=>{setSelectedId(t.id);if(!isEpic)setShowDetail(true)}}>
-                  {isEpic?(
+                <div key={t.id} className={`task-row ${isP?'parent':''} ${selectedId===t.id?'selected':''} ${isCritical?'critical':''}`}
+                  onClick={()=>{setSelectedId(t.id);setShowDetail(true)}}>
+                  {isP?(
                     <>
+                      <div style={{width:level*20,flexShrink:0}}></div>
                       <div className="expand-btn" onClick={e=>{e.stopPropagation();toggleExpand(t.id)}}>
                         {t.expanded?'▼':'▶'}
                       </div>
-                      <div className="task-name" style={{color:PHASE_COLORS[t.phase]}}>{t.name}</div>
-                      <span style={{fontSize:10,color:'var(--text2)'}}>{t.children?t.children.length:0} tasks</span>
+                      <span className="col-wbs" style={{fontSize:9,color:'var(--text2)',width:48,textAlign:'center',flexShrink:0,fontFamily:'monospace',fontWeight:700}}>{wbs}</span>
+                      <div className="task-name" style={{fontWeight:700}}>{t.name}</div>
+                      <span style={{fontSize:9,color:'var(--text2)',width:60,textAlign:'center',flexShrink:0}}>{t.children.length} tasks</span>
+                      <span className="task-date col-start">{t.start?t.start.slice(0,5):''}</span>
+                      <span className="col-dur" style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?workingDays(d(t.start),d(t.end)):0}d</span>
+                      <span className="task-date col-end">{t.end?t.end.slice(0,5):''}</span>
+                      <span style={{fontSize:9,color:'var(--text2)',width:20}}></span>
+                      <span className="pct" style={{fontWeight:700}}>{t.pct||0}%</span>
                     </>
                   ):(
                     <>
-                      <div className="indent" style={{width:24}}></div>
-                      <span style={{fontSize:9,color:'var(--text2)',width:38,textAlign:'center',flexShrink:0,fontVariantNumeric:'tabular-nums'}}>T{String(t.id).padStart(3,'0')}</span>
-                      <div className="priority-dot" style={{background:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)'}}></div>
+                      <div style={{width:Math.max(level*20,24),flexShrink:0}}></div>
+                      <span className="col-wbs" style={{fontSize:9,color:'var(--text2)',width:48,textAlign:'center',flexShrink:0,fontFamily:'monospace'}}>{wbs}</span>
+                      <div className="priority-dot" style={{background:t.priority==='High'?'var(--red)':t.priority==='Normal'?'var(--yellow)':'var(--green)'}}></div>
                       <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
                       <div className="task-name">{t.name}</div>
                       <span style={{fontSize:9,color:'var(--cyan)',width:60,textAlign:'center',flexShrink:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.assignee||''}</span>
-                      <span className="task-date">{t.start?t.start.slice(0,5):''}</span>
-                      <span style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?workingDays(d(t.start),d(t.end)):0}d</span>
-                      <span className="task-date">{t.end?t.end.slice(0,5):''}</span>
-                      <span className={`status-badge status-${t.status==='To Do'?'todo':t.status==='In Progress'?'progress':t.status==='Done'?'done':'blocked'}`}>
-                        {t.status==='To Do'?'○':t.status==='In Progress'?'◐':t.status==='Done'?'●':'✕'}
+                      <span className="task-date col-start">{t.start?t.start.slice(0,5):''}</span>
+                      <span className="col-dur" style={{fontSize:9,color:'var(--text2)',width:28,textAlign:'center',flexShrink:0}}>{t.start&&t.end?workingDays(d(t.start),d(t.end)):0}d</span>
+                      <span className="task-date col-end">{t.end?t.end.slice(0,5):''}</span>
+                      <span className={`status-badge status-${t.status==='Not Started'?'notstarted':t.status==='In Progress'?'progress':t.status==='Completed'?'completed':'onhold'}`}>
+                        {t.status==='Not Started'?'○':t.status==='In Progress'?'◐':t.status==='Completed'?'●':'✕'}
                       </span>
                       <span className="pct">{t.pct}%</span>
                     </>
@@ -1519,11 +1967,14 @@ function App(){
                   })}
                   {bar&&(
                     <div className="gantt-bar"
-                      style={{left:bar.left,width:bar.width,background:bar.bg,opacity:bar.opacity||1,height:bar.height||22,top:bar.top||5,boxShadow:isCritical?'0 0 0 2px var(--red)':'none'}}
-                      onClick={()=>{setSelectedId(t.id);if(t.type!=='epic')setShowDetail(true)}}
+                      style={{left:bar.left,width:bar.width,background:bar.bg,height:bar.height||22,top:bar.top||5,boxShadow:isCritical?'0 0 0 2px var(--red)':'none',
+                        ...(bar.type==='parent'?{borderLeft:'4px solid #1e293b',borderRight:'4px solid #1e293b',borderRadius:0}:{})}}
+                      onClick={()=>{setSelectedId(t.id);setShowDetail(true)}}
                       title={`${t.name}\n${t.start||''} -> ${t.end||''}`}>
-                      {t.type!=='epic'&&<div className="gantt-bar-progress" style={{width:`${t.pct||0}%`}}></div>}
-                      {t.type!=='epic'&&<span className="bar-label">{t.name}</span>}
+                      {bar.type==='parent'&&<div className="gantt-bar-progress" style={{width:`${bar.pct}%`,background:'#333'}}></div>}
+                      {bar.type==='task'&&<div className="gantt-bar-progress" style={{width:`${t.pct||0}%`}}></div>}
+                      {bar.type==='task'&&<span className="bar-label">{t.name}</span>}
+                      {bar.type==='parent'&&<span className="bar-label" style={{fontWeight:700,fontSize:9}}>{t.name}</span>}
                     </div>
                   )}
                 </div>
@@ -1534,16 +1985,16 @@ function App(){
       </div>
       ):(
       /* Board View */
-      <div style={{flex:1,display:'flex',gap:12,padding:12,overflow:'auto'}}>
+      <div className="board-view" style={{flex:1,display:'flex',gap:12,padding:12,overflow:'auto'}}>
         {STATUSES.map(status=>{
-          const statusTasks=allFlat.filter(t=>t.type!=='epic'&&t.status===status);
+          const statusTasks=allFlat.filter(t=>!isParent(t)&&t.status===status);
           const filtered=statusTasks.filter(t=>{
             const matchTeam=filterTeam==='All'||t.team===filterTeam;
             const q=search.toLowerCase();const matchSearch=!search||t.name.toLowerCase().includes(q)||(t.assignee&&t.assignee.toLowerCase().includes(q));
             return matchTeam&&matchSearch;
           });
           return(
-            <div key={status} style={{flex:1,minWidth:220,background:'var(--surface)',borderRadius:8,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+            <div key={status} className="board-column" style={{flex:1,minWidth:180,background:'var(--surface)',borderRadius:8,display:'flex',flexDirection:'column',overflow:'hidden'}}>
               <div style={{padding:'10px 12px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <span style={{fontWeight:700,fontSize:13}}>{status}</span>
                 <span style={{fontSize:11,color:'var(--text2)',background:'var(--surface2)',padding:'2px 8px',borderRadius:10}}>{filtered.length}</span>
@@ -1556,7 +2007,7 @@ function App(){
                     <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                       <span className="team-badge" style={{background:TEAM_COLORS[t.team]||'#666'}}>{t.team}</span>
                       <span style={{fontSize:10,color:'var(--text2)'}}>{t.assignee}</span>
-                      <span style={{fontSize:10,color:t.priority==='High'?'var(--red)':t.priority==='Medium'?'var(--yellow)':'var(--green)',marginLeft:'auto',fontWeight:600}}>{t.priority}</span>
+                      <span style={{fontSize:10,color:t.priority==='High'?'var(--red)':t.priority==='Normal'?'var(--yellow)':'var(--green)',marginLeft:'auto',fontWeight:600}}>{t.priority}</span>
                     </div>
                     {t.pct>0&&<div style={{marginTop:6,height:3,background:'var(--border)',borderRadius:2}}><div style={{height:'100%',width:`${t.pct}%`,background:'var(--primary)',borderRadius:2}}></div></div>}
                   </div>
@@ -1572,65 +2023,100 @@ function App(){
       <div className={`detail-overlay ${showDetail&&editBuffer?'open':''}`}>
         {editBuffer&&(()=>{
           const eb=editBuffer;
+          const isP=isParent(eb);
           const dur=eb.start&&eb.end?workingDays(d(eb.start),d(eb.end)):0;
           const setB=(field,val)=>setEditBuffer(prev=>({...prev,[field]:val}));
+          // Find current parent
+          const ebInfo=findTaskWithParent(tasks,eb.id,null);
+          const currentParentId=ebInfo&&ebInfo.parent?ebInfo.parent.id:null;
+          // Available parents: all tasks except self and descendants
+          const availableParents=allFlatWithLevel.filter(t=>t.id!==eb.id&&!isDescendant(eb,t.id));
           return(
           <>
             <button className="close-btn" onClick={()=>setShowDetail(false)}>✕</button>
-            <h3>{eb.name}</h3>
+            <h3>{isP&&<span style={{fontSize:11,background:'#475569',color:'#fff',padding:'2px 6px',borderRadius:3,marginRight:8}}>Parent</span>}{eb.name}</h3>
             <div className="field">
               <label>Task Name</label>
               <input value={eb.name} onChange={e=>setB('name',e.target.value)}/>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-              <div className="field"><label>Phase</label>
-                <select value={eb.phase} onChange={e=>setB('phase',e.target.value)}>
-                  {Object.keys(PHASE_COLORS).map(p=><option key={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="field"><label>Team</label>
-                <select value={eb.team} onChange={e=>setB('team',e.target.value)}>
-                  {TEAMS.map(t=><option key={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="field"><label>Assignee</label>
-                <select value={eb.assignee} onChange={e=>setB('assignee',e.target.value)}>
-                  {ALL_MEMBERS.map(m=><option key={m}>{m}</option>)}
-                </select>
-              </div>
-              <div className="field"><label>Priority</label>
-                <select value={eb.priority} onChange={e=>setB('priority',e.target.value)}>
-                  {PRIORITIES.map(p=><option key={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="field"><label>Status</label>
-                <select value={eb.status} onChange={e=>{setB('status',e.target.value);if(e.target.value==='Done')setB('pct',100)}}>
-                  {STATUSES.map(s=><option key={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="field"><label>Duration (working days)</label>
-                <input type="number" min="0" value={dur} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);if(eb.start){const newEnd=addWorkingDays(d(eb.start),days);setB('end',fmt(newEnd))}}}/>
-              </div>
-              <div className="field"><label>Start Date</label>
-                <DatePicker value={eb.start} onChange={v=>setB('start',v)}
-                  onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
-              </div>
-              <div className="field"><label>End Date</label>
-                <DatePicker value={eb.end} onChange={v=>setB('end',v)}
-                  onWeekendSkip={()=>showToast('Ngay roi vao T7/CN, da chuyen sang Thu 2!')}/>
-              </div>
+            {/* Parent selector — WBS input */}
+            <ParentSelector currentParentId={currentParentId} availableParents={availableParents} rootTasks={tasks} onMove={newPid=>moveTask(eb.id,newPid)} currentTaskId={eb.id}/>
+            {/* Action buttons — all tasks */}
+            <div style={{display:'flex',gap:8,marginBottom:8,flexWrap:'wrap'}}>
+              <button className="btn btn-primary btn-sm" onClick={()=>{
+                setAddParentId(eb.id);setShowAdd(true);
+              }}>+ Thêm task con</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>indentTask(eb.id)} title="Indent (make child of previous sibling)">→ Indent</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>outdentTask(eb.id)} title="Outdent (move up one level)">← Outdent</button>
             </div>
-            <div className="field">
-              <label>Progress: {eb.pct}%</label>
-              <input type="range" min="0" max="100" step="10" value={eb.pct}
-                onChange={e=>setB('pct',+e.target.value)}
-                style={{width:'100%',accentColor:'var(--primary)'}}/>
-            </div>
-            <DepsSelector deps={eb.deps||[]} onChange={ids=>setB('deps',ids)} allTasks={allFlat} currentTaskId={eb.id}
-              onDepsAutoDate={ids=>{
-                if(ids.length===0)return;
+            {isP?(
+              <>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                  <div className="field"><label>Start (tự động)</label>
+                    <input value={eb.start||''} disabled style={{opacity:0.6}}/>
+                  </div>
+                  <div className="field"><label>End (tự động)</label>
+                    <input value={eb.end||''} disabled style={{opacity:0.6}}/>
+                  </div>
+                  <div className="field"><label>Duration</label>
+                    <input value={dur+'d'} disabled style={{opacity:0.6}}/>
+                  </div>
+                  <div className="field"><label>Progress (tự động)</label>
+                    <input value={(eb.pct||0)+'%'} disabled style={{opacity:0.6}}/>
+                  </div>
+                </div>
+                <div style={{fontSize:11,color:'var(--text2)',padding:'8px 0',fontStyle:'italic'}}>
+                  Start/End/Progress tự động tính từ {(eb.children||[]).length} task con
+                </div>
+              </>
+            ):(
+              <>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                  <div className="field"><label>Team</label>
+                    <select value={eb.team} onChange={e=>setB('team',e.target.value)}>
+                      {TEAMS.map(t=><option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div className="field"><label>Assignee</label>
+                    <select value={eb.assignee} onChange={e=>setB('assignee',e.target.value)}>
+                      {ALL_MEMBERS.map(m=><option key={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div className="field"><label>Priority</label>
+                    <select value={eb.priority} onChange={e=>setB('priority',e.target.value)}>
+                      {PRIORITIES.map(p=><option key={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  <div className="field"><label>Status</label>
+                    <select value={eb.status} onChange={e=>{setB('status',e.target.value);if(e.target.value==='Completed')setB('pct',100)}}>
+                      {STATUSES.map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="field"><label>Duration (working days)</label>
+                    <input type="number" min="0" value={dur} onChange={e=>{const days=Math.max(0,parseInt(e.target.value)||0);if(eb.start){const newEnd=addWorkingDays(d(eb.start),days);setB('end',fmt(newEnd))}}}/>
+                  </div>
+                  <div className="field"><label>Start Date</label>
+                    <DatePicker value={eb.start} onChange={v=>setB('start',v)}
+                      onWeekendSkip={()=>showToast('Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
+                  </div>
+                  <div className="field"><label>End Date</label>
+                    <DatePicker value={eb.end} onChange={v=>setB('end',v)}
+                      onWeekendSkip={()=>showToast('Ngày rơi vào T7/CN, đã chuyển sang Thứ 2!')}/>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Progress: {eb.pct}%</label>
+                  <input type="range" min="0" max="100" step="10" value={eb.pct}
+                    onChange={e=>setB('pct',+e.target.value)}
+                    style={{width:'100%',accentColor:'var(--primary)'}}/>
+                </div>
+              </>
+            )}
+            <DepsSelector deps={eb.deps||[]} onChange={newDeps=>setB('deps',newDeps)} allTasks={allFlat} currentTaskId={eb.id} rootTasks={tasks}
+              onDepsAutoDate={isP?undefined:newDeps=>{
+                if(!newDeps||newDeps.length===0)return;
                 let maxEnd=null;
-                ids.forEach(id=>{const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
+                newDeps.forEach(dep=>{const id=typeof dep==='number'?dep:dep.id;const t=allFlat.find(x=>x.id===id);if(t&&t.end){const e=d(t.end);if(!maxEnd||e>maxEnd)maxEnd=e}});
                 if(maxEnd){
                   const curDur=workingDays(d(eb.start),d(eb.end));
                   const ns=skipWeekend(addDays(maxEnd,1)).date;
@@ -1646,7 +2132,7 @@ function App(){
                 {updating?<span className="saving-dots"><span>.</span><span>.</span><span>.</span></span>:'Update'}
               </button>
               <button className="delete-link" onClick={()=>{
-                if(window.confirm(`Xac nhan xoa task "${eb.name}"?\nHanh dong nay khong the hoan tac!`))deleteTask(eb.id);
+                if(window.confirm(`Xác nhận xóa task "${eb.name}"?${isP?'\nTất cả task con sẽ bị xóa!':'\nHành động này không thể hoàn tác!'}`))deleteTask(eb.id);
               }}>Delete Task</button>
             </div>
           </>
@@ -1655,16 +2141,16 @@ function App(){
       </div>
 
       {/* Add Task Modal */}
-      {showAdd&&<AddTaskModal tasks={tasks} teams={TEAMS} members={members} phaseColors={PHASE_COLORS} teamColors={TEAM_COLORS} onAdd={addTask} onClose={()=>setShowAdd(false)} showToast={showToast}/>}
-
-      {/* Phase Modal */}
-      {showPhases&&<PhaseModal phaseColors={phaseColors} setPhaseColors={setPhaseColors} tasks={tasks} update={update} showToast={showToast} onClose={()=>setShowPhases(false)}/>}
+      {showAdd&&<AddTaskModal tasks={tasks} teams={TEAMS} members={members} teamColors={TEAM_COLORS} onAdd={addTask} onClose={()=>setShowAdd(false)} showToast={showToast} parentId={addParentId}/>}
 
       {/* Admin Modal */}
       {showAdmin&&<AdminModal members={members} setMembers={setMembers} teamColors={teamColors} setTeamColors={setTeamColors} tasks={tasks} update={update} showToast={showToast} onClose={()=>setShowAdmin(false)} projects={projects} setProjects={setProjects} currentProjectId={currentProjectId} switchProject={switchProject}/>}
 
       {/* Toast */}
       {toast&&<div className="toast">{toast}</div>}
+
+      {/* Build Version Footer */}
+      <div style={{position:'fixed',bottom:0,left:0,right:0,textAlign:'center',padding:'2px 0',fontSize:10,color:'#999',background:'rgba(255,255,255,0.9)',borderTop:'1px solid #eee',zIndex:1}}>{BUILD_VERSION} | {BUILD_TIME}</div>
     </div>
   );
 }
